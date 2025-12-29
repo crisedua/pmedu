@@ -71,7 +71,7 @@ export default function TaskList({ projectId }) {
                         return (
                             <div
                                 key={task.id}
-                                className={`task-item ${task.createdByAI ? 'ai-created' : ''}`}
+                                className={`task-item ${task.created_by_ai ? 'ai-created' : ''}`}
                             >
                                 {/* Checkbox */}
                                 <div
@@ -85,7 +85,7 @@ export default function TaskList({ projectId }) {
                                 <div className="task-content">
                                     <div className={`task-name ${isDone ? 'completed' : ''}`}>
                                         {task.name}
-                                        {task.createdByAI && (
+                                        {task.created_by_ai && (
                                             <span className="badge badge-ai" style={{
                                                 marginLeft: 'var(--space-2)',
                                                 fontSize: '10px',

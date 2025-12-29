@@ -114,7 +114,7 @@ export default function KanbanBoard({ projectId }) {
                                     return (
                                         <div
                                             key={task.id}
-                                            className={`kanban-task ${task.createdByAI ? 'ai-created' : ''}`}
+                                            className={`kanban-task ${task.created_by_ai ? 'ai-created' : ''}`}
                                             draggable
                                             onDragStart={(e) => handleDragStart(e, task)}
                                             onDragEnd={handleDragEnd}
@@ -180,7 +180,7 @@ export default function KanbanBoard({ projectId }) {
                                                 </div>
                                             </div>
 
-                                            {task.createdByAI && (
+                                            {task.created_by_ai && (
                                                 <div style={{ marginBottom: 'var(--space-2)' }}>
                                                     <span className="badge badge-ai" style={{ fontSize: '10px' }}>
                                                         <Sparkles size={10} />
