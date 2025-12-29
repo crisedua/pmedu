@@ -406,7 +406,38 @@ export default function ProjectView() {
                                         key={doc.id}
                                         to={`/project/${projectId}/document/${doc.id}`}
                                         className="doc-card"
+                                        style={{ position: 'relative' }}
                                     >
+                                        <button
+                                            className="delete-btn"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                if (window.confirm('Are you sure you want to delete this document?')) {
+                                                    deleteDocument(doc.id);
+                                                }
+                                            }}
+                                            title="Delete document"
+                                            style={{
+                                                position: 'absolute',
+                                                top: '12px',
+                                                right: '12px',
+                                                background: 'transparent',
+                                                border: 'none',
+                                                color: 'var(--text-tertiary)',
+                                                cursor: 'pointer',
+                                                padding: '4px',
+                                                borderRadius: '4px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                zIndex: 10,
+                                            }}
+                                            onMouseEnter={(e) => e.target.style.color = 'var(--color-error)'}
+                                            onMouseLeave={(e) => e.target.style.color = 'var(--text-tertiary)'}
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
                                         <div className="doc-icon">
                                             <FileText size={20} />
                                         </div>
@@ -466,7 +497,10 @@ export default function ProjectView() {
                         <div className="card">
                             <div className="file-list">
                                 {files.map(file => {
-                                    const uploader = getUser(file.uploadedBy);
+                                    const uploader = getUser(file.uploaded_by);
+                                    const fileDate = new Date(file.created_at || new Date());
+                                    const isValidFileDate = !isNaN(fileDate.getTime());
+
                                     return (
                                         <div key={file.id} className="file-item">
                                             <div className="file-icon">
@@ -475,7 +509,7 @@ export default function ProjectView() {
                                             <div className="file-info">
                                                 <div className="file-name">{file.name}</div>
                                                 <div className="file-meta">
-                                                    Uploaded by {uploader?.name || 'Unknown'} on {format(new Date(file.uploadDate), 'MMM d, yyyy')}
+                                                    Uploaded by {uploader?.name || 'Unknown'} on {isValidFileDate ? format(fileDate, 'MMM d, yyyy') : 'N/A'}
                                                     {' • '}{formatFileSize(file.size)}
                                                 </div>
                                             </div>
