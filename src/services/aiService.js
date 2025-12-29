@@ -86,13 +86,23 @@ export async function generateTasksFromAI(input, options = {}) {
             const taskDueDate = new Date(baseDate);
             taskDueDate.setDate(baseDate.getDate() + (task.daysOffset || 0));
 
+            let assignedTo = task.assignedTo || options.assignedTo || null;
+            if (assignedTo === 'null' || assignedTo === 'undefined' || assignedTo === '') {
+                assignedTo = null;
+            }
+
+            // Verify if the suggested ID exists in our user list to avoid foreign key violations
+            if (assignedTo && !users.some(u => u.id === assignedTo)) {
+                assignedTo = null;
+            }
+
             return {
                 name: task.name,
                 description: task.description || `AI-generated task based on: "${input}"`,
-                dueDate: taskDueDate.toISOString(),
-                assignedTo: task.assignedTo || options.assignedTo || null,
-                project_id: projectId, // Ensure snake_case
-                created_by_ai: true,   // Ensure snake_case
+                due_date: taskDueDate.toISOString(),
+                assigned_to: assignedTo,
+                project_id: projectId,
+                created_by_ai: true,
                 status: 'To Do'
             };
         });
