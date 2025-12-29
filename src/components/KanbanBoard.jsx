@@ -106,8 +106,10 @@ export default function KanbanBoard({ projectId }) {
 
                             <div className="kanban-tasks">
                                 {columnTasks.map(task => {
-                                    const assignee = getUser(task.assignedTo);
-                                    const isOverdue = task.status !== 'Done' && new Date(task.dueDate) < new Date();
+                                    const assignee = getUser(task.assigned_to);
+                                    const taskDate = task.due_date ? new Date(task.due_date) : null;
+                                    const isOverdue = task.status !== 'Done' && taskDate && taskDate < new Date();
+                                    const isValidDate = taskDate && !isNaN(taskDate.getTime());
 
                                     return (
                                         <div
@@ -195,7 +197,7 @@ export default function KanbanBoard({ projectId }) {
                                                     color: isOverdue ? 'var(--color-error)' : 'var(--text-tertiary)',
                                                 }}>
                                                     <Calendar size={12} />
-                                                    {format(new Date(task.dueDate), 'MMM d')}
+                                                    {isValidDate ? format(taskDate, 'MMM d') : 'No date'}
                                                 </div>
 
                                                 {assignee && (

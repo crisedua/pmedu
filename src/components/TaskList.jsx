@@ -52,7 +52,9 @@ export default function TaskList({ projectId }) {
     const sortedTasks = [...tasks].sort((a, b) => {
         if (a.status === 'Done' && b.status !== 'Done') return 1;
         if (a.status !== 'Done' && b.status === 'Done') return -1;
-        return new Date(a.dueDate) - new Date(b.dueDate);
+        const dateA = a.due_date ? new Date(a.due_date) : new Date(0);
+        const dateB = b.due_date ? new Date(b.due_date) : new Date(0);
+        return dateA - dateB;
     });
 
     return (
@@ -60,8 +62,10 @@ export default function TaskList({ projectId }) {
             <div className="card">
                 <div className="task-list">
                     {sortedTasks.map(task => {
-                        const assignee = getUser(task.assignedTo);
-                        const isOverdue = task.status !== 'Done' && new Date(task.dueDate) < new Date();
+                        const assignee = getUser(task.assigned_to);
+                        const taskDate = task.due_date ? new Date(task.due_date) : null;
+                        const isOverdue = task.status !== 'Done' && taskDate && taskDate < new Date();
+                        const isValidDate = taskDate && !isNaN(taskDate.getTime());
                         const isDone = task.status === 'Done';
 
                         return (
@@ -157,7 +161,7 @@ export default function TaskList({ projectId }) {
                                         }}
                                     >
                                         <Calendar size={14} />
-                                        {format(new Date(task.dueDate), 'MMM d')}
+                                        {isValidDate ? format(taskDate, 'MMM d') : 'No date'}
                                     </button>
 
                                     {editingField === `date-${task.id}` && (
@@ -179,7 +183,7 @@ export default function TaskList({ projectId }) {
                                             }}>
                                                 <input
                                                     type="date"
-                                                    defaultValue={format(new Date(task.dueDate), 'yyyy-MM-dd')}
+                                                    defaultValue={isValidDate ? format(taskDate, 'yyyy-MM-dd') : ''}
                                                     onChange={(e) => handleDueDateChange(task.id, e.target.value)}
                                                     className="form-input"
                                                     style={{ padding: 'var(--space-2)' }}

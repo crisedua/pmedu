@@ -7,8 +7,9 @@ export default function EditTaskModal({ task, onClose }) {
     const { updateTask, users } = useData();
     const [name, setName] = useState(task.name);
     const [description, setDescription] = useState(task.description || '');
-    const [dueDate, setDueDate] = useState(format(new Date(task.dueDate), 'yyyy-MM-dd'));
-    const [assignedTo, setAssignedTo] = useState(task.assignedTo || '');
+    const initialDate = task.due_date ? new Date(task.due_date) : null;
+    const [dueDate, setDueDate] = useState(initialDate && !isNaN(initialDate.getTime()) ? format(initialDate, 'yyyy-MM-dd') : '');
+    const [assignedTo, setAssignedTo] = useState(task.assigned_to || '');
     const [status, setStatus] = useState(task.status);
     const [loading, setLoading] = useState(false);
 

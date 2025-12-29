@@ -199,14 +199,14 @@ export default function AITaskModal({ projectId, onClose }) {
                                                         <input
                                                             type="date"
                                                             className="form-input"
-                                                            value={format(new Date(task.dueDate), 'yyyy-MM-dd')}
-                                                            onChange={(e) => handleEditTask(index, 'dueDate', new Date(e.target.value).toISOString())}
+                                                            value={task.due_date ? format(new Date(task.due_date), 'yyyy-MM-dd') : ''}
+                                                            onChange={(e) => handleEditTask(index, 'due_date', new Date(e.target.value).toISOString())}
                                                             style={{ flex: 1 }}
                                                         />
                                                         <select
                                                             className="form-select"
-                                                            value={task.assignedTo || ''}
-                                                            onChange={(e) => handleEditTask(index, 'assignedTo', e.target.value || null)}
+                                                            value={task.assigned_to || ''}
+                                                            onChange={(e) => handleEditTask(index, 'assigned_to', e.target.value || null)}
                                                             style={{ flex: 1 }}
                                                         >
                                                             <option value="">Unassigned</option>
@@ -240,11 +240,11 @@ export default function AITaskModal({ projectId, onClose }) {
                                                         }}>
                                                             <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)' }}>
                                                                 <Calendar size={12} />
-                                                                {format(new Date(task.dueDate), 'MMM d, yyyy')}
+                                                                {task.due_date ? format(new Date(task.due_date), 'MMM d, yyyy') : 'No date'}
                                                             </span>
                                                             <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)' }}>
                                                                 <User size={12} />
-                                                                {getAssigneeName(task.assignedTo)}
+                                                                {getAssigneeName(task.assigned_to)}
                                                             </span>
                                                         </div>
                                                     </div>

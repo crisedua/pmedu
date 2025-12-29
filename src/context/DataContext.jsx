@@ -451,14 +451,18 @@ export function DataProvider({ children }) {
 
   const updateTask = async (taskId, updates) => {
     try {
-      // Map camelCase to snake_case for database
       const dbUpdates = {};
-      if (updates.name !== undefined) dbUpdates.name = updates.name;
-      if (updates.description !== undefined) dbUpdates.description = updates.description;
-      if (updates.dueDate !== undefined) dbUpdates.due_date = updates.dueDate;
-      if (updates.assignedTo !== undefined) dbUpdates.assigned_to = updates.assignedTo;
-      if (updates.status !== undefined) dbUpdates.status = updates.status;
-      if (updates.projectId !== undefined) dbUpdates.project_id = updates.projectId;
+      const getVal = (key1, key2) => updates[key1] !== undefined ? updates[key1] : updates[key2];
+
+      if (getVal('name', 'name') !== undefined) dbUpdates.name = getVal('name', 'name');
+      if (getVal('description', 'description') !== undefined) dbUpdates.description = getVal('description', 'description');
+      if (getVal('dueDate', 'due_date') !== undefined) dbUpdates.due_date = getVal('dueDate', 'due_date');
+      if (getVal('assignedTo', 'assigned_to') !== undefined) {
+        const val = getVal('assignedTo', 'assigned_to');
+        dbUpdates.assigned_to = (val === '' || val === 'null' || val === 'undefined') ? null : val;
+      }
+      if (getVal('status', 'status') !== undefined) dbUpdates.status = getVal('status', 'status');
+      if (getVal('projectId', 'project_id') !== undefined) dbUpdates.project_id = getVal('projectId', 'project_id');
 
       const { data, error } = await supabase
         .from('tasks')
