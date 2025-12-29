@@ -395,7 +395,12 @@ export default function ProjectView() {
                     ) : (
                         <div className="grid-auto">
                             {documents.map(doc => {
-                                const author = getUser(doc.authorId);
+                                const author = getUser(doc.author_id);
+                                // Fallback to created_at if last_edited is missing
+                                const dateStr = doc.last_edited || doc.created_at;
+                                const dateObj = dateStr ? new Date(dateStr) : null;
+                                const isValid = dateObj && !isNaN(dateObj.getTime());
+
                                 return (
                                     <Link
                                         key={doc.id}
@@ -407,7 +412,7 @@ export default function ProjectView() {
                                         </div>
                                         <h4 className="doc-title">{doc.title}</h4>
                                         <div className="doc-meta">
-                                            <div>Last edited {format(new Date(doc.lastEdited), 'MMM d, yyyy')}</div>
+                                            <div>Last edited {isValid ? format(dateObj, 'MMM d, yyyy') : 'N/A'}</div>
                                             <div>by {author?.name || 'Unknown'}</div>
                                         </div>
                                     </Link>
