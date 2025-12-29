@@ -399,11 +399,11 @@ export function DataProvider({ children }) {
       const newTask = {
         name: taskData.name,
         description: taskData.description,
-        due_date: taskData.dueDate,
-        assigned_to: taskData.assignedTo,
+        due_date: taskData.dueDate || taskData.due_date,
+        assigned_to: (taskData.assignedTo || taskData.assigned_to) || null,
         status: taskData.status || 'To Do',
-        project_id: taskData.projectId,
-        created_by_ai: taskData.createdByAI || false,
+        project_id: taskData.projectId || taskData.project_id,
+        created_by_ai: taskData.createdByAI || taskData.created_by_ai || false,
       };
 
       const { data, error } = await supabase
@@ -427,11 +427,11 @@ export function DataProvider({ children }) {
       const newTasks = tasksData.map(task => ({
         name: task.name,
         description: task.description,
-        due_date: task.dueDate,
-        assigned_to: task.assignedTo,
+        due_date: task.dueDate || task.due_date,
+        assigned_to: (task.assignedTo || task.assigned_to) || null,
         status: task.status || 'To Do',
         project_id: task.projectId || task.project_id,
-        created_by_ai: task.created_by_ai || true,
+        created_by_ai: task.created_by_ai !== undefined ? task.created_by_ai : true,
       }));
 
       const { data, error } = await supabase
