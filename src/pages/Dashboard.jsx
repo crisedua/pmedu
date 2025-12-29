@@ -189,47 +189,6 @@ export default function Dashboard() {
                 )}
             </div>
 
-            {/* AI Feature Highlight */}
-            <div className="section">
-                <div className="card" style={{
-                    background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%)',
-                    border: '1px solid var(--color-primary-200)',
-                }}>
-                    <div className="card-body" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-6)' }}>
-                        <div style={{
-                            width: '64px',
-                            height: '64px',
-                            borderRadius: 'var(--radius-xl)',
-                            background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: 'white',
-                            flexShrink: 0,
-                        }}>
-                            <Sparkles size={28} />
-                        </div>
-                        <div style={{ flex: 1 }}>
-                            <h3 style={{ marginBottom: 'var(--space-2)' }}>AI-Powered Task Creation</h3>
-                            <p style={{ color: 'var(--text-secondary)', marginBottom: 0 }}>
-                                Just describe what needs to be done in natural language, and AI will break it down into
-                                actionable tasks with due dates and assignments. Try it in any project!
-                            </p>
-                        </div>
-                        {projects.length > 0 && (
-                            <button
-                                className="btn btn-ai"
-                                onClick={() => navigate(`/project/${projects[0].id}`)}
-                            >
-                                <span>
-                                    Try it now
-                                    <ArrowRight size={18} />
-                                </span>
-                            </button>
-                        )}
-                    </div>
-                </div>
-            </div>
 
             {/* Create Project Modal */}
             {createProjectOpen && (
