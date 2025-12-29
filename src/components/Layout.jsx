@@ -26,11 +26,11 @@ export default function Layout() {
     const [createProjectOpen, setCreateProjectOpen] = useState(false);
     const [aiSummary, setAiSummary] = useState(null);
     const [loadingSummary, setLoadingSummary] = useState(false);
+    const [showSummaryModal, setShowSummaryModal] = useState(false);
 
     const handleGetSummary = async () => {
         setLoadingSummary(true);
-        // We handle global summary here. For project specific, we could pass current projectId
-        // but often a global overview in the sidebar is better.
+        setShowSummaryModal(true);
         const summary = await getTodaySummary(null, tasks, currentUser);
         setAiSummary(summary);
         setLoadingSummary(false);
@@ -155,28 +155,21 @@ export default function Layout() {
                                 <div style={{ fontWeight: 'var(--font-semibold)', fontSize: 'var(--text-sm)' }}>AI Daily Focus</div>
                             </div>
 
-                            {aiSummary ? (
-                                <div style={{
-                                    fontSize: 'var(--text-xs)',
-                                    lineHeight: '1.6',
-                                    color: 'var(--text-secondary)',
-                                    background: 'var(--bg-primary)',
-                                    padding: 'var(--space-3)',
-                                    borderRadius: 'var(--radius-md)',
-                                    border: '1px solid var(--border-light)',
-                                    marginBottom: 'var(--space-3)',
-                                }}>
-                                    {aiSummary}
-                                </div>
-                            ) : (
-                                <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', marginBottom: 'var(--space-3)' }}>
-                                    Get personalized task focus for your day.
-                                </p>
-                            )}
+                            <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', marginBottom: 'var(--space-3)' }}>
+                                Get personalized task focus for your day.
+                            </p>
 
                             <button
                                 className="btn btn-ai btn-sm"
-                                style={{ width: '100%', justifyContent: 'center' }}
+                                style={{
+                                    width: '100%',
+                                    height: 'auto',
+                                    padding: 'var(--space-3)',
+                                    flexDirection: 'column',
+                                    gap: 'var(--space-1)',
+                                    textAlign: 'center',
+                                    lineHeight: '1.2'
+                                }}
                                 onClick={handleGetSummary}
                                 disabled={loadingSummary}
                             >
@@ -187,8 +180,10 @@ export default function Layout() {
                                     </>
                                 ) : (
                                     <>
-                                        <Brain size={14} />
-                                        {aiSummary ? 'Refresh Summary' : 'What should I work on today?'}
+                                        <Brain size={16} />
+                                        <div style={{ fontSize: 'var(--text-xs)', fontWeight: 'var(--font-bold)' }}>
+                                            What should I<br />work on today?
+                                        </div>
                                     </>
                                 )}
                             </button>
@@ -250,14 +245,72 @@ export default function Layout() {
             </main>
 
             {/* Modals */}
-            {
-                createProjectOpen && (
-                    <CreateProjectModal
-                        onClose={() => setCreateProjectOpen(false)}
-                        onCreated={handleProjectCreated}
-                    />
-                )
-            }
+            {createProjectOpen && (
+                <CreateProjectModal
+                    onClose={() => setCreateProjectOpen(false)}
+                    onCreated={handleProjectCreated}
+                />
+            )}
+
+            {showSummaryModal && (
+                <div className="modal-overlay" onClick={() => setShowSummaryModal(false)}>
+                    <div className="modal-container" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+                        <div className="modal-header">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+                                <div style={{
+                                    width: '32px',
+                                    height: '32px',
+                                    borderRadius: 'var(--radius-md)',
+                                    background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: 'white',
+                                }}>
+                                    <Sparkles size={18} />
+                                </div>
+                                <h2 className="modal-title">Your Daily Focus</h2>
+                            </div>
+                            <button className="btn btn-ghost btn-icon" onClick={() => setShowSummaryModal(false)}>
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            {loadingSummary ? (
+                                <div style={{ textAlign: 'center', padding: 'var(--space-8)' }}>
+                                    <div className="spinner" style={{ width: '32px', height: '32px', margin: '0 auto var(--space-4)' }} />
+                                    <p style={{ color: 'var(--text-secondary)' }}>AI is analyzing your tasks...</p>
+                                </div>
+                            ) : (
+                                <div style={{
+                                    background: 'var(--bg-tertiary)',
+                                    padding: 'var(--space-6)',
+                                    borderRadius: 'var(--radius-lg)',
+                                    fontSize: 'var(--text-md)',
+                                    lineHeight: '1.7',
+                                    color: 'var(--text-primary)',
+                                    whiteSpace: 'pre-wrap'
+                                }}>
+                                    {aiSummary}
+                                </div>
+                            )}
+                        </div>
+                        <div className="modal-footer">
+                            <button className="btn btn-ghost" onClick={() => setShowSummaryModal(false)}>
+                                Close
+                            </button>
+                            <button
+                                className="btn btn-ai"
+                                onClick={handleGetSummary}
+                                disabled={loadingSummary}
+                            >
+                                <Sparkles size={18} />
+                                Refresh Insights
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <style>{`
         @media (max-width: 768px) {
