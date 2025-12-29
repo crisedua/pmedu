@@ -430,8 +430,8 @@ export function DataProvider({ children }) {
         due_date: task.dueDate,
         assigned_to: task.assignedTo,
         status: task.status || 'To Do',
-        project_id: task.projectId,
-        created_by_ai: true,
+        project_id: task.projectId || task.project_id,
+        created_by_ai: task.created_by_ai || true,
       }));
 
       const { data, error } = await supabase
