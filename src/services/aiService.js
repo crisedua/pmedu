@@ -187,5 +187,18 @@ function getLocalSummary(projectId, tasks, currentUser) {
     const projectTasks = tasks.filter(t => t.project_id === projectId);
     const myTasks = projectTasks.filter(t => t.assigned_to === currentUser.id);
     const overdue = myTasks.filter(t =>
-// Utility functions (Removed duplicate AI code)
+        t.status !== 'Done' && new Date(t.due_date) < new Date()
+    );
+    const dueToday = myTasks.filter(t => {
+        const dueDate = new Date(t.due_date).toDateString();
+        return t.status !== 'Done' && dueDate === new Date().toDateString();
+    });
+
+    let summary = '';
+    if (overdue.length > 0) summary += `⚠️ You have ${overdue.length} overdue tasks.\n`;
+    if (dueToday.length > 0) summary += `📅 ${dueToday.length} tasks due today.\n`;
+    if (!summary) summary = "✨ All caught up! No urgent tasks.";
+
+    return summary;
+}
 
