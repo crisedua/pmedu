@@ -58,7 +58,8 @@ export default function DocumentEditor() {
             }
             // Initialize lastSaved state from document data
             if (!lastSaved) {
-                setLastSaved(new Date(document.lastEdited));
+                const dateStr = document.last_edited || document.created_at;
+                if (dateStr) setLastSaved(new Date(dateStr));
             }
         }
     }, [document, editor, lastSaved]);
@@ -121,7 +122,7 @@ export default function DocumentEditor() {
         );
     }
 
-    const author = getUser(document.authorId);
+    const author = getUser(document.author_id);
 
     return (
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
@@ -208,7 +209,11 @@ export default function DocumentEditor() {
                 color: 'var(--text-tertiary)',
                 marginBottom: 'var(--space-6)',
             }}>
-                Created by {author?.name || 'Unknown'} • Last edited {format(new Date(document.lastEdited), 'MMM d, yyyy h:mm a')}
+                Created by {author?.name || 'Unknown'} • Last edited {(() => {
+                    const dateStr = document.last_edited || document.created_at;
+                    const dateObj = dateStr ? new Date(dateStr) : null;
+                    return (dateObj && !isNaN(dateObj.getTime())) ? format(dateObj, 'MMM d, yyyy h:mm a') : 'N/A';
+                })()}
             </div>
 
             {/* Editor */}
