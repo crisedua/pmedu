@@ -106,85 +106,81 @@ export default function ProjectView() {
                 Back to Dashboard
             </Link>
 
-            {/* Project Header */}
-            <div className="page-header">
-                <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', marginBottom: 'var(--space-2)' }}>
-                        <h1 className="page-title">{project.name}</h1>
-                        <span className={`status-badge status-${project.status.toLowerCase().replace(' ', '-')}`}>
-                            {project.status}
-                        </span>
+            {/* Project Header & Stats Consolidated */}
+            <div className="card mb-6" style={{ padding: 'var(--space-4) var(--space-6)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--space-4)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', flex: 1, minWidth: '300px' }}>
+                        <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+                                <h1 style={{ fontSize: 'var(--text-xl)', margin: 0 }}>{project.name}</h1>
+                                <span className={`status-badge status-${project.status.toLowerCase().replace(' ', '-')}`} style={{ fontSize: '10px', padding: '2px 8px' }}>
+                                    {project.status}
+                                </span>
+                            </div>
+                            <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', margin: 0 }}>{project.description}</p>
+                        </div>
                     </div>
-                    <p className="page-subtitle">{project.description}</p>
-                </div>
 
-                <div className="page-actions">
-                    <div className="dropdown" style={{ position: 'relative' }}>
-                        <button
-                            className="btn btn-ghost btn-icon"
-                            onClick={() => setShowMenu(!showMenu)}
-                        >
-                            <MoreVertical size={20} />
-                        </button>
-                        {showMenu && (
-                            <>
-                                <div
-                                    style={{ position: 'fixed', inset: 0, zIndex: 99 }}
-                                    onClick={() => setShowMenu(false)}
-                                />
-                                <div className="dropdown-menu" style={{ opacity: 1, visibility: 'visible', transform: 'none' }}>
-                                    <div className="dropdown-item" onClick={() => { setEditProjectOpen(true); setShowMenu(false); }}>
-                                        <Edit3 size={16} />
-                                        Edit Project
-                                    </div>
-                                    <div className="dropdown-item" onClick={() => { setManageMembersOpen(true); setShowMenu(false); }}>
-                                        <Users size={16} />
-                                        Manage Members
-                                    </div>
-                                    <div className="dropdown-divider" />
-                                    <div className="dropdown-item danger" onClick={() => { handleDeleteProject(); setShowMenu(false); }}>
-                                        <Trash2 size={16} />
-                                        Delete Project
-                                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-8)' }}>
+                        <div style={{ display: 'flex', gap: 'var(--space-4)' }}>
+                            <div style={{ textAlign: 'center' }}>
+                                <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-bold)' }}>{stats.total}</div>
+                                <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Tasks</div>
+                            </div>
+                            <div style={{ textAlign: 'center' }}>
+                                <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-bold)', color: 'var(--color-accent-emerald)' }}>{stats.done}</div>
+                                <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Done</div>
+                            </div>
+                        </div>
+
+                        {stats.total > 0 && (
+                            <div style={{ width: '150px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '10px' }}>
+                                    <span style={{ fontWeight: 'var(--font-medium)' }}>Progress</span>
+                                    <span>{progress}%</span>
                                 </div>
-                            </>
+                                <div className="progress-bar" style={{ height: '6px' }}>
+                                    <div className="progress-fill" style={{ width: `${progress}%` }} />
+                                </div>
+                            </div>
                         )}
+
+                        <div className="page-actions">
+                            <div className="dropdown" style={{ position: 'relative' }}>
+                                <button
+                                    className="btn btn-ghost btn-sm btn-icon"
+                                    onClick={() => setShowMenu(!showMenu)}
+                                >
+                                    <MoreVertical size={16} />
+                                </button>
+                                {showMenu && (
+                                    <>
+                                        <div
+                                            style={{ position: 'fixed', inset: 0, zIndex: 99 }}
+                                            onClick={() => setShowMenu(false)}
+                                        />
+                                        <div className="dropdown-menu" style={{ opacity: 1, visibility: 'visible', transform: 'none', right: 0, top: '100%' }}>
+                                            <div className="dropdown-item" onClick={() => { setEditProjectOpen(true); setShowMenu(false); }}>
+                                                <Edit3 size={14} />
+                                                Edit Project
+                                            </div>
+                                            <div className="dropdown-item" onClick={() => { setManageMembersOpen(true); setShowMenu(false); }}>
+                                                <Users size={14} />
+                                                Manage Members
+                                            </div>
+                                            <div className="dropdown-divider" />
+                                            <div className="dropdown-item danger" onClick={() => { handleDeleteProject(); setShowMenu(false); }}>
+                                                <Trash2 size={14} />
+                                                Delete Project
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-
-            {/* Stats Row */}
-            <div className="stats-grid mb-6">
-                <div className="stat-card">
-                    <div className="stat-value">{stats.total}</div>
-                    <div className="stat-label">Total Tasks</div>
-                </div>
-                <div className="stat-card">
-                    <div className="stat-value" style={{ color: 'var(--color-neutral-500)' }}>{stats.todo}</div>
-                    <div className="stat-label">To Do</div>
-                </div>
-                <div className="stat-card">
-                    <div className="stat-value" style={{ color: 'var(--color-info)' }}>{stats.inProgress}</div>
-                    <div className="stat-label">In Progress</div>
-                </div>
-                <div className="stat-card">
-                    <div className="stat-value" style={{ color: 'var(--color-accent-emerald)' }}>{stats.done}</div>
-                    <div className="stat-label">Completed</div>
-                </div>
-            </div>
-
-            {/* Progress Bar */}
-            {stats.total > 0 && (
-                <div className="card mb-6" style={{ padding: 'var(--space-4) var(--space-6)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-2)' }}>
-                        <span style={{ fontWeight: 'var(--font-medium)' }}>Project Progress</span>
-                        <span style={{ color: 'var(--text-tertiary)' }}>{progress}%</span>
-                    </div>
-                    <div className="progress-bar" style={{ height: '10px' }}>
-                        <div className="progress-fill" style={{ width: `${progress}%` }} />
-                    </div>
-                </div>
-            )}
 
             {/* Quick Actions */}
             <div className="quick-actions mb-6">
