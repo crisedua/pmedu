@@ -13,6 +13,7 @@ import {
     ChevronRight,
     LogOut,
     Shield,
+    Users,
 } from 'lucide-react';
 import CreateProjectModal from './modals/CreateProjectModal';
 
@@ -68,6 +69,16 @@ export default function Layout() {
                             <LayoutDashboard size={20} />
                             Dashboard
                         </NavLink>
+                        {currentUser?.role === 'admin' && (
+                            <NavLink
+                                to="/users"
+                                className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+                                onClick={() => setSidebarOpen(false)}
+                            >
+                                <Users size={20} />
+                                User Management
+                            </NavLink>
+                        )}
                     </div>
 
                     <div className="sidebar-section">
