@@ -195,16 +195,27 @@ export function DataProvider({ children }) {
     switch (table) {
       case 'projects':
         if (eventType === 'INSERT') {
-          setProjects(prev => [newRecord, ...prev]);
+          setProjects(prev => {
+            if (prev.some(p => p.id === newRecord.id)) return prev;
+            return [newRecord, ...prev];
+          });
         } else if (eventType === 'UPDATE') {
           setProjects(prev => prev.map(p => p.id === newRecord.id ? newRecord : p));
         } else if (eventType === 'DELETE') {
-          setProjects(prev => prev.filter(p => p.id !== oldRecord.id));
+          const id = oldRecord.id;
+          setProjects(prev => prev.filter(p => p.id !== id));
+          // Explicitly clear nested items since DB cascade won't trigger UI events for them
+          setTasks(prev => prev.filter(t => t.project_id !== id));
+          setDocuments(prev => prev.filter(d => d.project_id !== id));
+          setFiles(prev => prev.filter(f => f.project_id !== id));
         }
         break;
       case 'tasks':
         if (eventType === 'INSERT') {
-          setTasks(prev => [newRecord, ...prev]);
+          setTasks(prev => {
+            if (prev.some(t => t.id === newRecord.id)) return prev;
+            return [newRecord, ...prev];
+          });
         } else if (eventType === 'UPDATE') {
           setTasks(prev => prev.map(t => t.id === newRecord.id ? newRecord : t));
         } else if (eventType === 'DELETE') {
@@ -213,7 +224,10 @@ export function DataProvider({ children }) {
         break;
       case 'documents':
         if (eventType === 'INSERT') {
-          setDocuments(prev => [newRecord, ...prev]);
+          setDocuments(prev => {
+            if (prev.some(d => d.id === newRecord.id)) return prev;
+            return [newRecord, ...prev];
+          });
         } else if (eventType === 'UPDATE') {
           setDocuments(prev => prev.map(d => d.id === newRecord.id ? newRecord : d));
         } else if (eventType === 'DELETE') {
@@ -382,7 +396,10 @@ export function DataProvider({ children }) {
       if (error) throw error;
 
       setProjects(prev => prev.filter(p => p.id !== projectId));
-      // Cascade delete is handled by database constraints
+      // Manually clean up state for cascade deleted items
+      setTasks(prev => prev.filter(t => t.project_id !== projectId));
+      setDocuments(prev => prev.filter(d => d.project_id !== projectId));
+      setFiles(prev => prev.filter(f => f.project_id !== projectId));
     } catch (err) {
       console.error('Error deleting project:', err);
       throw err;
