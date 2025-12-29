@@ -32,11 +32,18 @@ export default function AITaskModal({ projectId, onClose }) {
         setLoading(false);
     };
 
-    const handleCreateTasks = () => {
+    const handleCreateTasks = async () => {
         if (!generatedTasks || generatedTasks.length === 0) return;
 
-        createMultipleTasks(generatedTasks);
-        onClose();
+        setLoading(true);
+        try {
+            await createMultipleTasks(generatedTasks);
+            onClose();
+        } catch (error) {
+            console.error('Error creating tasks:', error);
+            setLoading(false);
+            alert('Failed to create tasks. Please try again.');
+        }
     };
 
     const handleEditTask = (index, field, value) => {

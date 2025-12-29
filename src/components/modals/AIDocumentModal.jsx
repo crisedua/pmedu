@@ -29,7 +29,7 @@ export default function AIDocumentModal({ projectId, onClose, onCreated }) {
         try {
             const content = await generateDocumentWithAI(title.trim(), prompt);
 
-            const doc = createDocument({
+            const doc = await createDocument({
                 title: title.trim(),
                 content,
                 projectId,

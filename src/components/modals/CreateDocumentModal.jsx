@@ -7,18 +7,23 @@ export default function CreateDocumentModal({ projectId, onClose, onCreated }) {
     const [title, setTitle] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (!title.trim()) return;
 
         setLoading(true);
-        const doc = createDocument({
-            title: title.trim(),
-            content: '',
-            projectId,
-        });
+        try {
+            const doc = await createDocument({
+                title: title.trim(),
+                content: '',
+                projectId,
+            });
 
-        onCreated(doc);
+            onCreated(doc);
+        } catch (error) {
+            console.error('Error creating document:', error);
+            setLoading(false);
+        }
     };
 
     return (

@@ -11,21 +11,25 @@ export default function CreateTaskModal({ projectId, onClose }) {
     const [assignedTo, setAssignedTo] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (!name.trim()) return;
 
         setLoading(true);
-        createTask({
-            name: name.trim(),
-            description: description.trim(),
-            dueDate: new Date(dueDate).toISOString(),
-            assignedTo: assignedTo || null,
-            projectId,
-            status: 'To Do',
-        });
-
-        onClose();
+        try {
+            await createTask({
+                name: name.trim(),
+                description: description.trim(),
+                dueDate: new Date(dueDate).toISOString(),
+                assignedTo: assignedTo || null,
+                projectId,
+                status: 'To Do',
+            });
+            onClose();
+        } catch (error) {
+            console.error('Error creating task:', error);
+            setLoading(false);
+        }
     };
 
     return (

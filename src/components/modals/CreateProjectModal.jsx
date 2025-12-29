@@ -9,18 +9,23 @@ export default function CreateProjectModal({ onClose, onCreated }) {
     const [status, setStatus] = useState('Planning');
     const [loading, setLoading] = useState(false);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (!name.trim()) return;
 
         setLoading(true);
-        const project = createProject({
-            name: name.trim(),
-            description: description.trim(),
-            status,
-        });
+        try {
+            const project = await createProject({
+                name: name.trim(),
+                description: description.trim(),
+                status,
+            });
 
-        onCreated(project);
+            onCreated(project);
+        } catch (error) {
+            console.error('Error creating project:', error);
+            setLoading(false);
+        }
     };
 
     return (

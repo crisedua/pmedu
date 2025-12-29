@@ -45,22 +45,27 @@ export default function UploadFileModal({ projectId, onClose }) {
         addFiles(droppedFiles);
     };
 
-    const handleUpload = () => {
+    const handleUpload = async () => {
         if (files.length === 0) return;
 
         setLoading(true);
+        try {
+            // Upload sequentially or in parallel
+            await Promise.all(files.map(fileObj =>
+                uploadFile({
+                    name: fileObj.name,
+                    type: fileObj.type,
+                    size: fileObj.size,
+                    projectId,
+                })
+            ));
 
-        // Simulate file upload - in production this would upload to storage
-        files.forEach(fileObj => {
-            uploadFile({
-                name: fileObj.name,
-                type: fileObj.type,
-                size: fileObj.size,
-                projectId,
-            });
-        });
-
-        onClose();
+            onClose();
+        } catch (error) {
+            console.error('Error uploading files:', error);
+            setLoading(false);
+            alert('Failed to upload some files. Please try again.');
+        }
     };
 
     const formatFileSize = (bytes) => {
