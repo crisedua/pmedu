@@ -160,11 +160,12 @@ export async function getTodaySummary(projectId, tasks, currentUser) {
     // However, if we want an "AI Coach" feeling, sending it to OpenAI is better.
 
     // Preparation
-    const projectTasks = tasks.filter(t => t.project_id === projectId);
-    const myTasks = projectTasks.filter(t => t.assigned_to === currentUser.id);
+    const myTasks = projectId
+        ? tasks.filter(t => t.project_id === projectId && t.assigned_to === currentUser.id)
+        : tasks.filter(t => t.assigned_to === currentUser.id);
 
     // If no tasks, return simple message
-    if (myTasks.length === 0) return "You have no tasks assigned in this project. Ask the project manager for work!";
+    if (myTasks.length === 0) return projectId ? "You have no tasks assigned in this project." : "You have no tasks assigned in any project.";
 
     // Prepare data for AI
     const taskData = myTasks.map(t => ({

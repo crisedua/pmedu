@@ -98,13 +98,6 @@ export default function ProjectView() {
         navigate(`/project/${projectId}/document/${doc.id}`);
     };
 
-    const handleGetSummary = async () => {
-        setLoadingSummary(true);
-        const summary = await getTodaySummary(projectId, tasks, currentUser);
-        setAiSummary(summary);
-        setLoadingSummary(false);
-    };
-
     return (
         <div>
             {/* Back navigation */}
@@ -215,70 +208,6 @@ export default function ProjectView() {
                     <Upload size={18} />
                     Upload File
                 </button>
-            </div>
-
-            {/* AI Summary Card */}
-            <div className="card mb-6" style={{
-                background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.03) 0%, rgba(139, 92, 246, 0.03) 100%)',
-                border: '1px solid var(--color-primary-100)',
-            }}>
-                <div className="card-body">
-                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-                            <div style={{
-                                width: '36px',
-                                height: '36px',
-                                borderRadius: 'var(--radius-lg)',
-                                background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                color: 'white',
-                            }}>
-                                <Sparkles size={18} />
-                            </div>
-                            <div>
-                                <h4 style={{ marginBottom: 'var(--space-1)' }}>What should I work on today?</h4>
-                                <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)', margin: 0 }}>
-                                    Get AI-powered suggestions for your day
-                                </p>
-                            </div>
-                        </div>
-                        <button
-                            className="btn btn-ai btn-sm"
-                            onClick={handleGetSummary}
-                            disabled={loadingSummary}
-                        >
-                            <span>
-                                {loadingSummary ? (
-                                    <>
-                                        <div className="spinner" style={{ width: '14px', height: '14px', borderWidth: '2px' }} />
-                                        Thinking...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Sparkles size={14} />
-                                        Get Summary
-                                    </>
-                                )}
-                            </span>
-                        </button>
-                    </div>
-
-                    {aiSummary && (
-                        <div style={{
-                            marginTop: 'var(--space-4)',
-                            padding: 'var(--space-4)',
-                            background: 'var(--bg-primary)',
-                            borderRadius: 'var(--radius-lg)',
-                            whiteSpace: 'pre-wrap',
-                            fontSize: 'var(--text-sm)',
-                            lineHeight: 'var(--leading-relaxed)',
-                        }}>
-                            {aiSummary}
-                        </div>
-                    )}
-                </div>
             </div>
 
             {/* Tabs */}

@@ -14,14 +14,27 @@ import {
     LogOut,
     Shield,
     Users,
+    Brain,
 } from 'lucide-react';
+import { getTodaySummary } from '../services/aiService';
 import CreateProjectModal from './modals/CreateProjectModal';
 
 export default function Layout() {
-    const { projects, currentUser, logout } = useData();
+    const { projects, tasks, currentUser, logout } = useData();
     const navigate = useNavigate();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [createProjectOpen, setCreateProjectOpen] = useState(false);
+    const [aiSummary, setAiSummary] = useState(null);
+    const [loadingSummary, setLoadingSummary] = useState(false);
+
+    const handleGetSummary = async () => {
+        setLoadingSummary(true);
+        // We handle global summary here. For project specific, we could pass current projectId
+        // but often a global overview in the sidebar is better.
+        const summary = await getTodaySummary(null, tasks, currentUser);
+        setAiSummary(summary);
+        setLoadingSummary(false);
+    };
 
     const handleProjectCreated = (project) => {
         setCreateProjectOpen(false);
@@ -117,6 +130,70 @@ export default function Layout() {
                             </p>
                         )}
                     </div>
+
+                    <div className="sidebar-section">
+                        <div className="sidebar-ai-summary" style={{
+                            margin: 'var(--space-4)',
+                            padding: 'var(--space-4)',
+                            background: 'rgba(99, 102, 241, 0.05)',
+                            border: '1px solid rgba(99, 102, 241, 0.1)',
+                            borderRadius: 'var(--radius-lg)',
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', marginBottom: 'var(--space-3)' }}>
+                                <div style={{
+                                    width: '28px',
+                                    height: '28px',
+                                    borderRadius: 'var(--radius-md)',
+                                    background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: 'white',
+                                }}>
+                                    <Sparkles size={14} />
+                                </div>
+                                <div style={{ fontWeight: 'var(--font-semibold)', fontSize: 'var(--text-sm)' }}>AI Daily Focus</div>
+                            </div>
+
+                            {aiSummary ? (
+                                <div style={{
+                                    fontSize: 'var(--text-xs)',
+                                    lineHeight: '1.6',
+                                    color: 'var(--text-secondary)',
+                                    background: 'var(--bg-primary)',
+                                    padding: 'var(--space-3)',
+                                    borderRadius: 'var(--radius-md)',
+                                    border: '1px solid var(--border-light)',
+                                    marginBottom: 'var(--space-3)',
+                                }}>
+                                    {aiSummary}
+                                </div>
+                            ) : (
+                                <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', marginBottom: 'var(--space-3)' }}>
+                                    Get personalized task focus for your day.
+                                </p>
+                            )}
+
+                            <button
+                                className="btn btn-ai btn-sm"
+                                style={{ width: '100%', justifyContent: 'center' }}
+                                onClick={handleGetSummary}
+                                disabled={loadingSummary}
+                            >
+                                {loadingSummary ? (
+                                    <>
+                                        <div className="spinner" style={{ width: '14px', height: '14px' }} />
+                                        Summarizing...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Brain size={14} />
+                                        {aiSummary ? 'Refresh Summary' : 'What should I work on today?'}
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
                 </nav>
 
                 <div className="sidebar-footer">
@@ -173,12 +250,14 @@ export default function Layout() {
             </main>
 
             {/* Modals */}
-            {createProjectOpen && (
-                <CreateProjectModal
-                    onClose={() => setCreateProjectOpen(false)}
-                    onCreated={handleProjectCreated}
-                />
-            )}
+            {
+                createProjectOpen && (
+                    <CreateProjectModal
+                        onClose={() => setCreateProjectOpen(false)}
+                        onCreated={handleProjectCreated}
+                    />
+                )
+            }
 
             <style>{`
         @media (max-width: 768px) {
@@ -187,6 +266,6 @@ export default function Layout() {
           }
         }
       `}</style>
-        </div>
+        </div >
     );
 }
