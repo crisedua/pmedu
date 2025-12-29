@@ -958,7 +958,7 @@ a:hover {
 }
 
 .task-name {
-  font-size: var(--text-sm);
+  font-size: 13px;
   font-weight: var(--font-medium);
   color: var(--text-primary);
   margin-bottom: 2px;
@@ -1041,8 +1041,8 @@ a:hover {
 .kanban-task {
   background: var(--bg-primary);
   border: 1px solid var(--border-light);
-  border-radius: var(--radius-lg);
-  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
   cursor: grab;
   transition: all var(--transition-fast);
 }
@@ -1061,8 +1061,10 @@ a:hover {
 }
 
 .kanban-task-title {
+  font-size: 13px;
   font-weight: var(--font-medium);
-  margin-bottom: var(--space-3);
+  margin-bottom: var(--space-2);
+  line-height: 1.4;
 }
 
 .kanban-task-footer {
