@@ -62,7 +62,7 @@ export function DataProvider({ children }) {
   const loadUsers = async () => {
     try {
       const { data, error } = await supabase
-        .from('users')
+        .from('pm_users')
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -84,7 +84,7 @@ export function DataProvider({ children }) {
   const loadProjects = async () => {
     try {
       const { data, error } = await supabase
-        .from('projects')
+        .from('pm_projects')
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -99,7 +99,7 @@ export function DataProvider({ children }) {
   const loadTasks = async () => {
     try {
       const { data, error } = await supabase
-        .from('tasks')
+        .from('pm_tasks')
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -114,7 +114,7 @@ export function DataProvider({ children }) {
   const loadDocuments = async () => {
     try {
       const { data, error } = await supabase
-        .from('documents')
+        .from('pm_documents')
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -129,7 +129,7 @@ export function DataProvider({ children }) {
   const loadInbox = async () => {
     try {
       const { data, error } = await supabase
-        .from('inbox')
+        .from('pm_inbox')
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -144,7 +144,7 @@ export function DataProvider({ children }) {
   const loadFiles = async () => {
     try {
       const { data, error } = await supabase
-        .from('files')
+        .from('pm_files')
         .select('*')
         .order('upload_date', { ascending: false });
 
@@ -160,7 +160,7 @@ export function DataProvider({ children }) {
   const seedSampleUsers = async () => {
     try {
       const { data, error } = await supabase
-        .from('users')
+        .from('pm_users')
         .insert(SAMPLE_USERS)
         .select();
 
@@ -177,7 +177,7 @@ export function DataProvider({ children }) {
     // Subscribe to projects changes
     const projectsSubscription = supabase
       .channel('projects_changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, (payload) => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'pm_projects' }, (payload) => {
         handleRealtimeUpdate('projects', payload);
       })
       .subscribe();
@@ -185,7 +185,7 @@ export function DataProvider({ children }) {
     // Subscribe to tasks changes
     const tasksSubscription = supabase
       .channel('tasks_changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, (payload) => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'pm_tasks' }, (payload) => {
         handleRealtimeUpdate('tasks', payload);
       })
       .subscribe();
@@ -193,7 +193,7 @@ export function DataProvider({ children }) {
     // Subscribe to documents changes
     const documentsSubscription = supabase
       .channel('documents_changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'documents' }, (payload) => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'pm_documents' }, (payload) => {
         handleRealtimeUpdate('documents', payload);
       })
       .subscribe();
@@ -201,7 +201,7 @@ export function DataProvider({ children }) {
     // Subscribe to inbox changes
     const inboxSubscription = supabase
       .channel('inbox_changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'inbox' }, (payload) => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'pm_inbox' }, (payload) => {
         handleRealtimeUpdate('inbox', payload);
       })
       .subscribe();
@@ -279,7 +279,7 @@ export function DataProvider({ children }) {
   const login = async (emailData) => {
     try {
       const { data: user, error } = await supabase
-        .from('users')
+        .from('pm_users')
         .select('*')
         .ilike('email', emailData)
         .single();
@@ -312,7 +312,7 @@ export function DataProvider({ children }) {
       };
 
       const { data, error } = await supabase
-        .from('users')
+        .from('pm_users')
         .insert([newUser])
         .select()
         .single();
@@ -339,7 +339,7 @@ export function DataProvider({ children }) {
   const updateUser = async (userId, updates) => {
     try {
       const { data, error } = await supabase
-        .from('users')
+        .from('pm_users')
         .update(updates)
         .eq('id', userId)
         .select()
@@ -363,7 +363,7 @@ export function DataProvider({ children }) {
   const deleteUser = async (userId) => {
     try {
       const { error } = await supabase
-        .from('users')
+        .from('pm_users')
         .delete()
         .eq('id', userId);
 
@@ -391,7 +391,7 @@ export function DataProvider({ children }) {
       };
 
       const { data, error } = await supabase
-        .from('projects')
+        .from('pm_projects')
         .insert([newProject])
         .select()
         .single();
@@ -409,7 +409,7 @@ export function DataProvider({ children }) {
   const updateProject = async (projectId, updates) => {
     try {
       const { data, error } = await supabase
-        .from('projects')
+        .from('pm_projects')
         .update(updates)
         .eq('id', projectId)
         .select()
@@ -427,7 +427,7 @@ export function DataProvider({ children }) {
   const deleteProject = async (projectId) => {
     try {
       const { error } = await supabase
-        .from('projects')
+        .from('pm_projects')
         .delete()
         .eq('id', projectId);
 
@@ -462,7 +462,7 @@ export function DataProvider({ children }) {
       };
 
       const { data, error } = await supabase
-        .from('tasks')
+        .from('pm_tasks')
         .insert([newTask])
         .select()
         .single();
@@ -490,7 +490,7 @@ export function DataProvider({ children }) {
       }));
 
       const { data, error } = await supabase
-        .from('tasks')
+        .from('pm_tasks')
         .insert(newTasks)
         .select();
 
@@ -520,7 +520,7 @@ export function DataProvider({ children }) {
       if (getVal('projectId', 'project_id') !== undefined) dbUpdates.project_id = getVal('projectId', 'project_id');
 
       const { data, error } = await supabase
-        .from('tasks')
+        .from('pm_tasks')
         .update(dbUpdates)
         .eq('id', taskId)
         .select()
@@ -538,7 +538,7 @@ export function DataProvider({ children }) {
   const deleteTask = async (taskId) => {
     try {
       const { error } = await supabase
-        .from('tasks')
+        .from('pm_tasks')
         .delete()
         .eq('id', taskId);
 
@@ -566,7 +566,7 @@ export function DataProvider({ children }) {
       };
 
       const { data, error } = await supabase
-        .from('documents')
+        .from('pm_documents')
         .insert([newDoc])
         .select()
         .single();
@@ -589,7 +589,7 @@ export function DataProvider({ children }) {
       };
 
       const { data, error } = await supabase
-        .from('documents')
+        .from('pm_documents')
         .update(dbUpdates)
         .eq('id', docId)
         .select()
@@ -607,7 +607,7 @@ export function DataProvider({ children }) {
   const deleteDocument = async (docId) => {
     try {
       const { error } = await supabase
-        .from('documents')
+        .from('pm_documents')
         .delete()
         .eq('id', docId);
 
@@ -639,7 +639,7 @@ export function DataProvider({ children }) {
       };
 
       const { data, error } = await supabase
-        .from('inbox')
+        .from('pm_inbox')
         .insert([newItem])
         .select()
         .single();
@@ -657,7 +657,7 @@ export function DataProvider({ children }) {
   const updateInboxItem = async (itemId, updates) => {
     try {
       const { data, error } = await supabase
-        .from('inbox')
+        .from('pm_inbox')
         .update(updates)
         .eq('id', itemId)
         .select()
@@ -675,7 +675,7 @@ export function DataProvider({ children }) {
   const deleteInboxItem = async (itemId) => {
     try {
       const { error } = await supabase
-        .from('inbox')
+        .from('pm_inbox')
         .delete()
         .eq('id', itemId);
 
@@ -700,7 +700,7 @@ export function DataProvider({ children }) {
       };
 
       const { data, error } = await supabase
-        .from('files')
+        .from('pm_files')
         .insert([newFile])
         .select()
         .single();
@@ -718,7 +718,7 @@ export function DataProvider({ children }) {
   const deleteFile = async (fileId) => {
     try {
       const { error } = await supabase
-        .from('files')
+        .from('pm_files')
         .delete()
         .eq('id', fileId);
 
