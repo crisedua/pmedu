@@ -99,80 +99,86 @@ export default function AIAssistantSidebar({ isOpen, onClose }) {
     if (!isOpen) return null;
 
     return (
-        <div className="ai-assistant-sidebar">
-            <div className="ai-sidebar-header">
-                <div className="flex items-center gap-3">
-                    <div className="ai-icon-pulse">
-                        <Sparkles size={18} />
-                    </div>
-                    <div>
-                        <h3 className="text-sm font-semibold">AI Assistant</h3>
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Project Manager</p>
-                    </div>
-                </div>
-                <button className="btnClose" onClick={onClose}>
-                    <X size={20} />
-                </button>
-            </div>
-
-            <div className="ai-messages-container">
-                {messages.map((m, i) => (
-                    <div key={i} className={`message-wrapper ${m.role}`}>
-                        <div className="message-avatar">
-                            {m.role === 'assistant' ? <Bot size={14} /> : <UserIcon size={14} />}
+        <>
+            {/* Mobile Overlay */}
+            <div
+                className={`ai-sidebar-overlay ${isOpen ? 'show' : ''}`}
+                onClick={onClose}
+            />
+            <div className={`ai-assistant-sidebar ${isOpen ? 'open' : ''}`}>
+                <div className="ai-sidebar-header">
+                    <div className="flex items-center gap-3">
+                        <div className="ai-icon-pulse">
+                            <Sparkles size={18} />
                         </div>
-                        <div className="message-content">
-                            <ReactMarkdown>{m.content}</ReactMarkdown>
+                        <div>
+                            <h3 className="text-sm font-semibold">AI Assistant</h3>
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Project Manager</p>
                         </div>
                     </div>
-                ))}
-                {isTyping && (
-                    <div className="message-wrapper assistant">
-                        <div className="message-avatar">
-                            <Bot size={14} />
-                        </div>
-                        <div className="message-content typing">
-                            <div className="dot"></div>
-                            <div className="dot"></div>
-                            <div className="dot"></div>
-                        </div>
-                    </div>
-                )}
-                <div ref={messagesEndRef} />
-            </div>
-
-            <div className="ai-input-area">
-                <div className="input-row">
-                    <input
-                        type="text"
-                        placeholder="Ask anything about your projects..."
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                    />
-                    <button
-                        className={`action-btn ${isRecording ? 'recording' : ''}`}
-                        onClick={isRecording ? stopRecording : startRecording}
-                    >
-                        {isRecording ? <Square size={18} fill="currentColor" /> : <Mic size={18} />}
-                    </button>
-                    <button
-                        className="send-btn"
-                        onClick={() => handleSendMessage()}
-                        disabled={!input.trim() || isTyping}
-                    >
-                        <Send size={18} />
+                    <button className="btnClose" onClick={onClose}>
+                        <X size={20} />
                     </button>
                 </div>
-                {isRecording && (
-                    <div className="recording-status">
-                        <div className="pulse-dot"></div>
-                        Listening...
-                    </div>
-                )}
-            </div>
 
-            <style>{`
+                <div className="ai-messages-container">
+                    {messages.map((m, i) => (
+                        <div key={i} className={`message-wrapper ${m.role}`}>
+                            <div className="message-avatar">
+                                {m.role === 'assistant' ? <Bot size={14} /> : <UserIcon size={14} />}
+                            </div>
+                            <div className="message-content">
+                                <ReactMarkdown>{m.content}</ReactMarkdown>
+                            </div>
+                        </div>
+                    ))}
+                    {isTyping && (
+                        <div className="message-wrapper assistant">
+                            <div className="message-avatar">
+                                <Bot size={14} />
+                            </div>
+                            <div className="message-content typing">
+                                <div className="dot"></div>
+                                <div className="dot"></div>
+                                <div className="dot"></div>
+                            </div>
+                        </div>
+                    )}
+                    <div ref={messagesEndRef} />
+                </div>
+
+                <div className="ai-input-area">
+                    <div className="input-row">
+                        <input
+                            type="text"
+                            placeholder="Ask anything about your projects..."
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                        />
+                        <button
+                            className={`action-btn ${isRecording ? 'recording' : ''}`}
+                            onClick={isRecording ? stopRecording : startRecording}
+                        >
+                            {isRecording ? <Square size={18} fill="currentColor" /> : <Mic size={18} />}
+                        </button>
+                        <button
+                            className="send-btn"
+                            onClick={() => handleSendMessage()}
+                            disabled={!input.trim() || isTyping}
+                        >
+                            <Send size={18} />
+                        </button>
+                    </div>
+                    {isRecording && (
+                        <div className="recording-status">
+                            <div className="pulse-dot"></div>
+                            Listening...
+                        </div>
+                    )}
+                </div>
+
+                <style>{`
                 .ai-assistant-sidebar {
                     position: fixed;
                     top: 0;
@@ -185,8 +191,36 @@ export default function AIAssistantSidebar({ isOpen, onClose }) {
                     display: flex;
                     flex-direction: column;
                     box-shadow: -10px 0 30px rgba(0,0,0,0.05);
-                    animation: slideInRight 0.3s ease;
+                    transform: translateX(100%);
+                    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                 }
+
+                .ai-assistant-sidebar.open {
+                    transform: translateX(0);
+                }
+
+                .ai-sidebar-overlay {
+                    position: fixed;
+                    inset: 0;
+                    background: rgba(0,0,0,0.2);
+                    backdrop-filter: blur(2px);
+                    z-index: 1050;
+                    opacity: 0;
+                    visibility: hidden;
+                    transition: all 0.3s ease;
+                }
+
+                .ai-sidebar-overlay.show {
+                    opacity: 1;
+                    visibility: visible;
+                }
+
+                @media (max-width: 768px) {
+                    .ai-assistant-sidebar {
+                        width: 100%;
+                    }
+                }
+
 
                 .ai-sidebar-header {
                     padding: var(--space-4) var(--space-6);
@@ -416,11 +450,6 @@ export default function AIAssistantSidebar({ isOpen, onClose }) {
                     100% { transform: scale(1); opacity: 1; }
                 }
 
-                @keyframes slideInRight {
-                    from { transform: translateX(100%); }
-                    to { transform: translateX(0); }
-                }
-
                 .btnClose {
                     background: transparent;
                     border: none;
@@ -435,6 +464,7 @@ export default function AIAssistantSidebar({ isOpen, onClose }) {
                     color: var(--text-primary);
                 }
             `}</style>
-        </div>
+            </div>
+        </>
     );
 }
