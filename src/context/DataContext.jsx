@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 
+
 const DataContext = createContext();
 
 // Sample users for demo (will be migrated to DB)
@@ -25,6 +26,71 @@ export function DataProvider({ children }) {
   // Initialize data from Supabase
   useEffect(() => {
     initializeApp();
+
+    // Listen for Supabase Auth changes (Google SSO)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        const email = session.user.email;
+        const metadata = session.user.user_metadata;
+
+        try {
+          // Check if user exists in our pm_users table
+          const { data: existingUser } = await supabase
+            .from('pm_users')
+            .select('*')
+            .eq('email', email)
+            .single();
+
+          if (existingUser) {
+            setCurrentUser(existingUser);
+            localStorage.setItem('pm-app-user', JSON.stringify(existingUser));
+          } else {
+            // Register new user
+            const newUser = {
+              name: metadata.full_name || email.split('@')[0],
+              email: email,
+              avatar: metadata.avatar_url || (metadata.full_name || email)[0].toUpperCase(),
+            };
+
+            const { data: createdUser, error } = await supabase
+              .from('pm_users')
+              .insert([newUser])
+              .select()
+              .single();
+
+            if (error) {
+              // If error is unique violation, it might have been created concurrently, try fetching again
+              if (error.code === '23505') {
+                const { data: retryUser } = await supabase
+                  .from('pm_users')
+                  .select('*')
+                  .eq('email', email)
+                  .single();
+                if (retryUser) {
+                  setCurrentUser(retryUser);
+                  localStorage.setItem('pm-app-user', JSON.stringify(retryUser));
+                }
+              } else {
+                console.error('Error creating user from SSO:', error);
+              }
+            } else {
+              setCurrentUser(createdUser);
+              localStorage.setItem('pm-app-user', JSON.stringify(createdUser));
+              // Update local lists
+              setUsers(prev => [createdUser, ...prev]);
+            }
+          }
+        } catch (err) {
+          console.error('Error syncing SSO user:', err);
+        }
+      } else if (event === 'SIGNED_OUT') {
+        logout();
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const initializeApp = async () => {
@@ -298,7 +364,23 @@ export function DataProvider({ children }) {
     }
   };
 
-  const logout = () => {
+  const loginWithGoogle = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin,
+        },
+      });
+      if (error) throw error;
+    } catch (err) {
+      console.error('Error logging in with Google:', err);
+      throw err;
+    }
+  };
+
+  const logout = async () => {
+    await supabase.auth.signOut();
     setCurrentUser(null);
     localStorage.removeItem('pm-app-user');
   };
@@ -768,6 +850,12 @@ export function DataProvider({ children }) {
     loading,
     error,
 
+    // Auth
+    login,
+    loginWithGoogle,
+    logout,
+    register,
+
     // Project operations
     createProject,
     updateProject,
@@ -798,11 +886,6 @@ export function DataProvider({ children }) {
     deleteFile,
     getProjectFiles,
 
-    // Auth
-    login,
-    logout,
-    register,
-
     // User operations
     updateUser,
     deleteUser,
@@ -814,9 +897,9 @@ export function DataProvider({ children }) {
   };
 
   return (
-    <DataContext.Provider value={value}>
+    <DataContext.Provider value={value} >
       {children}
-    </DataContext.Provider>
+    </DataContext.Provider >
   );
 }
 
