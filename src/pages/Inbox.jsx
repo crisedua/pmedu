@@ -27,10 +27,7 @@ export default function Inbox() {
 
     useEffect(() => {
         if (showMoveModal) {
-            const initialTitle = showMoveModal.content.length > 60
-                ? showMoveModal.content.substring(0, 60) + '...'
-                : showMoveModal.content;
-            setTaskTitle(initialTitle);
+            setTaskTitle('');
             setDueDate(''); // Clear or set default
         }
     }, [showMoveModal]);
@@ -195,7 +192,7 @@ export default function Inbox() {
                             <button
                                 className="btn btn-primary"
                                 onClick={handleMoveToProject}
-                                disabled={!selectedProjectId}
+                                disabled={!selectedProjectId || !taskTitle.trim()}
                             >
                                 <CheckCircle2 size={18} />
                                 Create Project Task
