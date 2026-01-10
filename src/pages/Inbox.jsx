@@ -21,7 +21,19 @@ export default function Inbox() {
 
     const [showMoveModal, setShowMoveModal] = useState(null);
     const [selectedProjectId, setSelectedProjectId] = useState('');
+    const [taskTitle, setTaskTitle] = useState('');
+    const [dueDate, setDueDate] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
+
+    useEffect(() => {
+        if (showMoveModal) {
+            const initialTitle = showMoveModal.content.length > 60
+                ? showMoveModal.content.substring(0, 60) + '...'
+                : showMoveModal.content;
+            setTaskTitle(initialTitle);
+            setDueDate(''); // Clear or set default
+        }
+    }, [showMoveModal]);
 
     useEffect(() => {
         if (successMessage) {
@@ -34,19 +46,18 @@ export default function Inbox() {
         if (!selectedProjectId || !showMoveModal) return;
 
         try {
-            const taskName = showMoveModal.content.length > 60
-                ? showMoveModal.content.substring(0, 60) + '...'
-                : showMoveModal.content;
-
             await createTask({
-                name: taskName,
+                name: taskTitle || (showMoveModal.content.substring(0, 60) + '...'),
                 description: showMoveModal.content,
                 projectId: selectedProjectId,
+                due_date: dueDate || null,
                 status: 'To Do'
             });
             await deleteInboxItem(showMoveModal.id);
             setShowMoveModal(null);
             setSelectedProjectId('');
+            setTaskTitle('');
+            setDueDate('');
             setSuccessMessage('Converted to project task!');
         } catch (err) {
             console.error('Error moving item:', err);
@@ -141,19 +152,41 @@ export default function Inbox() {
                                     <p>{showMoveModal.content}</p>
                                 </div>
                             </div>
-                            <div className="form-group">
-                                <label className="form-label block mb-2">Destination Project</label>
-                                <div className="custom-select-wrapper">
-                                    <select
-                                        className="form-select"
-                                        value={selectedProjectId}
-                                        onChange={(e) => setSelectedProjectId(e.target.value)}
-                                    >
-                                        <option value="">Choose a destination...</option>
-                                        {projects.map(p => (
-                                            <option key={p.id} value={p.id}>{p.name}</option>
-                                        ))}
-                                    </select>
+                            <div className="form-group mb-4">
+                                <label className="form-label block mb-2">Task Title</label>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    placeholder="Enter task name..."
+                                    value={taskTitle}
+                                    onChange={(e) => setTaskTitle(e.target.value)}
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4 mb-4">
+                                <div className="form-group">
+                                    <label className="form-label block mb-2">Destination Project</label>
+                                    <div className="custom-select-wrapper">
+                                        <select
+                                            className="form-select"
+                                            value={selectedProjectId}
+                                            onChange={(e) => setSelectedProjectId(e.target.value)}
+                                        >
+                                            <option value="">Choose project...</option>
+                                            {projects.map(p => (
+                                                <option key={p.id} value={p.id}>{p.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label block mb-2">Due Date</label>
+                                    <input
+                                        type="date"
+                                        className="form-control"
+                                        value={dueDate}
+                                        onChange={(e) => setDueDate(e.target.value)}
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -347,7 +380,7 @@ export default function Inbox() {
                     position: relative;
                 }
 
-                .form-select {
+                .form-control, .form-select {
                     width: 100%;
                     padding: var(--space-3) var(--space-4);
                     border-radius: var(--radius-lg);
@@ -355,25 +388,20 @@ export default function Inbox() {
                     background: var(--bg-primary);
                     font-size: var(--text-sm);
                     color: var(--text-primary);
-                    cursor: pointer;
                     transition: all 0.2s ease;
-                    appearance: none;
                 }
 
-                .form-select:hover {
-                    border-color: var(--color-primary-400);
-                }
-
-                .form-select:focus {
+                .form-control:focus, .form-select:focus {
                     outline: none;
                     border-color: var(--color-primary-600);
                     box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
                 }
 
-                @keyframes slideUp {
-                    from { transform: translateY(10px); opacity: 0; }
-                    to { transform: translateY(0); opacity: 1; }
-                }
+                .grid { display: grid; }
+                .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+                .gap-4 { gap: 1rem; }
+                .mb-4 { margin-bottom: 1rem; }
+
             `}</style>
         </div>
     );
