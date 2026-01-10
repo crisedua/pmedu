@@ -22,12 +22,14 @@ export default function Inbox() {
     const [showMoveModal, setShowMoveModal] = useState(null);
     const [selectedProjectId, setSelectedProjectId] = useState('');
     const [taskTitle, setTaskTitle] = useState('');
+    const [taskDescription, setTaskDescription] = useState('');
     const [dueDate, setDueDate] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
 
     useEffect(() => {
         if (showMoveModal) {
             setTaskTitle('');
+            setTaskDescription(showMoveModal.content);
             setDueDate(''); // Clear or set default
         }
     }, [showMoveModal]);
@@ -44,8 +46,8 @@ export default function Inbox() {
 
         try {
             await createTask({
-                name: taskTitle || (showMoveModal.content.substring(0, 60) + '...'),
-                description: showMoveModal.content,
+                name: taskTitle || (taskDescription.substring(0, 60) + '...'),
+                description: taskDescription,
                 projectId: selectedProjectId,
                 due_date: dueDate || null,
                 status: 'To Do'
@@ -143,10 +145,15 @@ export default function Inbox() {
                         </div>
                         <div className="modal-body">
                             <div className="mb-6">
-                                <label className="form-label mb-2 block opacity-70">TRANSCRIPTION PREVIEW</label>
-                                <div className="premium-preview-box">
+                                <label className="form-label mb-2 block opacity-70">TRANSCRIPTION EDITOR</label>
+                                <div className="premium-preview-box p-0">
                                     <div className="quote-mark">"</div>
-                                    <p>{showMoveModal.content}</p>
+                                    <textarea
+                                        className="premium-textarea"
+                                        value={taskDescription}
+                                        onChange={(e) => setTaskDescription(e.target.value)}
+                                        placeholder="Edit the transcription..."
+                                    />
                                 </div>
                             </div>
                             <div className="form-group mb-4">
@@ -247,15 +254,29 @@ export default function Inbox() {
                     background: white;
                 }
 
-                .premium-preview-box p {
+                .premium-textarea {
+                    width: 100%;
+                    min-height: 120px;
+                    background: transparent;
+                    border: none;
+                    padding: var(--space-6);
                     font-size: var(--text-sm);
                     line-height: 1.6;
                     color: var(--text-secondary);
                     font-style: italic;
-                    max-height: 120px;
-                    overflow-y: auto;
-                    padding-right: var(--space-2);
+                    resize: vertical;
+                    font-family: inherit;
                 }
+
+                .premium-textarea:focus {
+                    outline: none;
+                }
+
+                .premium-preview-box.p-0 {
+                    padding: 0;
+                    overflow: hidden;
+                }
+
 
                 .quote-mark {
                     position: absolute;
