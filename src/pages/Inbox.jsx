@@ -7,7 +7,11 @@ import {
     Clock,
     X,
     Save,
-    CheckCircle2
+    CheckCircle2,
+    Archive,
+    History,
+    ChevronDown,
+    ChevronUp
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -16,6 +20,7 @@ export default function Inbox() {
         inbox,
         projects,
         deleteInboxItem,
+        updateInboxItem,
         createTask
     } = useData();
 
@@ -25,6 +30,10 @@ export default function Inbox() {
     const [taskDescription, setTaskDescription] = useState('');
     const [dueDate, setDueDate] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
+    const [showArchive, setShowArchive] = useState(false);
+
+    const activeItems = inbox.filter(item => !item.processed);
+    const archivedItems = inbox.filter(item => item.processed);
 
     useEffect(() => {
         if (showMoveModal) {
@@ -52,12 +61,13 @@ export default function Inbox() {
                 due_date: dueDate || null,
                 status: 'To Do'
             });
-            await deleteInboxItem(showMoveModal.id);
+            await updateInboxItem(showMoveModal.id, { processed: true });
             setShowMoveModal(null);
             setSelectedProjectId('');
             setTaskTitle('');
+            setTaskDescription('');
             setDueDate('');
-            setSuccessMessage('Converted to project task!');
+            setSuccessMessage('Converted to project task and archived!');
         } catch (err) {
             console.error('Error moving item:', err);
             alert('Failed to convert to task.');
@@ -82,10 +92,10 @@ export default function Inbox() {
             <div className="inbox-content">
                 <div className="header-with-count mb-6">
                     <h2 className="section-title">Captured Items</h2>
-                    <span className="count-badge">{inbox.length}</span>
+                    <span className="count-badge">{activeItems.length}</span>
                 </div>
 
-                {inbox.length === 0 ? (
+                {activeItems.length === 0 ? (
                     <div className="card empty-inbox">
                         <div className="empty-state-icon">
                             <Clock size={48} />
@@ -95,7 +105,7 @@ export default function Inbox() {
                     </div>
                 ) : (
                     <div className="inbox-items-grid">
-                        {inbox.map(item => (
+                        {activeItems.map(item => (
                             <div key={item.id} className="inbox-item-card">
                                 <div className="item-header">
                                     <div className="ai-tag">
@@ -115,15 +125,73 @@ export default function Inbox() {
                                         <ExternalLink size={14} />
                                         Move to Project
                                     </button>
-                                    <button
-                                        className="btn btn-ghost btn-sm delete-btn"
-                                        onClick={() => deleteInboxItem(item.id)}
-                                    >
-                                        <Trash2 size={14} />
-                                    </button>
+                                    <div className="flex gap-1">
+                                        <button
+                                            className="btn btn-ghost btn-sm archive-btn"
+                                            title="Archive without converting"
+                                            onClick={() => updateInboxItem(item.id, { processed: true })}
+                                        >
+                                            <Archive size={14} />
+                                        </button>
+                                        <button
+                                            className="btn btn-ghost btn-sm delete-btn"
+                                            onClick={() => deleteInboxItem(item.id)}
+                                        >
+                                            <Trash2 size={14} />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         ))}
+                    </div>
+                )}
+
+                {archivedItems.length > 0 && (
+                    <div className="archive-section mt-12">
+                        <button
+                            className="archive-toggle-btn"
+                            onClick={() => setShowArchive(!showArchive)}
+                        >
+                            <div className="flex items-center gap-2">
+                                <History size={18} />
+                                <span>Archived Items ({archivedItems.length})</span>
+                            </div>
+                            {showArchive ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                        </button>
+
+                        {showArchive && (
+                            <div className="inbox-items-grid mt-6">
+                                {archivedItems.map(item => (
+                                    <div key={item.id} className="inbox-item-card archived">
+                                        <div className="item-header">
+                                            <div className="ai-tag opacity-60">
+                                                <Archive size={12} />
+                                                <span>Archived</span>
+                                            </div>
+                                            <span className="timestamp">{format(new Date(item.created_at), 'MMM d, h:mm a')}</span>
+                                        </div>
+                                        <div className="item-body opacity-70">
+                                            {item.content}
+                                        </div>
+                                        <div className="item-footer">
+                                            <button
+                                                className="btn btn-ghost btn-sm triage-btn"
+                                                onClick={() => updateInboxItem(item.id, { processed: false })}
+                                            >
+                                                <ExternalLink size={14} />
+                                                Restore
+                                            </button>
+                                            <button
+                                                className="btn btn-ghost btn-sm delete-btn"
+                                                onClick={() => deleteInboxItem(item.id)}
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
@@ -420,6 +488,45 @@ export default function Inbox() {
                 .gap-4 { gap: 1rem; }
                 .mb-4 { margin-bottom: 1rem; }
 
+                .archive-section {
+                    border-top: 1px dashed var(--border-medium);
+                    padding-top: var(--space-8);
+                }
+
+                .archive-toggle-btn {
+                    width: 100%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    background: var(--bg-tertiary);
+                    border: 1px solid var(--border-light);
+                    padding: var(--space-4) var(--space-6);
+                    border-radius: var(--radius-lg);
+                    color: var(--text-secondary);
+                    font-weight: var(--font-semibold);
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                }
+
+                .archive-toggle-btn:hover {
+                    background: var(--bg-secondary);
+                    border-color: var(--color-primary-200);
+                    color: var(--text-primary);
+                }
+
+                .inbox-item-card.archived {
+                    background: var(--bg-secondary);
+                    border-style: dashed;
+                }
+
+                .archive-btn {
+                    color: var(--text-muted);
+                }
+
+                .archive-btn:hover {
+                    color: var(--color-primary-600);
+                    background: var(--color-primary-50);
+                }
             `}</style>
         </div>
     );
