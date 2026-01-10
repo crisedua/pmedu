@@ -17,6 +17,7 @@ export function DataProvider({ children }) {
   const [projects, setProjects] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [documents, setDocuments] = useState([]);
+  const [inbox, setInbox] = useState([]);
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -43,6 +44,7 @@ export function DataProvider({ children }) {
         loadProjects(),
         loadTasks(),
         loadDocuments(),
+        loadInbox(),
         loadFiles(),
       ]);
 
@@ -124,6 +126,21 @@ export function DataProvider({ children }) {
     }
   };
 
+  const loadInbox = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('inbox')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setInbox(data || []);
+    } catch (err) {
+      console.error('Error loading inbox:', err);
+      setInbox([]);
+    }
+  };
+
   const loadFiles = async () => {
     try {
       const { data, error } = await supabase
@@ -181,11 +198,20 @@ export function DataProvider({ children }) {
       })
       .subscribe();
 
+    // Subscribe to inbox changes
+    const inboxSubscription = supabase
+      .channel('inbox_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'inbox' }, (payload) => {
+        handleRealtimeUpdate('inbox', payload);
+      })
+      .subscribe();
+
     // Cleanup subscriptions on unmount
     return () => {
       projectsSubscription.unsubscribe();
       tasksSubscription.unsubscribe();
       documentsSubscription.unsubscribe();
+      inboxSubscription.unsubscribe();
     };
   };
 
@@ -232,6 +258,18 @@ export function DataProvider({ children }) {
           setDocuments(prev => prev.map(d => d.id === newRecord.id ? newRecord : d));
         } else if (eventType === 'DELETE') {
           setDocuments(prev => prev.filter(d => d.id !== oldRecord.id));
+        }
+        break;
+      case 'inbox':
+        if (eventType === 'INSERT') {
+          setInbox(prev => {
+            if (prev.some(i => i.id === newRecord.id)) return prev;
+            return [newRecord, ...prev];
+          });
+        } else if (eventType === 'UPDATE') {
+          setInbox(prev => prev.map(i => i.id === newRecord.id ? newRecord : i));
+        } else if (eventType === 'DELETE') {
+          setInbox(prev => prev.filter(i => i.id !== oldRecord.id));
         }
         break;
     }
@@ -590,6 +628,66 @@ export function DataProvider({ children }) {
     return documents.filter(d => d.project_id === projectId);
   };
 
+  // Inbox CRUD
+  const createInboxItem = async (content, language = null) => {
+    try {
+      const newItem = {
+        content,
+        language,
+        user_id: currentUser.id,
+        processed: false
+      };
+
+      const { data, error } = await supabase
+        .from('inbox')
+        .insert([newItem])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setInbox(prev => [data, ...prev]);
+      return data;
+    } catch (err) {
+      console.error('Error creating inbox item:', err);
+      throw err;
+    }
+  };
+
+  const updateInboxItem = async (itemId, updates) => {
+    try {
+      const { data, error } = await supabase
+        .from('inbox')
+        .update(updates)
+        .eq('id', itemId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setInbox(prev => prev.map(i => i.id === itemId ? data : i));
+    } catch (err) {
+      console.error('Error updating inbox item:', err);
+      throw err;
+    }
+  };
+
+  const deleteInboxItem = async (itemId) => {
+    try {
+      const { error } = await supabase
+        .from('inbox')
+        .delete()
+        .eq('id', itemId);
+
+      if (error) throw error;
+
+      setInbox(prev => prev.filter(i => i.id !== itemId));
+    } catch (err) {
+      console.error('Error deleting inbox item:', err);
+      throw err;
+    }
+  };
+
   // File CRUD
   const uploadFile = async (fileData) => {
     try {
@@ -665,6 +763,7 @@ export function DataProvider({ children }) {
     projects,
     tasks,
     documents,
+    inbox,
     files,
     loading,
     error,
@@ -688,6 +787,11 @@ export function DataProvider({ children }) {
     deleteDocument,
     getDocument,
     getProjectDocuments,
+
+    // Inbox operations
+    createInboxItem,
+    updateInboxItem,
+    deleteInboxItem,
 
     // File operations
     uploadFile,

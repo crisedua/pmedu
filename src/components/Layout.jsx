@@ -15,6 +15,7 @@ import {
     Shield,
     Users,
     Brain,
+    Inbox,
 } from 'lucide-react';
 import { getTodaySummary } from '../services/aiService';
 import CreateProjectModal from './modals/CreateProjectModal';
@@ -81,6 +82,14 @@ export default function Layout() {
                         >
                             <LayoutDashboard size={20} />
                             Dashboard
+                        </NavLink>
+                        <NavLink
+                            to="/inbox"
+                            className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+                            onClick={() => setSidebarOpen(false)}
+                        >
+                            <Inbox size={20} />
+                            Inbox
                         </NavLink>
                         {currentUser?.role === 'admin' && (
                             <NavLink

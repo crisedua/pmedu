@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard';
 import ProjectView from './pages/ProjectView';
 import DocumentEditor from './pages/DocumentEditor';
 import UserManagement from './pages/UserManagement';
+import Inbox from './pages/Inbox';
 import LoginPage from './pages/LoginPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import './index.css';
@@ -24,6 +25,7 @@ function App() {
             </ProtectedRoute>
           }>
             <Route index element={<Dashboard />} />
+            <Route path="inbox" element={<Inbox />} />
             <Route path="users" element={<UserManagement />} />
             <Route path="project/:projectId" element={<ProjectView />} />
             <Route path="project/:projectId/document/:docId" element={<DocumentEditor />} />

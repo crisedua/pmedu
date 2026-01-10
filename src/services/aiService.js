@@ -213,3 +213,41 @@ function getLocalSummary(projectId, tasks, currentUser) {
     return summary;
 }
 
+// Transcribe audio using OpenAI Whisper with auto-language detection
+export async function transcribeAudio(audioBlob) {
+    if (!OPENAI_API_KEY) {
+        throw new Error('OpenAI API Key is missing. Please add VITE_OPENAI_API_KEY to your .env file.');
+    }
+
+    const formData = new FormData();
+    formData.append('file', audioBlob, 'audio.webm');
+    formData.append('model', 'whisper-1');
+    formData.append('response_format', 'verbose_json'); // Gets us language detection data
+
+    try {
+        const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${OPENAI_API_KEY}`
+            },
+            body: formData
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error?.message || 'Failed to transcribe audio');
+        }
+
+        const data = await response.json();
+
+        // Whisper returns detected language in ISO format (e.g., 'english', 'spanish')
+        // Returning both text and language for better UI feedback
+        return {
+            text: data.text,
+            language: data.language
+        };
+    } catch (error) {
+        console.error('Transcription Error:', error);
+        throw error;
+    }
+}
