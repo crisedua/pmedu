@@ -1,8 +1,6 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useData } from '../context/DataContext';
 import {
-    Mic,
-    Square,
     Trash2,
     ExternalLink,
     Sparkles,
@@ -11,28 +9,19 @@ import {
     Save,
     CheckCircle2
 } from 'lucide-react';
-import { transcribeAudio } from '../services/aiService';
 import { format } from 'date-fns';
 
 export default function Inbox() {
     const {
         inbox,
         projects,
-        createInboxItem,
         deleteInboxItem,
         createTask
     } = useData();
 
-    const [isRecording, setIsRecording] = useState(false);
-    const [recordingTime, setRecordingTime] = useState(0);
-    const [loading, setLoading] = useState(false);
     const [showMoveModal, setShowMoveModal] = useState(null);
     const [selectedProjectId, setSelectedProjectId] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
-
-    const mediaRecorder = useRef(null);
-    const audioChunks = useRef([]);
-    const timerInterval = useRef(null);
 
     useEffect(() => {
         if (successMessage) {
@@ -40,64 +29,6 @@ export default function Inbox() {
             return () => clearTimeout(timer);
         }
     }, [successMessage]);
-
-    const startRecording = async () => {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder.current = new MediaRecorder(stream);
-            audioChunks.current = [];
-
-            mediaRecorder.current.ondataavailable = (event) => {
-                audioChunks.current.push(event.data);
-            };
-
-            mediaRecorder.current.onstop = async () => {
-                const audioBlob = new Blob(audioChunks.current, { type: 'audio/webm' });
-                handleTranscription(audioBlob);
-                stream.getTracks().forEach(track => track.stop());
-            };
-
-            mediaRecorder.current.start();
-            setIsRecording(true);
-            setRecordingTime(0);
-            timerInterval.current = setInterval(() => {
-                setRecordingTime(prev => prev + 1);
-            }, 1000);
-        } catch (err) {
-            console.error('Error accessing microphone:', err);
-            alert('Could not access microphone. Please ensure you have given permission.');
-        }
-    };
-
-    const stopRecording = () => {
-        if (mediaRecorder.current && isRecording) {
-            mediaRecorder.current.stop();
-            setIsRecording(false);
-            if (timerInterval.current) clearInterval(timerInterval.current);
-        }
-    };
-
-    const handleTranscription = async (blob) => {
-        setLoading(true);
-        try {
-            const result = await transcribeAudio(blob);
-            if (result && result.text) {
-                await createInboxItem(result.text, result.language);
-                setSuccessMessage(`Thought captured in ${result.language || 'detected language'}!`);
-            }
-        } catch (err) {
-            console.error('Transcription error:', err);
-            alert('Failed to transcribe audio. Please try again.');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const formatTime = (seconds) => {
-        const mins = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        return `${mins}:${secs.toString().padStart(2, '0')}`;
-    };
 
     const handleMoveToProject = async () => {
         if (!selectedProjectId || !showMoveModal) return;
@@ -128,7 +59,7 @@ export default function Inbox() {
             <div className="page-header">
                 <div>
                     <h1 className="page-title">Voice Inbox</h1>
-                    <p className="page-subtitle">Capture ideas quickly, triage them later</p>
+                    <p className="page-subtitle">Triage your captured thoughts and ideas</p>
                 </div>
                 {successMessage && (
                     <div className="success-toast">
@@ -136,45 +67,6 @@ export default function Inbox() {
                         {successMessage}
                     </div>
                 )}
-            </div>
-
-            <div className="inbox-capture-section mb-12">
-                <div className={`recorder-box ${isRecording ? 'is-recording' : ''}`}>
-                    <div className="recorder-vibe">
-                        {isRecording ? (
-                            <div className="recording-ui">
-                                <div className="waves">
-                                    <div className="wave"></div>
-                                    <div className="wave"></div>
-                                    <div className="wave"></div>
-                                </div>
-                                <span className="timer">{formatTime(recordingTime)}</span>
-                                <p>Listening...</p>
-                            </div>
-                        ) : loading ? (
-                            <div className="processing-ui">
-                                <div className="spinner mb-4" />
-                                <p>Transcribing your voice...</p>
-                            </div>
-                        ) : (
-                            <div className="idle-ui">
-                                <div className="mic-circle">
-                                    <Mic size={32} />
-                                </div>
-                                <h3>Record a Thought</h3>
-                                <p>Your message will be automatically transcribed</p>
-                            </div>
-                        )}
-
-                        <button
-                            className={`action-btn ${isRecording ? 'stop-btn' : 'start-btn'}`}
-                            onClick={isRecording ? stopRecording : startRecording}
-                            disabled={loading}
-                        >
-                            {isRecording ? <Square size={24} fill="currentColor" /> : <Mic size={24} />}
-                        </button>
-                    </div>
-                </div>
             </div>
 
             <div className="inbox-content">
@@ -189,7 +81,7 @@ export default function Inbox() {
                             <Clock size={48} />
                         </div>
                         <h3>Your inbox is empty</h3>
-                        <p>Recorded tasks and ideas will appear here for you to organize into projects.</p>
+                        <p>Recorded tasks and ideas captured with the floating button will appear here.</p>
                     </div>
                 ) : (
                     <div className="inbox-items-grid">
@@ -289,124 +181,6 @@ export default function Inbox() {
                     font-size: var(--text-sm);
                     font-weight: var(--font-medium);
                     animation: slideUp 0.3s ease;
-                }
-
-                .inbox-capture-section {
-                    display: flex;
-                    justify-content: center;
-                }
-
-                .recorder-box {
-                    width: 100%;
-                    max-width: 600px;
-                    background: var(--bg-primary);
-                    border: 1px solid var(--border-light);
-                    border-radius: var(--radius-2xl);
-                    padding: var(--space-10);
-                    box-shadow: var(--shadow-xl);
-                    transition: all 0.3s ease;
-                }
-
-                .recorder-box.is-recording {
-                    border-color: var(--color-error);
-                    box-shadow: 0 0 30px rgba(239, 68, 68, 0.15);
-                }
-
-                .recorder-vibe {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    gap: var(--space-6);
-                }
-
-                .mic-circle {
-                    width: 80px;
-                    height: 80px;
-                    background: var(--color-primary-50);
-                    color: var(--color-primary-600);
-                    border-radius: 50%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                }
-
-                .idle-ui h3 {
-                    margin-bottom: var(--space-2);
-                    text-align: center;
-                }
-
-                .idle-ui p {
-                    color: var(--text-tertiary);
-                    text-align: center;
-                }
-
-                .action-btn {
-                    width: 72px;
-                    height: 72px;
-                    border-radius: 50%;
-                    border: none;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    cursor: pointer;
-                    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-                }
-
-                .start-btn {
-                    background: var(--color-primary-600);
-                    color: white;
-                    box-shadow: 0 8px 16px rgba(79, 70, 229, 0.3);
-                }
-
-                .start-btn:hover {
-                    transform: scale(1.05);
-                    background: var(--color-primary-700);
-                }
-
-                .stop-btn {
-                    background: var(--color-error);
-                    color: white;
-                    box-shadow: 0 8px 16px rgba(239, 68, 68, 0.3);
-                }
-
-                .stop-btn:active {
-                    transform: scale(0.9);
-                }
-
-                .recording-ui {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    gap: var(--space-3);
-                }
-
-                .timer {
-                    font-size: var(--text-3xl);
-                    font-weight: var(--font-bold);
-                    font-family: var(--font-mono);
-                }
-
-                .waves {
-                    display: flex;
-                    align-items: center;
-                    gap: 6px;
-                    height: 30px;
-                }
-
-                .wave {
-                    width: 4px;
-                    height: 10px;
-                    background: var(--color-error);
-                    border-radius: var(--radius-full);
-                    animation: wave-anim 1s infinite ease-in-out;
-                }
-
-                .wave:nth-child(2) { animation-delay: 0.2s; height: 20px; }
-                .wave:nth-child(3) { animation-delay: 0.4s; height: 15px; }
-
-                @keyframes wave-anim {
-                    0%, 100% { transform: scaleY(1); }
-                    50% { transform: scaleY(2); }
                 }
 
                 .header-with-count {
@@ -526,6 +300,11 @@ export default function Inbox() {
                     border-radius: var(--radius-md);
                     border: 1px solid var(--border-medium);
                     background: var(--bg-primary);
+                }
+
+                @keyframes slideUp {
+                    from { transform: translateY(10px); opacity: 0; }
+                    to { transform: translateY(0); opacity: 1; }
                 }
             `}</style>
         </div>
