@@ -131,64 +131,7 @@ export default function Layout() {
                         )}
                     </div>
 
-                    <div className="sidebar-section">
-                        <div className="sidebar-ai-summary" style={{
-                            margin: 'var(--space-4)',
-                            padding: 'var(--space-4)',
-                            background: 'rgba(99, 102, 241, 0.05)',
-                            border: '1px solid rgba(99, 102, 241, 0.1)',
-                            borderRadius: 'var(--radius-lg)',
-                        }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', marginBottom: 'var(--space-3)' }}>
-                                <div style={{
-                                    width: '28px',
-                                    height: '28px',
-                                    borderRadius: 'var(--radius-md)',
-                                    background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    color: 'white',
-                                }}>
-                                    <Sparkles size={14} />
-                                </div>
-                                <div style={{ fontWeight: 'var(--font-semibold)', fontSize: 'var(--text-sm)' }}>AI Daily Focus</div>
-                            </div>
 
-                            <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', marginBottom: 'var(--space-3)' }}>
-                                Get personalized task focus for your day.
-                            </p>
-
-                            <button
-                                className="btn btn-ai btn-sm"
-                                style={{
-                                    width: '100%',
-                                    height: 'auto',
-                                    padding: 'var(--space-3)',
-                                    flexDirection: 'column',
-                                    gap: 'var(--space-1)',
-                                    textAlign: 'center',
-                                    lineHeight: '1.2'
-                                }}
-                                onClick={handleGetSummary}
-                                disabled={loadingSummary}
-                            >
-                                {loadingSummary ? (
-                                    <>
-                                        <div className="spinner" style={{ width: '14px', height: '14px' }} />
-                                        Summarizing...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Brain size={16} />
-                                        <div style={{ fontSize: 'var(--text-xs)', fontWeight: 'var(--font-bold)' }}>
-                                            What should I<br />work on today?
-                                        </div>
-                                    </>
-                                )}
-                            </button>
-                        </div>
-                    </div>
                 </nav>
 
                 <div className="sidebar-footer">

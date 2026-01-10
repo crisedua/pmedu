@@ -5,12 +5,9 @@ import {
     Clock,
     CheckCircle2,
     Calendar,
-    User,
-    Sparkles,
     MoreVertical,
     Trash2,
     Edit3,
-    GripVertical,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import EditTaskModal from './modals/EditTaskModal';
@@ -114,7 +111,7 @@ export default function KanbanBoard({ projectId }) {
                                     return (
                                         <div
                                             key={task.id}
-                                            className={`kanban-task ${task.created_by_ai ? 'ai-created' : ''}`}
+                                            className="kanban-task"
                                             draggable
                                             onDragStart={(e) => handleDragStart(e, task)}
                                             onDragEnd={handleDragEnd}
@@ -180,14 +177,7 @@ export default function KanbanBoard({ projectId }) {
                                                 </div>
                                             </div>
 
-                                            {task.created_by_ai && (
-                                                <div style={{ marginBottom: 'var(--space-2)' }}>
-                                                    <span className="badge badge-ai" style={{ fontSize: '10px' }}>
-                                                        <Sparkles size={10} />
-                                                        AI Generated
-                                                    </span>
-                                                </div>
-                                            )}
+
 
                                             <div className="kanban-task-footer">
                                                 <div style={{

@@ -44,25 +44,17 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            {/* Stats Overview */}
-            <div className="stats-grid mb-6">
+            {/* Stats Overview - Simplified */}
+            <div className="stats-grid mb-6" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
                 <div className="stat-card">
                     <div className="stat-value">{projects.length}</div>
                     <div className="stat-label">Active Projects</div>
                 </div>
                 <div className="stat-card">
-                    <div className="stat-value">{totalTasks}</div>
-                    <div className="stat-label">Total Tasks</div>
-                </div>
-                <div className="stat-card">
-                    <div className="stat-value">{completedTasks}</div>
-                    <div className="stat-label">Completed</div>
-                </div>
-                <div className="stat-card">
-                    <div className="stat-value" style={{ color: 'var(--color-primary-600)' }}>
-                        {aiCreatedTasks}
+                    <div className="stat-value" style={{ color: 'var(--color-accent-emerald)' }}>
+                        {completedTasks}
                     </div>
-                    <div className="stat-label">AI-Created Tasks</div>
+                    <div className="stat-label">Tasks Completed</div>
                 </div>
             </div>
 
@@ -143,10 +135,6 @@ export default function Dashboard() {
                                         <div className="project-stat">
                                             <Clock size={16} />
                                             <span>{stats.inProgress} in progress</span>
-                                        </div>
-                                        <div className="project-stat">
-                                            <FileText size={16} />
-                                            <span>{documents.filter(d => d.project_id === project.id).length} docs</span>
                                         </div>
                                     </div>
                                 </Link>

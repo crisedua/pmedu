@@ -1,38 +1,24 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import {
     Plus,
     Sparkles,
     FileText,
-    Upload,
     MoreVertical,
     Trash2,
     Edit3,
-    Calendar,
-    User,
     CheckCircle2,
-    Circle,
-    Clock,
-    Download,
-    File,
     ArrowLeft,
-    Brain,
-    List,
-    LayoutGrid,
     Users,
 } from 'lucide-react';
 import CreateTaskModal from '../components/modals/CreateTaskModal';
 import AITaskModal from '../components/modals/AITaskModal';
 import CreateDocumentModal from '../components/modals/CreateDocumentModal';
-import AIDocumentModal from '../components/modals/AIDocumentModal';
-import UploadFileModal from '../components/modals/UploadFileModal';
 import EditProjectModal from '../components/modals/EditProjectModal';
 import ManageProjectMembersModal from '../components/modals/ManageProjectMembersModal';
 import KanbanBoard from '../components/KanbanBoard';
-import TaskList from '../components/TaskList';
 import { format } from 'date-fns';
-import { getTodaySummary } from '../services/aiService';
 
 export default function ProjectView() {
     const { projectId } = useParams();
@@ -41,36 +27,26 @@ export default function ProjectView() {
         getProject,
         getProjectTasks,
         getProjectDocuments,
-        getProjectFiles,
         getTaskStats,
         getProjectProgress,
         getUser,
         deleteProject,
         deleteDocument,
-        deleteFile,
-        createDocument,
-        currentUser,
     } = useData();
 
     const project = getProject(projectId);
     const tasks = getProjectTasks(projectId);
     const documents = getProjectDocuments(projectId);
-    const files = getProjectFiles(projectId);
     const stats = getTaskStats(projectId);
     const progress = getProjectProgress(projectId);
 
     const [activeTab, setActiveTab] = useState('tasks');
-    const [taskView, setTaskView] = useState('kanban'); // 'kanban' or 'list'
     const [showMenu, setShowMenu] = useState(false);
-    const [aiSummary, setAiSummary] = useState(null);
-    const [loadingSummary, setLoadingSummary] = useState(false);
 
     // Modals
     const [createTaskOpen, setCreateTaskOpen] = useState(false);
     const [aiTaskOpen, setAiTaskOpen] = useState(false);
     const [createDocOpen, setCreateDocOpen] = useState(false);
-    const [aiDocOpen, setAiDocOpen] = useState(false);
-    const [uploadFileOpen, setUploadFileOpen] = useState(false);
     const [editProjectOpen, setEditProjectOpen] = useState(false);
     const [manageMembersOpen, setManageMembersOpen] = useState(false);
 
@@ -182,31 +158,19 @@ export default function ProjectView() {
                 </div>
             </div>
 
-            {/* Quick Actions */}
+            {/* Quick Actions - Simplified */}
             <div className="quick-actions mb-6">
                 <button className="quick-action-btn" onClick={() => setCreateTaskOpen(true)}>
                     <Plus size={18} />
-                    New Task
+                    Add Task
                 </button>
                 <button className="quick-action-btn ai" onClick={() => setAiTaskOpen(true)}>
                     <Sparkles size={18} />
-                    AI Create Tasks
-                </button>
-                <button className="quick-action-btn" onClick={() => setCreateDocOpen(true)}>
-                    <FileText size={18} />
-                    New Document
-                </button>
-                <button className="quick-action-btn ai" onClick={() => setAiDocOpen(true)}>
-                    <Brain size={18} />
-                    AI Create Document
-                </button>
-                <button className="quick-action-btn" onClick={() => setUploadFileOpen(true)}>
-                    <Upload size={18} />
-                    Upload File
+                    Generate with AI
                 </button>
             </div>
 
-            {/* Tabs */}
+            {/* Tabs - Simplified */}
             <div className="tabs">
                 <button
                     className={`tab ${activeTab === 'tasks' ? 'active' : ''}`}
@@ -220,45 +184,13 @@ export default function ProjectView() {
                     onClick={() => setActiveTab('documents')}
                 >
                     <FileText size={16} style={{ marginRight: 'var(--space-2)' }} />
-                    Documents ({documents.length})
-                </button>
-                <button
-                    className={`tab ${activeTab === 'files' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('files')}
-                >
-                    <File size={16} style={{ marginRight: 'var(--space-2)' }} />
-                    Files ({files.length})
+                    Notes ({documents.length})
                 </button>
             </div>
 
             {/* Tab Content */}
             {activeTab === 'tasks' && (
                 <div>
-                    {/* View Toggle */}
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 'var(--space-4)' }}>
-                        <div style={{
-                            display: 'flex',
-                            background: 'var(--bg-tertiary)',
-                            borderRadius: 'var(--radius-md)',
-                            padding: 'var(--space-1)',
-                        }}>
-                            <button
-                                className={`btn btn-sm ${taskView === 'kanban' ? 'btn-primary' : 'btn-ghost'}`}
-                                onClick={() => setTaskView('kanban')}
-                            >
-                                <LayoutGrid size={16} />
-                                Kanban
-                            </button>
-                            <button
-                                className={`btn btn-sm ${taskView === 'list' ? 'btn-primary' : 'btn-ghost'}`}
-                                onClick={() => setTaskView('list')}
-                            >
-                                <List size={16} />
-                                List
-                            </button>
-                        </div>
-                    </div>
-
                     {tasks.length === 0 ? (
                         <div className="card">
                             <div className="empty-state">
@@ -277,16 +209,14 @@ export default function ProjectView() {
                                     <button className="btn btn-ai" onClick={() => setAiTaskOpen(true)}>
                                         <span>
                                             <Sparkles size={18} />
-                                            AI Create Tasks
+                                            Generate with AI
                                         </span>
                                     </button>
                                 </div>
                             </div>
                         </div>
-                    ) : taskView === 'kanban' ? (
-                        <KanbanBoard projectId={projectId} />
                     ) : (
-                        <TaskList projectId={projectId} />
+                        <KanbanBoard projectId={projectId} />
                     )}
                 </div>
             )}
@@ -299,22 +229,14 @@ export default function ProjectView() {
                                 <div className="empty-state-icon">
                                     <FileText size={40} />
                                 </div>
-                                <h3 className="empty-state-title">No documents yet</h3>
+                                <h3 className="empty-state-title">No notes yet</h3>
                                 <p className="empty-state-description">
-                                    Create a document manually or generate one with AI
+                                    Add notes to document project decisions and information
                                 </p>
-                                <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
-                                    <button className="btn btn-secondary" onClick={() => setCreateDocOpen(true)}>
-                                        <Plus size={18} />
-                                        New Document
-                                    </button>
-                                    <button className="btn btn-ai" onClick={() => setAiDocOpen(true)}>
-                                        <span>
-                                            <Brain size={18} />
-                                            AI Create Document
-                                        </span>
-                                    </button>
-                                </div>
+                                <button className="btn btn-secondary" onClick={() => setCreateDocOpen(true)}>
+                                    <Plus size={18} />
+                                    Add Note
+                                </button>
                             </div>
                         </div>
                     ) : (
@@ -392,7 +314,7 @@ export default function ProjectView() {
                             >
                                 <Plus size={24} style={{ color: 'var(--text-muted)', marginBottom: 'var(--space-2)' }} />
                                 <span style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>
-                                    Add Document
+                                    Add Note
                                 </span>
                             </button>
                         </div>
@@ -400,74 +322,6 @@ export default function ProjectView() {
                 </div>
             )}
 
-            {activeTab === 'files' && (
-                <div>
-                    {files.length === 0 ? (
-                        <div className="card">
-                            <div className="empty-state">
-                                <div className="empty-state-icon">
-                                    <Upload size={40} />
-                                </div>
-                                <h3 className="empty-state-title">No files yet</h3>
-                                <p className="empty-state-description">
-                                    Upload files to share with your team
-                                </p>
-                                <button className="btn btn-primary" onClick={() => setUploadFileOpen(true)}>
-                                    <Upload size={18} />
-                                    Upload File
-                                </button>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="card">
-                            <div className="file-list">
-                                {files.map(file => {
-                                    const uploader = getUser(file.uploaded_by);
-                                    const fileDate = new Date(file.created_at || new Date());
-                                    const isValidFileDate = !isNaN(fileDate.getTime());
-
-                                    return (
-                                        <div key={file.id} className="file-item">
-                                            <div className="file-icon">
-                                                <File size={18} />
-                                            </div>
-                                            <div className="file-info">
-                                                <div className="file-name">{file.name}</div>
-                                                <div className="file-meta">
-                                                    Uploaded by {uploader?.name || 'Unknown'} on {isValidFileDate ? format(fileDate, 'MMM d, yyyy') : 'N/A'}
-                                                    {' • '}{formatFileSize(file.size)}
-                                                </div>
-                                            </div>
-                                            <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-                                                <button className="btn btn-ghost btn-icon btn-sm" title="Download">
-                                                    <Download size={16} />
-                                                </button>
-                                                <button
-                                                    className="btn btn-ghost btn-icon btn-sm"
-                                                    title="Delete"
-                                                    onClick={() => {
-                                                        if (confirm('Delete this file?')) {
-                                                            deleteFile(file.id);
-                                                        }
-                                                    }}
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                            <div className="card-footer">
-                                <button className="btn btn-secondary btn-sm" onClick={() => setUploadFileOpen(true)}>
-                                    <Upload size={16} />
-                                    Upload More Files
-                                </button>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            )}
 
             {/* Modals */}
             {createTaskOpen && (
@@ -487,19 +341,6 @@ export default function ProjectView() {
                     projectId={projectId}
                     onClose={() => setCreateDocOpen(false)}
                     onCreated={handleDocumentCreated}
-                />
-            )}
-            {aiDocOpen && (
-                <AIDocumentModal
-                    projectId={projectId}
-                    onClose={() => setAiDocOpen(false)}
-                    onCreated={handleDocumentCreated}
-                />
-            )}
-            {uploadFileOpen && (
-                <UploadFileModal
-                    projectId={projectId}
-                    onClose={() => setUploadFileOpen(false)}
                 />
             )}
             {editProjectOpen && (
