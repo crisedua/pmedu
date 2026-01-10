@@ -121,43 +121,51 @@ export default function Inbox() {
             {/* Move Modal */}
             {showMoveModal && (
                 <div className="modal-overlay" onClick={() => setShowMoveModal(null)}>
-                    <div className="modal-container" onClick={e => e.stopPropagation()} style={{ maxWidth: '420px' }}>
+                    <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '460px' }}>
                         <div className="modal-header">
-                            <h2 className="modal-title">Convert to Task</h2>
+                            <div className="flex items-center gap-3">
+                                <div className="modal-icon-wrapper">
+                                    <Sparkles size={18} />
+                                </div>
+                                <h2 className="modal-title">Convert to Task</h2>
+                            </div>
                             <button className="btn btn-ghost btn-icon" onClick={() => setShowMoveModal(null)}>
                                 <X size={20} />
                             </button>
                         </div>
                         <div className="modal-body">
-                            <div className="preview-content mb-6">
-                                <label className="form-label">Task Preview</label>
-                                <div className="preview-box">
-                                    {showMoveModal.content}
+                            <div className="mb-6">
+                                <label className="form-label mb-2 block opacity-70">TRANSCRIPTION PREVIEW</label>
+                                <div className="premium-preview-box">
+                                    <div className="quote-mark">"</div>
+                                    <p>{showMoveModal.content}</p>
                                 </div>
                             </div>
                             <div className="form-group">
-                                <label className="form-label">Destination Project</label>
-                                <select
-                                    className="form-control"
-                                    value={selectedProjectId}
-                                    onChange={(e) => setSelectedProjectId(e.target.value)}
-                                >
-                                    <option value="">Choose a project...</option>
-                                    {projects.map(p => (
-                                        <option key={p.id} value={p.id}>{p.name}</option>
-                                    ))}
-                                </select>
+                                <label className="form-label block mb-2">Destination Project</label>
+                                <div className="custom-select-wrapper">
+                                    <select
+                                        className="form-select"
+                                        value={selectedProjectId}
+                                        onChange={(e) => setSelectedProjectId(e.target.value)}
+                                    >
+                                        <option value="">Choose a destination...</option>
+                                        {projects.map(p => (
+                                            <option key={p.id} value={p.id}>{p.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
                             </div>
                         </div>
-                        <div className="modal-footer">
+                        <div className="modal-footer flex gap-3 justify-end">
                             <button className="btn btn-ghost" onClick={() => setShowMoveModal(null)}>Cancel</button>
                             <button
                                 className="btn btn-primary"
                                 onClick={handleMoveToProject}
                                 disabled={!selectedProjectId}
                             >
-                                <Save size={18} />
-                                Create Task
+                                <CheckCircle2 size={18} />
+                                Create Project Task
                             </button>
                         </div>
                     </div>
@@ -181,6 +189,53 @@ export default function Inbox() {
                     font-size: var(--text-sm);
                     font-weight: var(--font-medium);
                     animation: slideUp 0.3s ease;
+                }
+
+                .modal-icon-wrapper {
+                    width: 32px;
+                    height: 32px;
+                    border-radius: var(--radius-md);
+                    background: var(--bg-gradient);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: white;
+                    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+                }
+
+                .premium-preview-box {
+                    background: var(--bg-tertiary);
+                    padding: var(--space-6);
+                    border-radius: var(--radius-lg);
+                    position: relative;
+                    border: 1px solid var(--border-light);
+                    transition: all 0.3s ease;
+                }
+
+                .premium-preview-box:hover {
+                    border-color: var(--color-primary-300);
+                    background: white;
+                }
+
+                .premium-preview-box p {
+                    font-size: var(--text-sm);
+                    line-height: 1.6;
+                    color: var(--text-secondary);
+                    font-style: italic;
+                    max-height: 120px;
+                    overflow-y: auto;
+                    padding-right: var(--space-2);
+                }
+
+                .quote-mark {
+                    position: absolute;
+                    top: -10px;
+                    left: 20px;
+                    font-size: 40px;
+                    color: var(--color-primary-200);
+                    font-family: serif;
+                    line-height: 1;
+                    height: 20px;
                 }
 
                 .header-with-count {
@@ -283,23 +338,36 @@ export default function Inbox() {
                 .empty-inbox h3 { color: var(--text-secondary); }
                 .empty-inbox p { color: var(--text-muted); max-width: 300px; }
 
-                .preview-box {
-                    background: var(--bg-tertiary);
-                    padding: var(--space-4);
-                    border-radius: var(--radius-md);
-                    font-size: var(--text-sm);
-                    color: var(--text-secondary);
-                    max-height: 100px;
-                    overflow-y: auto;
-                    border-left: 3px solid var(--color-primary-400);
+                @keyframes slideUp {
+                    from { transform: translateY(10px); opacity: 0; }
+                    to { transform: translateY(0); opacity: 1; }
                 }
-                
-                .form-control {
+
+                .custom-select-wrapper {
+                    position: relative;
+                }
+
+                .form-select {
                     width: 100%;
-                    padding: var(--space-3);
-                    border-radius: var(--radius-md);
+                    padding: var(--space-3) var(--space-4);
+                    border-radius: var(--radius-lg);
                     border: 1px solid var(--border-medium);
                     background: var(--bg-primary);
+                    font-size: var(--text-sm);
+                    color: var(--text-primary);
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    appearance: none;
+                }
+
+                .form-select:hover {
+                    border-color: var(--color-primary-400);
+                }
+
+                .form-select:focus {
+                    outline: none;
+                    border-color: var(--color-primary-600);
+                    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
                 }
 
                 @keyframes slideUp {
