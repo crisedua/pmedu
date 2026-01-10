@@ -265,12 +265,12 @@ export async function askAiAssistant(userInput, context) {
     const pendingTasks = tasks
         .filter(t => t.status !== 'Done')
         .sort((a, b) => new Date(a.due_date) - new Date(b.due_date))
-        .slice(0, 15) // Limit to avoid token overflow
+        .slice(0, 20) // Slightly more context
         .map(t => ({
             name: t.name,
-            project: projects.find(p => p.id === t.project_id)?.name || 'Unknown',
-            due: t.due_date,
-            assignee: t.assigned_to === currentUser.id ? 'Me' : 'Someone else'
+            project: projects.find(p => p.id === t.project_id)?.name || 'General / Unassigned',
+            due: t.due_date ? new Date(t.due_date).toLocaleDateString() : 'No date',
+            assignee: t.assigned_to === currentUser.id ? 'Me (the User)' : 'Another team member'
         }));
 
     const systemPrompt = `
@@ -283,13 +283,19 @@ export async function askAiAssistant(userInput, context) {
     - Projects: ${JSON.stringify(projectsSummary)}
     - Pending Tasks (Next 15): ${JSON.stringify(pendingTasks)}
     
-    Instructions:
-    1. Answer questions about project status, deadlines, and task counts.
-    2. Be concise but helpful and extremely professional.
-    3. If asked about "status of all projects", give a brief overview of each.
-    4. If asked about "pending tasks", list the most urgent ones.
-    5. Always speak in the first person as an assistant.
-    6. Maintain a supportive and executive tone.
+    Formatting Instructions:
+    1. EXTREMELY IMPORTANT: Use Markdown for formatting.
+    2. Use bold titles for tasks or projects (**Title**).
+    3. Use bullet points for details.
+    4. Group information logically (e.g., by Project or by Urgency).
+    5. Use relevant emojis periodically to make the interface friendly (🚀, 📅, ⚠️, ✅).
+    6. Keep sentences concise. Use shorter, punchier paragraphs.
+    7. If listing tasks, format them like this:
+       **Task Name** 🗓️ Jan 10
+       • Project: [Project Name]
+       • Status: [Status]
+    
+    Tone: Executive, supportive, and efficient.
     `;
 
     try {

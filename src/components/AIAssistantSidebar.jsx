@@ -11,6 +11,7 @@ import {
     User as UserIcon,
     Loader2
 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import { askAiAssistant, transcribeAudio } from '../services/aiService';
 
 export default function AIAssistantSidebar({ isOpen, onClose }) {
@@ -121,7 +122,7 @@ export default function AIAssistantSidebar({ isOpen, onClose }) {
                             {m.role === 'assistant' ? <Bot size={14} /> : <UserIcon size={14} />}
                         </div>
                         <div className="message-content">
-                            {m.content}
+                            <ReactMarkdown>{m.content}</ReactMarkdown>
                         </div>
                     </div>
                 ))}
@@ -251,20 +252,51 @@ export default function AIAssistantSidebar({ isOpen, onClose }) {
                     padding: var(--space-3) var(--space-4);
                     border-radius: var(--radius-lg);
                     font-size: var(--text-sm);
-                    line-height: 1.5;
-                    white-space: pre-wrap;
+                    line-height: 1.6;
+                }
+
+                .message-content h1, .message-content h2, .message-content h3 {
+                    margin-top: var(--space-3);
+                    margin-bottom: var(--space-1);
+                    font-weight: 700;
+                    font-size: var(--text-base);
+                }
+
+                .message-content p {
+                    margin-bottom: var(--space-2);
+                }
+
+                .message-content p:last-child {
+                    margin-bottom: 0;
+                }
+
+                .message-content ul, .message-content ol {
+                    margin-left: var(--space-4);
+                    margin-bottom: var(--space-2);
+                }
+
+                .message-content li {
+                    margin-bottom: 4px;
+                }
+
+                .message-content strong {
+                    font-weight: 700;
+                    color: inherit;
                 }
 
                 .assistant .message-content {
-                    background: var(--bg-tertiary);
+                    background: #f8fafc;
                     color: var(--text-primary);
+                    border: 1px solid var(--border-light);
                     border-top-left-radius: 0;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
                 }
 
                 .user .message-content {
-                    background: var(--color-primary-600);
+                    background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%);
                     color: white;
                     border-top-right-radius: 0;
+                    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
                 }
 
                 .ai-input-area {
