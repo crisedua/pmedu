@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { getTodaySummary } from '../services/aiService';
 import CreateProjectModal from './modals/CreateProjectModal';
+import GlobalVoiceCapture from './GlobalVoiceCapture';
 
 export default function Layout() {
     const { projects, tasks, currentUser, logout } = useData();
@@ -264,6 +265,7 @@ export default function Layout() {
                 </div>
             )}
 
+            <GlobalVoiceCapture />
             <style>{`
         @media (max-width: 768px) {
           .mobile-menu-btn {
