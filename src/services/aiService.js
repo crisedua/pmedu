@@ -251,3 +251,55 @@ export async function transcribeAudio(audioBlob) {
         throw error;
     }
 }
+// AI Assistant Chat with full context
+export async function askAiAssistant(userInput, context) {
+    const { projects, tasks, currentUser } = context;
+
+    // Build a compact summary of the workspace
+    const projectsSummary = projects.map(p => ({
+        name: p.name,
+        taskCount: tasks.filter(t => t.project_id === p.id).length,
+        doneTasks: tasks.filter(t => t.project_id === p.id && t.status === 'Done').length
+    }));
+
+    const pendingTasks = tasks
+        .filter(t => t.status !== 'Done')
+        .sort((a, b) => new Date(a.due_date) - new Date(b.due_date))
+        .slice(0, 15) // Limit to avoid token overflow
+        .map(t => ({
+            name: t.name,
+            project: projects.find(p => p.id === t.project_id)?.name || 'Unknown',
+            due: t.due_date,
+            assignee: t.assigned_to === currentUser.id ? 'Me' : 'Someone else'
+        }));
+
+    const systemPrompt = `
+    You are professional AI Project Manager for the app "AI Project Hub".
+    You have access to the user's workspace data.
+    
+    CurrentUser: ${currentUser.name} (${currentUser.role})
+    
+    Workspace Status:
+    - Projects: ${JSON.stringify(projectsSummary)}
+    - Pending Tasks (Next 15): ${JSON.stringify(pendingTasks)}
+    
+    Instructions:
+    1. Answer questions about project status, deadlines, and task counts.
+    2. Be concise but helpful and extremely professional.
+    3. If asked about "status of all projects", give a brief overview of each.
+    4. If asked about "pending tasks", list the most urgent ones.
+    5. Always speak in the first person as an assistant.
+    6. Maintain a supportive and executive tone.
+    `;
+
+    try {
+        const response = await callOpenAI([
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userInput }
+        ], 0.6);
+        return response;
+    } catch (error) {
+        console.error('AI Assistant Error:', error);
+        return "I'm sorry, I'm having trouble connecting to my central brain. Please check your connection or try again later.";
+    }
+}

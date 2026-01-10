@@ -20,6 +20,7 @@ import {
 import { getTodaySummary } from '../services/aiService';
 import CreateProjectModal from './modals/CreateProjectModal';
 import GlobalVoiceCapture from './GlobalVoiceCapture';
+import AIAssistantSidebar from './AIAssistantSidebar';
 
 export default function Layout() {
     const { projects, tasks, currentUser, logout } = useData();
@@ -29,6 +30,7 @@ export default function Layout() {
     const [aiSummary, setAiSummary] = useState(null);
     const [loadingSummary, setLoadingSummary] = useState(false);
     const [showSummaryModal, setShowSummaryModal] = useState(false);
+    const [aiAssistantOpen, setAiAssistantOpen] = useState(false);
 
     const handleGetSummary = async () => {
         setLoadingSummary(true);
@@ -102,6 +104,17 @@ export default function Layout() {
                                 User Management
                             </NavLink>
                         )}
+                        <button
+                            className={`sidebar-link ${aiAssistantOpen ? 'active' : ''}`}
+                            onClick={() => {
+                                setAiAssistantOpen(true);
+                                setSidebarOpen(false);
+                            }}
+                        >
+                            <Brain size={20} className="text-primary-500" />
+                            <span>Ask Assistant</span>
+                            <div className="sidebar-badge-ai">AI</div>
+                        </button>
                     </div>
 
                     <div className="sidebar-section">
@@ -266,11 +279,30 @@ export default function Layout() {
             )}
 
             <GlobalVoiceCapture />
+            <AIAssistantSidebar
+                isOpen={aiAssistantOpen}
+                onClose={() => setAiAssistantOpen(false)}
+            />
             <style>{`
         @media (max-width: 768px) {
           .mobile-menu-btn {
             display: flex !important;
           }
+        }
+
+        .sidebar-badge-ai {
+            background: var(--bg-gradient);
+            color: white;
+            font-size: 8px;
+            font-weight: 800;
+            padding: 1px 4px;
+            border-radius: 4px;
+            margin-left: auto;
+            letter-spacing: 0.5px;
+        }
+
+        .text-primary-500 {
+            color: var(--color-primary-500);
         }
       `}</style>
         </div >
