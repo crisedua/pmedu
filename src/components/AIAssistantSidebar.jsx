@@ -49,7 +49,8 @@ export default function AIAssistantSidebar({ isOpen, onClose }) {
             const response = await askAiAssistant(messageText, { projects, tasks, currentUser });
             setMessages(prev => [...prev, { role: 'assistant', content: response }]);
         } catch (err) {
-            setMessages(prev => [...prev, { role: 'assistant', content: "Sorry, I had an error processing that. Could you try again?" }]);
+            console.error(err);
+            setMessages(prev => [...prev, { role: 'assistant', content: `⚠️ Error: ${err.message || "Something went wrong. Please try again."}` }]);
         } finally {
             setIsTyping(false);
         }

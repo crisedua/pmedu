@@ -306,6 +306,10 @@ export async function askAiAssistant(userInput, context) {
         return response;
     } catch (error) {
         console.error('AI Assistant Error:', error);
+        // Show specific configuration errors
+        if (error.message.includes('API Key') || error.message.includes('missing')) {
+            return `⚠️ **Configuration Error**: ${error.message}\n\nPlease check your cloud provider settings.`;
+        }
         return "I'm sorry, I'm having trouble connecting to my central brain. Please check your connection or try again later.";
     }
 }
