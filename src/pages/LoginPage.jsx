@@ -206,22 +206,9 @@ export default function LoginPage() {
                         </button>
                     </form>
 
-                    <div style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '14px', color: 'var(--text-secondary)' }}>
-                        {mode === 'login' ? "Don't have an account? " : "Already have an account? "}
-                        <button
-                            onClick={() => {
-                                setMode(mode === 'login' ? 'register' : 'login');
-                                setError('');
-                            }}
-                            style={{ background: 'none', border: 'none', color: 'var(--color-primary-600)', fontWeight: 600, cursor: 'pointer' }}
-                        >
-                            {mode === 'login' ? 'Sign up' : 'Log in'}
-                        </button>
-                    </div>
-
-                    {/* Quick Demo Login */}
+                    {/* Google Login - More Prominent */}
                     {mode === 'login' && (
-                        <div style={{ marginTop: '2rem' }}>
+                        <div style={{ marginTop: '1.5rem' }}>
                             <button
                                 type="button"
                                 className="btn"
@@ -232,12 +219,19 @@ export default function LoginPage() {
                                     height: '44px',
                                     background: 'white',
                                     color: '#333',
-                                    border: '1px solid #ddd',
-                                    marginBottom: '2rem',
-                                    fontWeight: 500
+                                    border: '1px solid #e5e7eb',
+                                    borderRadius: '8px',
+                                    fontWeight: 600,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '12px',
+                                    transition: 'all 0.2s ease',
+                                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
                                 }}
+                                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+                                onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'white'}
                             >
-                                <svg width="18" height="18" viewBox="0 0 24 24" style={{ marginRight: '10px' }}>
+                                <svg width="20" height="20" viewBox="0 0 24 24">
                                     <path
                                         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                                         fill="#4285F4"
@@ -255,37 +249,23 @@ export default function LoginPage() {
                                         fill="#EA4335"
                                     />
                                 </svg>
-                                Sign in with Google
+                                Continue with Google
                             </button>
-
-                            <div style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '10px',
-                                color: 'var(--text-tertiary)',
-                                fontSize: '12px',
-                                marginBottom: '1rem'
-                            }}>
-                                <div style={{ height: '1px', flex: 1, background: 'var(--border-light)' }}></div>
-                                OR QUICK LOGIN AS DEMO USER
-                                <div style={{ height: '1px', flex: 1, background: 'var(--border-light)' }}></div>
-                            </div>
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                                {users.slice(0, 2).map((u, i) => (
-                                    <button
-                                        key={u.id}
-                                        className="btn btn-secondary btn-sm"
-                                        onClick={() => loginAsDemoUser(u.email)}
-                                        style={{ justifyContent: 'center' }}
-                                    >
-                                        <div className="avatar avatar-xs" style={{ width: '20px', height: '20px', fontSize: '9px' }}>{u.avatar}</div>
-                                        {u.name.split(' ')[0]}
-                                    </button>
-                                ))}
-                            </div>
                         </div>
                     )}
+
+                    <div style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '14px', color: 'var(--text-secondary)' }}>
+                        {mode === 'login' ? "Don't have an account? " : "Already have an account? "}
+                        <button
+                            onClick={() => {
+                                setMode(mode === 'login' ? 'register' : 'login');
+                                setError('');
+                            }}
+                            style={{ background: 'none', border: 'none', color: 'var(--color-primary-600)', fontWeight: 600, cursor: 'pointer' }}
+                        >
+                            {mode === 'login' ? 'Sign up' : 'Log in'}
+                        </button>
+                    </div>
                 </div>
             </div>
 

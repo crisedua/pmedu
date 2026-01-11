@@ -133,17 +133,10 @@ export function DataProvider({ children }) {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-
-      // If no users in DB, seed with sample users
-      if (!data || data.length === 0) {
-        await seedSampleUsers();
-      } else {
-        setUsers(data);
-      }
+      setUsers(data || []);
     } catch (err) {
       console.error('Error loading users:', err);
-      // Fallback to sample users if DB fails
-      setUsers(SAMPLE_USERS);
+      setUsers([]);
     }
   };
 
@@ -219,22 +212,6 @@ export function DataProvider({ children }) {
     } catch (err) {
       console.error('Error loading files:', err);
       setFiles([]);
-    }
-  };
-
-  // Seed sample users
-  const seedSampleUsers = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('pm_users')
-        .insert(SAMPLE_USERS)
-        .select();
-
-      if (error) throw error;
-      setUsers(data || SAMPLE_USERS);
-    } catch (err) {
-      console.error('Error seeding users:', err);
-      setUsers(SAMPLE_USERS);
     }
   };
 
