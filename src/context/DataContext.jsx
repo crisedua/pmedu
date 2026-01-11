@@ -398,11 +398,10 @@ export function DataProvider({ children }) {
     }
   };
 
-  const logout = async () => {
-    await supabase.auth.signOut();
+  const logout = () => {
+    // Clear state IMMEDIATELY - don't wait for Supabase
     setCurrentUser(null);
     setDataLoaded(false);
-    // Clear all cached data
     setProjects([]);
     setTasks([]);
     setDocuments([]);
@@ -410,6 +409,9 @@ export function DataProvider({ children }) {
     setFiles([]);
     setUsers([]);
     localStorage.removeItem('pm-app-user');
+
+    // Fire-and-forget Supabase signOut (don't await)
+    supabase.auth.signOut().catch(err => console.warn('Supabase signOut error:', err));
   };
 
   const register = async (userData) => {
