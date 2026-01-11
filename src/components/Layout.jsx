@@ -192,16 +192,10 @@ export default function Layout() {
                     {/* Logout Button - Standalone Row */}
                     <button
                         className="sidebar-link logout-btn"
-                        onClick={async (e) => {
-                            e.preventDefault();
+                        onClick={() => {
                             console.log('[Logout] Button clicked');
-                            try {
-                                await logout();
-                                console.log('[Logout] Success, navigating to login');
-                                navigate('/login');
-                            } catch (err) {
-                                console.error('[Logout] Error:', err);
-                            }
+                            logout();
+                            navigate('/login');
                         }}
                         style={{
                             width: '100%',
