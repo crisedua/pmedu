@@ -105,120 +105,102 @@ export default function LoginPage() {
                         <span style={{ fontWeight: 600 }}>AI Project Hub</span>
                     </div>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', marginTop: '2rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'center' }}>
 
-                        {/* One-liner - visible for both languages but prioritizing Spanish structure as requested */}
-                        {language === 'es' && (
+                        {/* Header Section */}
+                        <div style={{ marginBottom: '1.5rem' }}>
                             <p style={{
                                 fontSize: '1.1rem',
                                 fontWeight: 500,
-                                opacity: 0.9,
-                                background: 'rgba(255,255,255,0.1)',
-                                padding: '0.5rem 1rem',
-                                borderRadius: '8px',
-                                display: 'inline-block',
-                                alignSelf: 'flex-start',
-                                marginBottom: '-1rem'
+                                color: 'white',
+                                marginBottom: '0.5rem',
+                                opacity: 0.9
                             }}>
-                                De conversaciones y audios → a tareas con seguimiento y claridad.
+                                {language === 'es' ? 'De conversaciones y audios → a tareas con seguimiento y claridad.' : 'From conversations to tasks with clarity.'}
                             </p>
-                        )}
 
-                        <div>
-                            <h1 style={{ fontSize: '3rem', fontWeight: 800, lineHeight: 1.1, marginBottom: '1.5rem' }}>
+                            <h1 style={{ fontSize: '2.5rem', fontWeight: 800, lineHeight: 1.1, marginBottom: '1rem', color: 'white' }}>
                                 {language === 'es' ? 'Un centro de control por voz para Project Managers' : 'A Voice Control Center for Project Managers'}
                             </h1>
-                            <p style={{ fontSize: '1.25rem', opacity: 0.9, lineHeight: 1.6 }}>
+                            <p style={{ fontSize: '1.1rem', opacity: 0.95, lineHeight: 1.5, color: 'white' }}>
                                 {language === 'es' ? (
-                                    'Captura compromisos en el momento en que se dicen y conviértelos en tareas claras con responsable y fecha. Diseñado para entornos con mucha comunicación y poca estructura.'
+                                    'Captura compromisos en el momento en que se dicen y conviértelos en tareas claras con responsable y fecha.'
                                 ) : (
-                                    'Capture commitments the moment they are spoken and turn them into clear tasks with assignees and due dates. Designed for high-communication, low-structure environments.'
+                                    'Capture commitments the moment they are spoken and turn them into clear tasks with assignees and due dates.'
                                 )}
                             </p>
                         </div>
 
                         {language === 'es' && (
                             <>
-                                {/* What It Does Section */}
-                                <div style={{ background: 'rgba(255,255,255,0.1)', padding: '1.5rem', borderRadius: '1rem', backdropFilter: 'blur(10px)' }}>
-                                    <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem', opacity: 0.9 }}>
-                                        ¿Qué hace exactamente?
-                                    </h3>
-                                    <p style={{ marginBottom: '1rem', opacity: 0.9 }}>
-                                        La app registra compromisos por voz y te permite responder al instante:
-                                    </p>
-                                    <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                        {['¿Quién debe qué?', '¿Qué está atrasado?', '¿Qué vence la próxima semana?', '¿Qué se comprometió a hacer cada persona?'].map((item, i) => (
-                                            <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', opacity: 0.9 }}>
-                                                <span style={{ background: 'rgba(255,255,255,0.4)', borderRadius: '50%', width: '6px', height: '6px' }} />
-                                                {item}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                    <p style={{ marginTop: '1rem', fontWeight: 600, fontSize: '0.95rem' }}>
-                                        Sin depender de WhatsApp, Jira o Slack.
-                                    </p>
-                                </div>
+                                {/* Two Column Layout for Features to save vertical space */}
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
 
-                                {/* Why It Matters Section */}
-                                <div>
-                                    <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1rem' }}>¿Por qué usarla?</h3>
-                                    <p style={{ marginBottom: '0.75rem', opacity: 0.9 }}>Porque en proyectos reales:</p>
-                                    <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                                        {[
-                                            'Las tareas se dicen, no se escriben',
-                                            'Los compromisos se pierden',
-                                            'El seguimiento recae siempre en el PM'
-                                        ].map((item, i) => (
-                                            <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                                <div style={{ background: '#F87171', borderRadius: '50%', padding: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px' }}>
-                                                    {/* Using a simple 'x' or similar since we want to portray the problem. Or maybe just a neutral bullet or check. 
-                                                      Actually, "Check" implies solved. These are problems. 
-                                                      Let's use a simple dot or arrow. Or the check if we want to say "This is true". 
-                                                      The previous code used Check. Let's use Check but maybe color it differently or just keep it simple.
-                                                      Re-reading: "Porque en proyectos reales: Las tareas se dicen..." -> These are facts.
-                                                      I'll use a simple Check or bullet. Let's stick to the previous Check for consistency if it looked good, or maybe an AlertCircle.
-                                                      Let's just use the Check but maybe in a neutral color or the same green to check off "facts".
-                                                      Actually, let's use a standard bullet points style for "Problems" or maybe a cross? 
-                                                      No, let's stick to the previous style for consistency. 
-                                                      Wait, the user text says "Porque en proyectos reales: ...". These are pain points. 
-                                                      Maybe just a simple list is better.
-                                                   */}
-                                                    <span style={{ color: 'white', fontWeight: 'bold', fontSize: '12px' }}>!</span>
-                                                </div>
-                                                <span style={{ fontWeight: 500 }}>{item}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                    <div style={{
-                                        marginTop: '1.5rem',
-                                        padding: '1rem',
-                                        borderRadius: '0.75rem',
-                                        background: 'rgba(255,255,255,0.15)',
-                                        borderLeft: '4px solid #4ADE80'
-                                    }}>
-                                        <p style={{ fontWeight: 600, fontSize: '1.1rem' }}>
-                                            Esta app se convierte en tu sistema de memoria y control.
-                                        </p>
+                                    {/* Column 1: What it does */}
+                                    <div style={{ background: 'rgba(255,255,255,0.1)', padding: '1rem', borderRadius: '1rem', backdropFilter: 'blur(10px)' }}>
+                                        <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '0.5rem', color: 'white', opacity: 1 }}>
+                                            ¿Qué hace?
+                                        </h3>
+                                        <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                            {['¿Quién debe qué?', '¿Qué está atrasado?', '¿Qué vence pronto?'].map((item, i) => (
+                                                <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'white', fontSize: '0.9rem' }}>
+                                                    <span style={{ background: 'white', borderRadius: '50%', width: '4px', height: '4px', flexShrink: 0 }} />
+                                                    {item}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+
+                                    {/* Column 2: Why it matters */}
+                                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '1rem' }}>
+                                        <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '0.5rem', color: 'white' }}>
+                                            ¿Por qué usarla?
+                                        </h3>
+                                        <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                            {[
+                                                'Tareas se pierden',
+                                                'Sin seguimiento',
+                                                'Caos en WhatsApp'
+                                            ].map((item, i) => (
+                                                <li key={i} style={{ display: 'flex', alignItems: 'start', gap: '8px', color: 'white', fontSize: '0.9rem' }}>
+                                                    <span style={{ color: '#FCA5A5', fontWeight: 'bold', fontSize: '14px', lineHeight: 1 }}>!</span>
+                                                    {item}
+                                                </li>
+                                            ))}
+                                        </ul>
                                     </div>
                                 </div>
 
-                                <div style={{
-                                    background: 'white',
-                                    color: '#4F46E5',
-                                    padding: '1rem',
-                                    borderRadius: '0.75rem',
-                                    fontWeight: 700,
-                                    textAlign: 'center',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: '0.5rem',
-                                    marginTop: '0.5rem',
-                                    marginBottom: '2rem'
-                                }} onClick={() => setMode('register')}>
-                                    <span>👉 Crear cuenta gratuita</span>
+                                {/* Bottom Summary & CTA */}
+                                <div>
+                                    <div style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '10px',
+                                        marginBottom: '1rem',
+                                        padding: '0.5rem',
+                                        borderRadius: '0.5rem',
+                                        background: 'rgba(255,255,255,0.1)',
+                                        borderLeft: '3px solid #4ADE80'
+                                    }}>
+                                        <p style={{ fontWeight: 600, fontSize: '0.95rem', color: 'white', margin: 0 }}>
+                                            Tu sistema de memoria y control.
+                                        </p>
+                                    </div>
+
+                                    <div style={{
+                                        background: 'white',
+                                        color: '#4F46E5',
+                                        padding: '0.75rem',
+                                        borderRadius: '0.75rem',
+                                        fontWeight: 700,
+                                        textAlign: 'center',
+                                        cursor: 'pointer',
+                                        width: '100%',
+                                        display: 'block'
+                                    }} onClick={() => setMode('register')}>
+                                        👉 Crear cuenta gratuita
+                                    </div>
                                 </div>
                             </>
                         )}
