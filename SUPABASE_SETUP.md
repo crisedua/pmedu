@@ -52,19 +52,26 @@ CREATE POLICY "Users can view their own projects"
   USING (auth.uid() = owner_id OR auth.uid() = ANY(members));
 ```
 
+## Step 5: Production / Cloud Configuration (Netlify)
+
+When deploying to `https://pmedu.netlify.app`, you must update your Supabase and Google settings:
+
+### 1. Supabase Dashboard Configuration
+1. Go to **Authentication > URL Configuration**.
+2. **Site URL**: Change to `https://pmedu.netlify.app`.
+3. **Redirect URLs**: Add `https://pmedu.netlify.app/**`.
+
+### 2. Google Cloud Console Configuration
+1. Go to **APIs & Services > Credentials**.
+2. Edit your OAuth 2.0 Client ID.
+3. **Authorized redirect URIs**: Ensure it includes the Supabase callback URL for your project:
+   `https://hpdfwxamtsaopykkzwpw.supabase.co/auth/v1/callback`
+
+### 3. Netlify Environment Variables
+Ensure the following variables are set in your Netlify Site Settings (**Site configuration > Environment variables**):
+- `VITE_SUPABASE_URL`: `https://hpdfwxamtsaopykkzwpw.supabase.co`
+- `VITE_SUPABASE_ANON_KEY`: (Your project's anon key)
+- `VITE_OPENAI_API_KEY`: (Your OpenAI API key)
+
 ## Troubleshooting
-
-**Connection Issues:**
-- Check that `.env` file exists and has correct values
-- Verify Supabase URL and anon key are correct
-- Check browser console for specific error messages
-
-**Data Not Appearing:**
-- Check Supabase Dashboard > Table Editor to see if data exists
-- Verify RLS policies are not blocking reads
-- Check browser console for query errors
-
-**Real-time Not Working:**
-- Verify Realtime is enabled in Supabase Dashboard > Settings > API
-- Check that table replication is enabled
-- Look for subscription errors in console
+... (rest of the file)

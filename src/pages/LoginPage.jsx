@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useData } from '../context/DataContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Sparkles, User, ArrowRight, Lock, Mail } from 'lucide-react';
 
 export default function LoginPage() {
-    const { login, users, register, loginWithGoogle } = useData();
+    const { login, users, register, loginWithGoogle, currentUser } = useData();
     const navigate = useNavigate();
     const location = useLocation();
     const from = location.state?.from?.pathname || '/';
@@ -14,6 +14,13 @@ export default function LoginPage() {
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
     const [error, setError] = useState('');
+
+    // If user is already logged in, redirect to app
+    useEffect(() => {
+        if (currentUser) {
+            navigate(from, { replace: true });
+        }
+    }, [currentUser, navigate, from]);
 
     const handleLogin = (e) => {
         e.preventDefault();
