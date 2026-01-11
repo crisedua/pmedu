@@ -8,32 +8,34 @@ export default function ProjectSetupWizard({ onClose, onCreated }) {
     const { createProject, createMultipleTasks, currentUser } = useData();
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
-    const [isTyping, setIsTyping] = useState(false);
-    const [conversationHistory, setConversationHistory] = useState([]);
-    const [projectData, setProjectData] = useState(null);
-    const [isCreating, setIsCreating] = useState(false);
-    const messagesEndRef = useRef(null);
+    const [language, setLanguage] = useState('en');
 
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    };
-
+    // Detect browser language on mount
     useEffect(() => {
-        scrollToBottom();
-    }, [messages, isTyping]);
-
-    // Start the conversation on mount
-    useEffect(() => {
-        startConversation();
+        const browserLang = navigator.language || navigator.userLanguage;
+        if (browserLang.startsWith('es')) {
+            setLanguage('es');
+        }
     }, []);
+
+    // Start the conversation on mount (waits for language detection)
+    useEffect(() => {
+        if (language) {
+            startConversation();
+        }
+    }, [language]);
 
     const startConversation = async () => {
         setIsTyping(true);
+        // Initial user message is hidden, we just want the AI to greet
+        const initialPrompt = language === 'es' ? "Hola, quiero crear un nuevo proyecto." : "Hello, I want to create a new project.";
+
         try {
-            const response = await guidedProjectSetup("Hello, I want to create a new project.", [], 'intro');
+            const response = await guidedProjectSetup(initialPrompt, [], 'intro', language);
             setMessages([{ role: 'assistant', content: response }]);
+            // We initialize history but don't show the user's hidden prompt
             setConversationHistory([
-                { role: 'user', content: "Hello, I want to create a new project." },
+                { role: 'user', content: initialPrompt },
                 { role: 'assistant', content: response }
             ]);
         } catch (err) {
@@ -54,7 +56,7 @@ export default function ProjectSetupWizard({ onClose, onCreated }) {
         const newHistory = [...conversationHistory, { role: 'user', content: userMessage }];
 
         try {
-            const response = await guidedProjectSetup(userMessage, conversationHistory);
+            const response = await guidedProjectSetup(userMessage, conversationHistory, 'conversation', language);
             setMessages(prev => [...prev, { role: 'assistant', content: response }]);
             setConversationHistory([...newHistory, { role: 'assistant', content: response }]);
 
@@ -105,6 +107,16 @@ export default function ProjectSetupWizard({ onClose, onCreated }) {
         }
     };
 
+    // Translations
+    const t = {
+        title: language === 'es' ? 'Asistente de Proyectos IA' : 'AI Project Setup',
+        subtitle: language === 'es' ? 'Guiado por PMBOK y Agile' : 'Guided by PMBOK & Agile best practices',
+        placeholder: language === 'es' ? 'Escribe tu respuesta...' : 'Type your response...',
+        continue: language === 'es' ? 'Seguir Editando' : 'Continue Editing',
+        create: language === 'es' ? 'Crear Proyecto' : 'Create Project',
+        creating: language === 'es' ? 'Creando...' : 'Creating...'
+    };
+
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal wizard-modal" onClick={(e) => e.stopPropagation()}>
@@ -123,9 +135,9 @@ export default function ProjectSetupWizard({ onClose, onCreated }) {
                             <Sparkles size={20} />
                         </div>
                         <div>
-                            <h3 className="modal-title" style={{ marginBottom: '2px' }}>AI Project Setup</h3>
+                            <h3 className="modal-title" style={{ marginBottom: '2px' }}>{t.title}</h3>
                             <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>
-                                Guided by PMBOK & Agile best practices
+                                {t.subtitle}
                             </p>
                         </div>
                     </div>
@@ -164,17 +176,17 @@ export default function ProjectSetupWizard({ onClose, onCreated }) {
                     {projectData ? (
                         <div className="wizard-actions">
                             <button className="btn btn-secondary" onClick={() => setProjectData(null)}>
-                                Continue Editing
+                                {t.continue}
                             </button>
                             <button
                                 className="btn btn-primary"
                                 onClick={handleCreateProject}
                                 disabled={isCreating}
                             >
-                                {isCreating ? 'Creating...' : (
+                                {isCreating ? t.creating : (
                                     <>
                                         <Check size={18} />
-                                        Create Project
+                                        {t.create}
                                     </>
                                 )}
                             </button>
@@ -183,7 +195,7 @@ export default function ProjectSetupWizard({ onClose, onCreated }) {
                         <div className="wizard-input-row">
                             <input
                                 type="text"
-                                placeholder="Type your response..."
+                                placeholder={t.placeholder}
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}

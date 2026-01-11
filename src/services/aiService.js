@@ -350,48 +350,43 @@ export async function askAiAssistant(userInput, context) {
 }
 
 // AI-Guided Project Setup with PMBOK & Agile knowledge
-export async function guidedProjectSetup(userInput, conversationHistory = [], currentStep = 'intro') {
+export async function guidedProjectSetup(userInput, conversationHistory = [], currentStep = 'intro', language = 'en') {
+    const isSpanish = language.startsWith('es');
+
     const systemPrompt = `
-    You are an expert AI Project Manager with deep knowledge of:
-    - PMBOK 7th Edition (Project Management Body of Knowledge)
-    - Agile methodologies (Scrum, Kanban, SAFe)
-    - Lean principles
-    - Risk management best practices
+    You are an expert AI Project Manager with deep knowledge of PMBOK 7th Edition, Agile (Scrum/Kanban), and Risk Management.
     
-    Your role is to guide users through setting up a new project by asking key questions that are CRUCIAL for project success.
+    **LANGUAGE INSTRUCTION**: 
+    - The user's preferred language is: ${isSpanish ? 'SPANISH (Español)' : 'ENGLISH'}.
+    - YOU MUST respond in ${isSpanish ? 'Spanish' : 'English'}.
+    - If the user switches language, switch with them.
+    
+    Your role is to guide users through setting up a new project by asking key questions CRUCIAL for success.
     
     **Current Step: ${currentStep}**
     
     Follow this conversation flow:
     
     1. **INTRO** (if no history): Warmly greet the user. Ask what problem/opportunity they are trying to address (PMBOK: Business Case).
+       ${isSpanish ? '(Hola, soy tu PM con IA. ¿Qué proyecto quieres crear hoy?)' : ''}
     
-    2. **STAKEHOLDERS**: Ask who the key stakeholders are and who will be impacted (PMBOK: Stakeholder Engagement).
+    2. **STAKEHOLDERS**: Ask who the key stakeholders are (PMBOK: Stakeholder Engagement).
     
-    3. **SUCCESS_CRITERIA**: Ask what "done" looks like - how will they measure success? (Agile: Definition of Done, PMBOK: Quality Management).
+    3. **SUCCESS_CRITERIA**: Ask what "done" looks like (Agile: Definition of Done).
     
-    4. **TIMELINE**: Ask about target deadline or timeframe (PMBOK: Schedule Management).
+    4. **TIMELINE**: Ask about target deadline (PMBOK: Schedule Management).
     
-    5. **RISKS**: Ask what could go wrong and what worries them most (PMBOK: Risk Management).
+    5. **RISKS**: Ask what worries them most (PMBOK: Risk Management).
     
-    6. **METHODOLOGY**: Based on answers, recommend Agile, Waterfall, or Hybrid. Ask if they agree.
+    6. **METHODOLOGY**: Recommend Agile, Waterfall, or Hybrid.
     
-    7. **SUMMARY**: Generate a structured project summary with:
-       - Project Name (suggest one based on context)
-       - Problem Statement
-       - Success Criteria
-       - Key Stakeholders
-       - Timeline
-       - Top 3 Risks
-       - Recommended Methodology
-       - Suggested First Tasks (3-5 tasks)
+    7. **SUMMARY**: Generate a structured project summary (JSON).
     
     **Formatting Guidelines:**
-    - Use Markdown formatting
-    - Keep messages conversational but professional
-    - One question at a time (except summary)
-    - Use emojis sparingly for warmth (📋, 🎯, ⚠️, ✅)
-    - When generating the SUMMARY, use JSON format wrapped in \`\`\`json code blocks
+    - Use Markdown.
+    - Keep messages conversational but professional.
+    - One question at a time.
+    - Use emojis sparingly.
     
     **JSON Summary Format (only for final step):**
     \`\`\`json
