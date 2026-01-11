@@ -106,76 +106,101 @@ export default function LoginPage() {
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', marginTop: '2rem' }}>
+
+                        {/* One-liner - visible for both languages but prioritizing Spanish structure as requested */}
+                        {language === 'es' && (
+                            <p style={{
+                                fontSize: '1.1rem',
+                                fontWeight: 500,
+                                opacity: 0.9,
+                                background: 'rgba(255,255,255,0.1)',
+                                padding: '0.5rem 1rem',
+                                borderRadius: '8px',
+                                display: 'inline-block',
+                                alignSelf: 'flex-start',
+                                marginBottom: '-1rem'
+                            }}>
+                                De conversaciones y audios → a tareas con seguimiento y claridad.
+                            </p>
+                        )}
+
                         <div>
                             <h1 style={{ fontSize: '3rem', fontWeight: 800, lineHeight: 1.1, marginBottom: '1.5rem' }}>
-                                {language === 'es' ? 'Convierte lo que se dice en tareas que sí se cumplen' : 'Turn what is said into tasks that actually get done'}
+                                {language === 'es' ? 'Un centro de control por voz para Project Managers' : 'A Voice Control Center for Project Managers'}
                             </h1>
                             <p style={{ fontSize: '1.25rem', opacity: 0.9, lineHeight: 1.6 }}>
                                 {language === 'es' ? (
-                                    <>
-                                        Las tareas se dicen en reuniones, audios o WhatsApp… y luego se pierden.<br /><br />
-                                        Cuando preguntas “¿cómo vamos?”, nadie tiene claridad. Y si algo se retrasa, el responsable eres tú.
-                                    </>
+                                    'Captura compromisos en el momento en que se dicen y conviértelos en tareas claras con responsable y fecha. Diseñado para entornos con mucha comunicación y poca estructura.'
                                 ) : (
-                                    'Tasks are spoken in meetings, audio notes, or WhatsApp… and then they get lost. When you ask "how are we doing?", no one has clarity. And if something is delayed, you are responsible.'
+                                    'Capture commitments the moment they are spoken and turn them into clear tasks with assignees and due dates. Designed for high-communication, low-structure environments.'
                                 )}
                             </p>
                         </div>
 
                         {language === 'es' && (
                             <>
+                                {/* What It Does Section */}
                                 <div style={{ background: 'rgba(255,255,255,0.1)', padding: '1.5rem', borderRadius: '1rem', backdropFilter: 'blur(10px)' }}>
-                                    <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                        🎙️ Tu centro de control por voz
+                                    <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem', opacity: 0.9 }}>
+                                        ¿Qué hace exactamente?
                                     </h3>
-                                    <p style={{ opacity: 0.9, lineHeight: 1.5 }}>
-                                        Habla o sube un audio y la app lo convierte automáticamente en tareas con responsable y fecha.
+                                    <p style={{ marginBottom: '1rem', opacity: 0.9 }}>
+                                        La app registra compromisos por voz y te permite responder al instante:
                                     </p>
-                                </div>
-
-                                <div>
-                                    <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem' }}>Consulta en cualquier momento:</h3>
                                     <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                        {['¿Qué tiene pendiente Juan?', '¿Qué vence la próxima semana?', '¿Qué está atrasado?'].map((item, i) => (
+                                        {['¿Quién debe qué?', '¿Qué está atrasado?', '¿Qué vence la próxima semana?', '¿Qué se comprometió a hacer cada persona?'].map((item, i) => (
                                             <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', opacity: 0.9 }}>
-                                                <span style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '50%', width: '6px', height: '6px' }} />
+                                                <span style={{ background: 'rgba(255,255,255,0.4)', borderRadius: '50%', width: '6px', height: '6px' }} />
                                                 {item}
                                             </li>
                                         ))}
                                     </ul>
+                                    <p style={{ marginTop: '1rem', fontWeight: 600, fontSize: '0.95rem' }}>
+                                        Sin depender de WhatsApp, Jira o Slack.
+                                    </p>
                                 </div>
 
+                                {/* Why It Matters Section */}
                                 <div>
-                                    <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1rem' }}>Menos caos. Más control.</h3>
+                                    <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1rem' }}>¿Por qué usarla?</h3>
+                                    <p style={{ marginBottom: '0.75rem', opacity: 0.9 }}>Porque en proyectos reales:</p>
                                     <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                                         {[
-                                            'Nada se pierde',
-                                            'Responsabilidades claras',
-                                            'Recordatorios automáticos por email',
-                                            'Historial de compromisos y entregables'
+                                            'Las tareas se dicen, no se escriben',
+                                            'Los compromisos se pierden',
+                                            'El seguimiento recae siempre en el PM'
                                         ].map((item, i) => (
                                             <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                                <div style={{ background: '#4ADE80', borderRadius: '50%', padding: '2px', display: 'flex' }}>
-                                                    <Check size={12} color="#064E3B" strokeWidth={3} />
+                                                <div style={{ background: '#F87171', borderRadius: '50%', padding: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px' }}>
+                                                    {/* Using a simple 'x' or similar since we want to portray the problem. Or maybe just a neutral bullet or check. 
+                                                      Actually, "Check" implies solved. These are problems. 
+                                                      Let's use a simple dot or arrow. Or the check if we want to say "This is true". 
+                                                      The previous code used Check. Let's use Check but maybe color it differently or just keep it simple.
+                                                      Re-reading: "Porque en proyectos reales: Las tareas se dicen..." -> These are facts.
+                                                      I'll use a simple Check or bullet. Let's stick to the previous Check for consistency if it looked good, or maybe an AlertCircle.
+                                                      Let's just use the Check but maybe in a neutral color or the same green to check off "facts".
+                                                      Actually, let's use a standard bullet points style for "Problems" or maybe a cross? 
+                                                      No, let's stick to the previous style for consistency. 
+                                                      Wait, the user text says "Porque en proyectos reales: ...". These are pain points. 
+                                                      Maybe just a simple list is better.
+                                                   */}
+                                                    <span style={{ color: 'white', fontWeight: 'bold', fontSize: '12px' }}>!</span>
                                                 </div>
                                                 <span style={{ fontWeight: 500 }}>{item}</span>
                                             </li>
                                         ))}
                                     </ul>
-                                    <p style={{ marginTop: '1rem', fontSize: '0.9rem', opacity: 0.8, fontStyle: 'italic' }}>
-                                        Todo sin obligar a tu equipo a usar otra herramienta más.
-                                    </p>
-                                </div>
-
-                                <div style={{ borderLeft: '4px solid rgba(255,255,255,0.3)', paddingLeft: '1.5rem' }}>
-                                    <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem' }}>Diseñado para la vida real</h3>
-                                    <p style={{ opacity: 0.9, marginBottom: '1rem' }}>
-                                        No necesitas Jira, Asana ni Slack.<br />
-                                        Funciona con reuniones, audios, conversaciones informales y WhatsApp.
-                                    </p>
-                                    <p style={{ fontWeight: 700, fontSize: '1.1rem' }}>
-                                        Menos seguimiento manual. Más claridad. Mejor control.
-                                    </p>
+                                    <div style={{
+                                        marginTop: '1.5rem',
+                                        padding: '1rem',
+                                        borderRadius: '0.75rem',
+                                        background: 'rgba(255,255,255,0.15)',
+                                        borderLeft: '4px solid #4ADE80'
+                                    }}>
+                                        <p style={{ fontWeight: 600, fontSize: '1.1rem' }}>
+                                            Esta app se convierte en tu sistema de memoria y control.
+                                        </p>
+                                    </div>
                                 </div>
 
                                 <div style={{
@@ -190,7 +215,8 @@ export default function LoginPage() {
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     gap: '0.5rem',
-                                    marginTop: '1rem'
+                                    marginTop: '0.5rem',
+                                    marginBottom: '2rem'
                                 }} onClick={() => setMode('register')}>
                                     <span>👉 Crear cuenta gratuita</span>
                                 </div>
