@@ -116,20 +116,28 @@ export function DataProvider({ children }) {
         setCurrentUser(JSON.parse(savedUser));
       }
 
-      // Create a promise that rejects after 10 seconds to prevent infinite loading
+      // Create a promise that rejects after 30 seconds to prevent infinite loading
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Initialization timed out')), 10000);
+        setTimeout(() => reject(new Error('Initialization timed out')), 30000);
       });
+
+      // Helper to log each load
+      const loadAndLog = async (name, fn) => {
+        console.log(`[Init] Loading ${name}...`);
+        const start = Date.now();
+        await fn();
+        console.log(`[Init] ✓ ${name} loaded in ${Date.now() - start}ms`);
+      };
 
       // Load all data from Supabase (race against timeout)
       await Promise.race([
         Promise.all([
-          loadUsers(),
-          loadProjects(),
-          loadTasks(),
-          loadDocuments(),
-          loadInbox(),
-          loadFiles(),
+          loadAndLog('users', loadUsers),
+          loadAndLog('projects', loadProjects),
+          loadAndLog('tasks', loadTasks),
+          loadAndLog('documents', loadDocuments),
+          loadAndLog('inbox', loadInbox),
+          loadAndLog('files', loadFiles),
         ]),
         timeoutPromise
       ]);
