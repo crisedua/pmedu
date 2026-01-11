@@ -22,7 +22,8 @@ export default function CommandCenter() {
         currentUser,
         getOverdueTasks,
         getTasksDueThisWeek,
-        getVoiceCreatedTasks
+        getVoiceCreatedTasks,
+        language
     } = useData();
 
     const [query, setQuery] = useState('');
@@ -35,6 +36,20 @@ export default function CommandCenter() {
     const voiceTasks = getVoiceCreatedTasks();
     const pendingTasks = tasks.filter(t => t.status !== 'Done');
 
+    const t = {
+        title: language === 'es' ? 'Centro de Comando' : 'Command Center',
+        overdue: language === 'es' ? 'Atrasado' : 'Overdue',
+        dueThisWeek: language === 'es' ? 'Vence Esta Semana' : 'Due This Week',
+        pendingTotal: language === 'es' ? 'Total Pendiente' : 'Pending Total',
+        fromVoice: language === 'es' ? 'Desde Voz' : 'From Voice',
+        searchPlaceholder: language === 'es' ? "Pregunta: '¿Qué debe Miguel?', '¿Qué está atrasado?'..." : "Ask anything: 'What does Miguel owe?', 'What is overdue?'...",
+        analysisResult: language === 'es' ? 'Resultado del Análisis' : 'Analysis Result',
+        needsAttention: language === 'es' ? 'Requiere Atención' : 'Needs Attention',
+        noOverdue: language === 'es' ? 'No hay tareas atrasadas. ¡Buen trabajo!' : 'No overdue tasks. Great job!',
+        unassigned: language === 'es' ? 'Sin Asignar' : 'Unassigned',
+        error: language === 'es' ? 'Lo siento, encontré un error al procesar tu solicitud.' : 'Sorry, I encountered an error processing your request.'
+    };
+
     const handleQuery = async (e) => {
         e.preventDefault();
         if (!query.trim()) return;
@@ -46,7 +61,7 @@ export default function CommandCenter() {
             setAiResponse(response);
         } catch (error) {
             console.error('Query error:', error);
-            setAiResponse('Sorry, I encountered an error processing your request.');
+            setAiResponse(t.error);
         } finally {
             setIsQuerying(false);
         }
@@ -56,9 +71,9 @@ export default function CommandCenter() {
         <div className="command-center fade-in">
             {/* Header Section */}
             <div className="cc-header">
-                <h1 className="cc-title">Command Center</h1>
+                <h1 className="cc-title">{t.title}</h1>
                 <p className="cc-subtitle">
-                    {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                    {new Date().toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
                 </p>
             </div>
 
@@ -70,7 +85,7 @@ export default function CommandCenter() {
                     </div>
                     <div>
                         <div className="stat-value">{overdueTasks.length}</div>
-                        <div className="stat-label">Overdue</div>
+                        <div className="stat-label">{t.overdue}</div>
                     </div>
                 </div>
 
@@ -80,7 +95,7 @@ export default function CommandCenter() {
                     </div>
                     <div>
                         <div className="stat-value">{dueThisWeek.length}</div>
-                        <div className="stat-label">Due This Week</div>
+                        <div className="stat-label">{t.dueThisWeek}</div>
                     </div>
                 </div>
 
@@ -90,7 +105,7 @@ export default function CommandCenter() {
                     </div>
                     <div>
                         <div className="stat-value">{pendingTasks.length}</div>
-                        <div className="stat-label">Pending Total</div>
+                        <div className="stat-label">{t.pendingTotal}</div>
                     </div>
                 </div>
 
@@ -100,7 +115,7 @@ export default function CommandCenter() {
                     </div>
                     <div>
                         <div className="stat-value">{voiceTasks.length}</div>
-                        <div className="stat-label">From Voice</div>
+                        <div className="stat-label">{t.fromVoice}</div>
                     </div>
                 </div>
             </div>
@@ -113,7 +128,7 @@ export default function CommandCenter() {
                         <input
                             type="text"
                             className="query-input"
-                            placeholder="Ask anything: 'What does Miguel owe?', 'What is overdue?'..."
+                            placeholder={t.searchPlaceholder}
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                         />
@@ -132,7 +147,7 @@ export default function CommandCenter() {
                     <div className="ai-response-card slide-up">
                         <div className="ai-header">
                             <SparklesIcon />
-                            <span>Analysis Result</span>
+                            <span>{t.analysisResult}</span>
                         </div>
                         <div className="markdown-content">
                             <ReactMarkdown>{aiResponse}</ReactMarkdown>
@@ -143,7 +158,7 @@ export default function CommandCenter() {
 
             {/* Recent Activity / Context */}
             <div className="section-header mt-8">
-                <h2>Needs Attention</h2>
+                <h2>{t.needsAttention}</h2>
             </div>
 
             <div className="task-list-compact">
@@ -404,6 +419,42 @@ export default function CommandCenter() {
                 @keyframes slideUp {
                     from { opacity: 0; transform: translateY(10px); }
                     to { opacity: 1; transform: translateY(0); }
+                }
+
+                /* Mobile Responsiveness */
+                @media (max-width: 768px) {
+                    .command-center {
+                        padding-bottom: 6rem; /* Make room for floating voice button */
+                    }
+
+                    .cc-title {
+                        font-size: 1.5rem;
+                    }
+
+                    .stats-grid {
+                        grid-template-columns: repeat(2, 1fr); /* Force 2 columns on mobile */
+                        gap: 1rem;
+                    }
+
+                    .stat-card {
+                        flex-direction: column;
+                        align-items: flex-start;
+                        gap: 0.75rem;
+                        padding: 1rem;
+                    }
+
+                    .stat-icon-wrapper {
+                        width: 36px;
+                        height: 36px;
+                    }
+
+                    .stat-value {
+                        font-size: 1.5rem;
+                    }
+                    
+                    .stat-label {
+                        font-size: 0.75rem;
+                    }
                 }
             `}</style>
         </div>

@@ -85,7 +85,7 @@ export default function Layout() {
                             onClick={() => setSidebarOpen(false)}
                         >
                             <Activity size={20} />
-                            Command Center
+                            {language === 'es' ? 'Centro de Comando' : 'Command Center'}
                         </NavLink>
                         <NavLink
                             to="/projects"
@@ -93,7 +93,7 @@ export default function Layout() {
                             onClick={() => setSidebarOpen(false)}
                         >
                             <LayoutDashboard size={20} />
-                            All Projects
+                            {language === 'es' ? 'Todos los Proyectos' : 'All Projects'}
                         </NavLink>
                         <NavLink
                             to="/inbox"
@@ -101,7 +101,7 @@ export default function Layout() {
                             onClick={() => setSidebarOpen(false)}
                         >
                             <Inbox size={20} />
-                            Inbox
+                            {language === 'es' ? 'Bandeja de Entrada' : 'Inbox'}
                         </NavLink>
                         {currentUser?.role === 'admin' && (
                             <NavLink
@@ -110,7 +110,7 @@ export default function Layout() {
                                 onClick={() => setSidebarOpen(false)}
                             >
                                 <Users size={20} />
-                                User Management
+                                {language === 'es' ? 'Gestión de Usuarios' : 'User Management'}
                             </NavLink>
                         )}
                         <button
@@ -121,13 +121,15 @@ export default function Layout() {
                             }}
                         >
                             <Brain size={20} className="text-primary-500" />
-                            <span>Ask Assistant</span>
+                            <span>{language === 'es' ? 'Asistente IA' : 'Ask Assistant'}</span>
                             <div className="sidebar-badge-ai">AI</div>
                         </button>
                     </div>
 
                     <div className="sidebar-section">
-                        <div className="sidebar-section-title">Projects</div>
+                        <div className="sidebar-section-title">
+                            {language === 'es' ? 'Proyectos' : 'Projects'}
+                        </div>
 
                         <button
                             className="sidebar-link"
@@ -135,7 +137,7 @@ export default function Layout() {
                             style={{ width: '100%', textAlign: 'left', border: 'none', background: 'none' }}
                         >
                             <Plus size={20} />
-                            New Project
+                            {language === 'es' ? 'Nuevo Proyecto' : 'New Project'}
                         </button>
 
                         {projects.map(project => (

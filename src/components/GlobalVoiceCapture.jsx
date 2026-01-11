@@ -28,6 +28,22 @@ export default function GlobalVoiceCapture() {
     const [followUpQuestion, setFollowUpQuestion] = useState(null);
     const [needsClarification, setNeedsClarification] = useState(false);
 
+    const t = {
+        listening: language === 'es' ? 'Escuchando...' : 'Listening...',
+        stopProcess: language === 'es' ? 'Detener y Procesar' : 'Stop & Process',
+        transcribing: language === 'es' ? 'Transcribiendo...' : 'Transcribing...',
+        extracting: language === 'es' ? 'Extrayendo Tareas...' : 'Extracting Tasks...',
+        captured: language === 'es' ? 'Capturadas' : 'Captured',
+        tasks: language === 'es' ? 'Tarea(s)' : 'Task(s)',
+        unknown: language === 'es' ? 'Desconocido' : 'Unknown',
+        unassigned: language === 'es' ? 'Sin Asignar' : 'Unassigned',
+        noDate: language === 'es' ? 'Sin Fecha' : 'No Date',
+        saveInbox: language === 'es' ? 'Guardar en Inbox' : 'Save to Inbox',
+        confirmCreate: language === 'es' ? 'Confirmar y Crear' : 'Confirm & Create',
+        success: language === 'es' ? '¡Capturado Exitosamente!' : 'Captured Successfully!',
+        voiceCommand: language === 'es' ? 'Nota de Voz' : 'Voice Note'
+    };
+
     const mediaRecorder = useRef(null);
     const audioChunks = useRef([]);
     const timerInterval = useRef(null);
@@ -161,10 +177,10 @@ export default function GlobalVoiceCapture() {
                             {[1, 2, 3, 4, 5].map(i => <div key={i} className="wave-bar"></div>)}
                         </div>
                         <div className="capture-timer">{formatTime(recordingTime)}</div>
-                        <div className="capture-label">Listening...</div>
+                        <div className="capture-label">{t.listening}</div>
                         <button className="stop-action" onClick={stopRecording}>
                             <Square size={20} fill="currentColor" />
-                            Stop & Process
+                            {t.stopProcess}
                         </button>
                     </div>
                 </div>
@@ -175,7 +191,7 @@ export default function GlobalVoiceCapture() {
                 <div className="status-pill processing">
                     <Loader2 className="animate-spin" size={18} />
                     <span>
-                        {processingStage === 'transcribing' ? 'Transcribing...' : 'Extracting Tasks...'}
+                        {processingStage === 'transcribing' ? t.transcribing : t.extracting}
                     </span>
                 </div>
             )}
@@ -185,7 +201,7 @@ export default function GlobalVoiceCapture() {
                 <div className="review-card">
                     <div className="review-header">
                         <Sparkles size={16} className="text-secondary" />
-                        <span className="text-sm font-medium">Captured {extractedTasks.length} Task{extractedTasks.length > 1 ? 's' : ''}</span>
+                        <span className="text-sm font-medium">{t.captured} {extractedTasks.length} {t.tasks}</span>
                         <button className="close-btn" onClick={handleDiscard}><X size={14} /></button>
                     </div>
 
@@ -196,11 +212,11 @@ export default function GlobalVoiceCapture() {
                                 <div className="task-preview-meta">
                                     {task.assignedTo ? (
                                         <span className="meta-tag">
-                                            <User size={12} /> {users.find(u => u.id === task.assignedTo)?.name || 'Unknown'}
+                                            <User size={12} /> {users.find(u => u.id === task.assignedTo)?.name || t.unknown}
                                         </span>
                                     ) : (
                                         <span className="meta-tag warning">
-                                            <User size={12} /> Unassigned
+                                            <User size={12} /> {t.unassigned}
                                         </span>
                                     )}
                                     {task.dueDate ? (
@@ -209,7 +225,7 @@ export default function GlobalVoiceCapture() {
                                         </span>
                                     ) : (
                                         <span className="meta-tag warning">
-                                            <Calendar size={12} /> No Date
+                                            <Calendar size={12} /> {t.noDate}
                                         </span>
                                     )}
                                 </div>
@@ -231,10 +247,10 @@ export default function GlobalVoiceCapture() {
                             createInboxItem(transcription, language);
                             setStatus('success');
                         }}>
-                            Save to Inbox
+                            {t.saveInbox}
                         </button>
                         <button className="btn-primary-sm" onClick={handleConfirmTasks}>
-                            Confirm & Create
+                            {t.confirmCreate}
                             <ArrowRight size={14} />
                         </button>
                     </div>
@@ -245,13 +261,13 @@ export default function GlobalVoiceCapture() {
             {status === 'success' && (
                 <div className="status-pill success">
                     <CheckCircle2 size={16} />
-                    <span>Captured Successfully!</span>
+                    <span>{t.success}</span>
                 </div>
             )}
 
             {/* 5. Floating Action Button (Idle) */}
             {!isRecording && !isLoading && status !== 'review' && status !== 'success' && (
-                <button className="voice-fab" onClick={startRecording} title="Voice Command">
+                <button className="voice-fab" onClick={startRecording} title={t.voiceCommand}>
                     <Mic size={24} />
                     <div className="fab-glow"></div>
                 </button>
@@ -530,6 +546,33 @@ export default function GlobalVoiceCapture() {
                 @keyframes slideUp {
                     from { opacity: 0; transform: translateY(20px); }
                     to { opacity: 1; transform: translateY(0); }
+                }
+                /* Mobile Responsiveness */
+                @media (max-width: 768px) {
+                    .global-voice-capture {
+                        right: 1rem;
+                        bottom: 5rem; /* Raised to avoid potential bottom tabs */
+                    }
+                    
+                    .voice-fab {
+                        width: 56px;
+                        height: 56px;
+                    }
+                    
+                    .review-card {
+                        width: calc(100vw - 2rem);
+                        max-width: 350px;
+                    }
+                    
+                    .capture-content {
+                        padding: 1.5rem;
+                        width: 90%;
+                        max-width: 320px;
+                    }
+                    
+                    .capture-timer {
+                        font-size: 2.5rem;
+                    }
                 }
             `}</style>
         </div>
