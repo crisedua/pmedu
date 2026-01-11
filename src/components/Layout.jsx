@@ -189,16 +189,24 @@ export default function Layout() {
                         </div>
                     </div>
 
+                    {/* Logout Button - Standalone Row */}
                     <button
-                        className="btn btn-ghost btn-icon btn-sm"
+                        className="sidebar-link"
                         onClick={() => {
                             logout();
                             navigate('/login');
                         }}
-                        title="Log out"
-                        style={{ marginLeft: 'var(--space-2)' }}
+                        style={{
+                            width: '100%',
+                            textAlign: 'left',
+                            border: 'none',
+                            background: 'none',
+                            cursor: 'pointer',
+                            color: 'var(--text-tertiary)',
+                        }}
                     >
-                        <LogOut size={16} style={{ color: 'var(--text-tertiary)' }} />
+                        <LogOut size={18} />
+                        <span>{language === 'es' ? 'Cerrar Sesión' : 'Log Out'}</span>
                     </button>
                 </div>
 
