@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useData } from '../context/DataContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Sparkles, User, ArrowRight, Lock, Mail, Globe } from 'lucide-react';
+import { Sparkles, User, ArrowRight, Lock, Mail, Globe, Check } from 'lucide-react';
 
 export default function LoginPage() {
     const { login, users, register, loginWithGoogle, currentUser, language, setLanguage } = useData();
@@ -62,11 +62,11 @@ export default function LoginPage() {
                 background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
                 display: 'flex', // Hidden on mobile via css
                 flexDirection: 'column',
-                justifyContent: 'center',
+                justifyContent: 'flex-start', // Changed from center to accommodate long content
                 padding: '4rem',
                 color: 'white',
                 position: 'relative',
-                overflow: 'hidden',
+                overflowY: 'auto', // Changed from hidden to auto
             }} className="login-sidebar">
                 {/* Background decorative elements */}
                 <div style={{
@@ -105,17 +105,98 @@ export default function LoginPage() {
                         <span style={{ fontWeight: 600 }}>AI Project Hub</span>
                     </div>
 
-                    <h1 style={{ fontSize: '3.5rem', fontWeight: 800, lineHeight: 1.1, marginBottom: '1.5rem' }}>
-                        {language === 'es'
-                            ? <>Gestiona proyectos a <br /> <span style={{ opacity: 0.8 }}>velocidad máxima</span>.</>
-                            : <>Manage projects at <br /> <span style={{ opacity: 0.8 }}>warp speed</span>.</>}
-                    </h1>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', marginTop: '2rem' }}>
+                        <div>
+                            <h1 style={{ fontSize: '3rem', fontWeight: 800, lineHeight: 1.1, marginBottom: '1.5rem' }}>
+                                {language === 'es' ? 'Convierte lo que se dice en tareas que sí se cumplen' : 'Turn what is said into tasks that actually get done'}
+                            </h1>
+                            <p style={{ fontSize: '1.25rem', opacity: 0.9, lineHeight: 1.6 }}>
+                                {language === 'es' ? (
+                                    <>
+                                        Las tareas se dicen en reuniones, audios o WhatsApp… y luego se pierden.<br /><br />
+                                        Cuando preguntas “¿cómo vamos?”, nadie tiene claridad. Y si algo se retrasa, el responsable eres tú.
+                                    </>
+                                ) : (
+                                    'Tasks are spoken in meetings, audio notes, or WhatsApp… and then they get lost. When you ask "how are we doing?", no one has clarity. And if something is delayed, you are responsible.'
+                                )}
+                            </p>
+                        </div>
 
-                    <p style={{ fontSize: '1.25rem', opacity: 0.9, lineHeight: 1.6 }}>
-                        {language === 'es'
-                            ? 'El espacio de trabajo inteligente para equipos modernos. Crea tareas, escribe documentos y organiza tu trabajo con el poder de la IA.'
-                            : 'The intelligent workspace for modern teams. Create tasks, write documents, and organize work with the power of AI.'}
-                    </p>
+                        {language === 'es' && (
+                            <>
+                                <div style={{ background: 'rgba(255,255,255,0.1)', padding: '1.5rem', borderRadius: '1rem', backdropFilter: 'blur(10px)' }}>
+                                    <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        🎙️ Tu centro de control por voz
+                                    </h3>
+                                    <p style={{ opacity: 0.9, lineHeight: 1.5 }}>
+                                        Habla o sube un audio y la app lo convierte automáticamente en tareas con responsable y fecha.
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem' }}>Consulta en cualquier momento:</h3>
+                                    <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                        {['¿Qué tiene pendiente Juan?', '¿Qué vence la próxima semana?', '¿Qué está atrasado?'].map((item, i) => (
+                                            <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', opacity: 0.9 }}>
+                                                <span style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '50%', width: '6px', height: '6px' }} />
+                                                {item}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+
+                                <div>
+                                    <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1rem' }}>Menos caos. Más control.</h3>
+                                    <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                        {[
+                                            'Nada se pierde',
+                                            'Responsabilidades claras',
+                                            'Recordatorios automáticos por email',
+                                            'Historial de compromisos y entregables'
+                                        ].map((item, i) => (
+                                            <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                <div style={{ background: '#4ADE80', borderRadius: '50%', padding: '2px', display: 'flex' }}>
+                                                    <Check size={12} color="#064E3B" strokeWidth={3} />
+                                                </div>
+                                                <span style={{ fontWeight: 500 }}>{item}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                    <p style={{ marginTop: '1rem', fontSize: '0.9rem', opacity: 0.8, fontStyle: 'italic' }}>
+                                        Todo sin obligar a tu equipo a usar otra herramienta más.
+                                    </p>
+                                </div>
+
+                                <div style={{ borderLeft: '4px solid rgba(255,255,255,0.3)', paddingLeft: '1.5rem' }}>
+                                    <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem' }}>Diseñado para la vida real</h3>
+                                    <p style={{ opacity: 0.9, marginBottom: '1rem' }}>
+                                        No necesitas Jira, Asana ni Slack.<br />
+                                        Funciona con reuniones, audios, conversaciones informales y WhatsApp.
+                                    </p>
+                                    <p style={{ fontWeight: 700, fontSize: '1.1rem' }}>
+                                        Menos seguimiento manual. Más claridad. Mejor control.
+                                    </p>
+                                </div>
+
+                                <div style={{
+                                    background: 'white',
+                                    color: '#4F46E5',
+                                    padding: '1rem',
+                                    borderRadius: '0.75rem',
+                                    fontWeight: 700,
+                                    textAlign: 'center',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '0.5rem',
+                                    marginTop: '1rem'
+                                }} onClick={() => setMode('register')}>
+                                    <span>👉 Crear cuenta gratuita</span>
+                                </div>
+                            </>
+                        )}
+                    </div>
                 </div>
             </div>
 
