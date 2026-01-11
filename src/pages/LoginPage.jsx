@@ -106,11 +106,15 @@ export default function LoginPage() {
                     </div>
 
                     <h1 style={{ fontSize: '3.5rem', fontWeight: 800, lineHeight: 1.1, marginBottom: '1.5rem' }}>
-                        Manage projects at <br /> <span style={{ opacity: 0.8 }}>warp speed</span>.
+                        {language === 'es'
+                            ? <>Gestiona proyectos a <br /> <span style={{ opacity: 0.8 }}>velocidad máxima</span>.</>
+                            : <>Manage projects at <br /> <span style={{ opacity: 0.8 }}>warp speed</span>.</>}
                     </h1>
 
                     <p style={{ fontSize: '1.25rem', opacity: 0.9, lineHeight: 1.6 }}>
-                        The intelligent workspace for modern teams. Create tasks, write documents, and organize work with the power of AI.
+                        {language === 'es'
+                            ? 'El espacio de trabajo inteligente para equipos modernos. Crea tareas, escribe documentos y organiza tu trabajo con el poder de la IA.'
+                            : 'The intelligent workspace for modern teams. Create tasks, write documents, and organize work with the power of AI.'}
                     </p>
                 </div>
             </div>
@@ -196,13 +200,13 @@ export default function LoginPage() {
                     <form onSubmit={mode === 'login' ? handleLogin : handleRegister}>
                         {mode === 'register' && (
                             <div className="form-group">
-                                <label className="form-label">Full Name</label>
+                                <label className="form-label">{language === 'es' ? 'Nombre completo' : 'Full Name'}</label>
                                 <div style={{ position: 'relative' }}>
                                     <User size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
                                     <input
                                         type="text"
                                         className="form-input"
-                                        placeholder="Enter your name"
+                                        placeholder={language === 'es' ? 'Ingresa tu nombre' : 'Enter your name'}
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
                                         style={{ paddingLeft: '40px' }}
@@ -213,13 +217,13 @@ export default function LoginPage() {
                         )}
 
                         <div className="form-group">
-                            <label className="form-label">Email Address</label>
+                            <label className="form-label">{language === 'es' ? 'Correo electrónico' : 'Email Address'}</label>
                             <div style={{ position: 'relative' }}>
                                 <Mail size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
                                 <input
                                     type="email"
                                     className="form-input"
-                                    placeholder="name@company.com"
+                                    placeholder={language === 'es' ? 'nombre@empresa.com' : 'name@company.com'}
                                     value={email}
                                     onChange={(e) => {
                                         setEmail(e.target.value);
@@ -232,7 +236,7 @@ export default function LoginPage() {
                         </div>
 
                         <div className="form-group">
-                            <label className="form-label">Password</label>
+                            <label className="form-label">{language === 'es' ? 'Contraseña' : 'Password'}</label>
                             <div style={{ position: 'relative' }}>
                                 <Lock size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
                                 <input
@@ -261,7 +265,9 @@ export default function LoginPage() {
                         )}
 
                         <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', height: '44px' }}>
-                            {mode === 'login' ? 'Sign In' : 'Create Account'}
+                            {mode === 'login'
+                                ? (language === 'es' ? 'Iniciar sesión' : 'Sign In')
+                                : (language === 'es' ? 'Crear cuenta' : 'Create Account')}
                             <ArrowRight size={18} />
                         </button>
                     </form>
@@ -309,13 +315,15 @@ export default function LoginPage() {
                                         fill="#EA4335"
                                     />
                                 </svg>
-                                Continue with Google
+                                {language === 'es' ? 'Continuar con Google' : 'Continue with Google'}
                             </button>
                         </div>
                     )}
 
                     <div style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '14px', color: 'var(--text-secondary)' }}>
-                        {mode === 'login' ? "Don't have an account? " : "Already have an account? "}
+                        {mode === 'login'
+                            ? (language === 'es' ? '¿No tienes cuenta? ' : "Don't have an account? ")
+                            : (language === 'es' ? '¿Ya tienes cuenta? ' : "Already have an account? ")}
                         <button
                             onClick={() => {
                                 setMode(mode === 'login' ? 'register' : 'login');
@@ -323,7 +331,9 @@ export default function LoginPage() {
                             }}
                             style={{ background: 'none', border: 'none', color: 'var(--color-primary-600)', fontWeight: 600, cursor: 'pointer' }}
                         >
-                            {mode === 'login' ? 'Sign up' : 'Log in'}
+                            {mode === 'login'
+                                ? (language === 'es' ? 'Regístrate' : 'Sign up')
+                                : (language === 'es' ? 'Inicia sesión' : 'Log in')}
                         </button>
                     </div>
                 </div>
