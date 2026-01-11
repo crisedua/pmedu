@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useData } from '../../context/DataContext';
-import { X } from 'lucide-react';
+import { X, Sparkles } from 'lucide-react';
+import ProjectSetupWizard from './ProjectSetupWizard';
 
 export default function CreateProjectModal({ onClose, onCreated }) {
     const { createProject } = useData();
@@ -8,6 +9,7 @@ export default function CreateProjectModal({ onClose, onCreated }) {
     const [description, setDescription] = useState('');
     const [status, setStatus] = useState('Planning');
     const [loading, setLoading] = useState(false);
+    const [showWizard, setShowWizard] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -28,6 +30,11 @@ export default function CreateProjectModal({ onClose, onCreated }) {
         }
     };
 
+    // If wizard is open, show it instead
+    if (showWizard) {
+        return <ProjectSetupWizard onClose={onClose} onCreated={onCreated} />;
+    }
+
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal" onClick={(e) => e.stopPropagation()}>
@@ -38,8 +45,43 @@ export default function CreateProjectModal({ onClose, onCreated }) {
                     </button>
                 </div>
 
+                {/* AI Guided Setup Option */}
+                <div style={{
+                    padding: 'var(--space-4)',
+                    borderBottom: '1px solid var(--border-light)',
+                    background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%)',
+                }}>
+                    <button
+                        className="btn"
+                        onClick={() => setShowWizard(true)}
+                        style={{
+                            width: '100%',
+                            justifyContent: 'center',
+                            background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
+                            color: 'white',
+                            border: 'none',
+                            gap: '8px',
+                        }}
+                    >
+                        <Sparkles size={18} />
+                        Guided Setup with AI
+                    </button>
+                    <p style={{
+                        fontSize: '11px',
+                        color: 'var(--text-muted)',
+                        textAlign: 'center',
+                        marginTop: '8px',
+                        marginBottom: 0,
+                    }}>
+                        Let AI guide you through project setup using PMBOK & Agile best practices
+                    </p>
+                </div>
+
                 <form onSubmit={handleSubmit}>
                     <div className="modal-body">
+                        <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: 'var(--space-4)' }}>
+                            Or quickly create a project manually:
+                        </p>
                         <div className="form-group">
                             <label className="form-label">Project Name *</label>
                             <input
@@ -95,3 +137,4 @@ export default function CreateProjectModal({ onClose, onCreated }) {
         </div>
     );
 }
+

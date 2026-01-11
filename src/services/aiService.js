@@ -314,3 +314,99 @@ export async function askAiAssistant(userInput, context) {
         return "I'm sorry, I'm having trouble connecting to my central brain. Please check your connection or try again later.";
     }
 }
+
+// AI-Guided Project Setup with PMBOK & Agile knowledge
+export async function guidedProjectSetup(userInput, conversationHistory = [], currentStep = 'intro') {
+    const systemPrompt = `
+    You are an expert AI Project Manager with deep knowledge of:
+    - PMBOK 7th Edition (Project Management Body of Knowledge)
+    - Agile methodologies (Scrum, Kanban, SAFe)
+    - Lean principles
+    - Risk management best practices
+    
+    Your role is to guide users through setting up a new project by asking key questions that are CRUCIAL for project success.
+    
+    **Current Step: ${currentStep}**
+    
+    Follow this conversation flow:
+    
+    1. **INTRO** (if no history): Warmly greet the user. Ask what problem/opportunity they are trying to address (PMBOK: Business Case).
+    
+    2. **STAKEHOLDERS**: Ask who the key stakeholders are and who will be impacted (PMBOK: Stakeholder Engagement).
+    
+    3. **SUCCESS_CRITERIA**: Ask what "done" looks like - how will they measure success? (Agile: Definition of Done, PMBOK: Quality Management).
+    
+    4. **TIMELINE**: Ask about target deadline or timeframe (PMBOK: Schedule Management).
+    
+    5. **RISKS**: Ask what could go wrong and what worries them most (PMBOK: Risk Management).
+    
+    6. **METHODOLOGY**: Based on answers, recommend Agile, Waterfall, or Hybrid. Ask if they agree.
+    
+    7. **SUMMARY**: Generate a structured project summary with:
+       - Project Name (suggest one based on context)
+       - Problem Statement
+       - Success Criteria
+       - Key Stakeholders
+       - Timeline
+       - Top 3 Risks
+       - Recommended Methodology
+       - Suggested First Tasks (3-5 tasks)
+    
+    **Formatting Guidelines:**
+    - Use Markdown formatting
+    - Keep messages conversational but professional
+    - One question at a time (except summary)
+    - Use emojis sparingly for warmth (📋, 🎯, ⚠️, ✅)
+    - When generating the SUMMARY, use JSON format wrapped in \`\`\`json code blocks
+    
+    **JSON Summary Format (only for final step):**
+    \`\`\`json
+    {
+        "projectName": "...",
+        "description": "...",
+        "problemStatement": "...",
+        "successCriteria": ["...", "..."],
+        "stakeholders": ["...", "..."],
+        "timeline": "...",
+        "risks": ["...", "...", "..."],
+        "methodology": "Agile|Waterfall|Hybrid",
+        "suggestedTasks": [
+            {"name": "...", "description": "..."},
+            ...
+        ]
+    }
+    \`\`\`
+    `;
+
+    const messages = [
+        { role: "system", content: systemPrompt },
+        ...conversationHistory,
+        { role: "user", content: userInput }
+    ];
+
+    try {
+        const response = await callOpenAI(messages, 0.7, false);
+        return response;
+    } catch (error) {
+        console.error('Guided Setup Error:', error);
+        if (error.message.includes('API Key') || error.message.includes('missing')) {
+            throw error;
+        }
+        return "I'm having trouble connecting right now. Please try again in a moment.";
+    }
+}
+
+// Parse the AI's summary response to extract project data
+export function parseProjectSummary(aiResponse) {
+    try {
+        // Extract JSON from markdown code blocks
+        const jsonMatch = aiResponse.match(/```json\s*([\s\S]*?)\s*```/);
+        if (jsonMatch && jsonMatch[1]) {
+            return JSON.parse(jsonMatch[1]);
+        }
+        return null;
+    } catch (error) {
+        console.error('Error parsing project summary:', error);
+        return null;
+    }
+}
