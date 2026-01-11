@@ -5,20 +5,11 @@ import ReactMarkdown from 'react-markdown';
 import { guidedProjectSetup, parseProjectSummary } from '../../services/aiService';
 
 export default function ProjectSetupWizard({ onClose, onCreated }) {
-    const { createProject, createMultipleTasks, currentUser } = useData();
+    const { createProject, createMultipleTasks, currentUser, language } = useData();
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
-    const [language, setLanguage] = useState('en');
 
-    // Detect browser language on mount
-    useEffect(() => {
-        const browserLang = navigator.language || navigator.userLanguage;
-        if (browserLang.startsWith('es')) {
-            setLanguage('es');
-        }
-    }, []);
-
-    // Start the conversation on mount (waits for language detection)
+    // Start the conversation on mount
     useEffect(() => {
         if (language) {
             startConversation();

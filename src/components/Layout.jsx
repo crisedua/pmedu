@@ -23,7 +23,7 @@ import GlobalVoiceCapture from './GlobalVoiceCapture';
 import AIAssistantSidebar from './AIAssistantSidebar';
 
 export default function Layout() {
-    const { projects, tasks, currentUser, logout } = useData();
+    const { projects, tasks, currentUser, logout, language, setLanguage } = useData();
     const navigate = useNavigate();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [createProjectOpen, setCreateProjectOpen] = useState(false);
@@ -200,6 +200,54 @@ export default function Layout() {
                     >
                         <LogOut size={16} style={{ color: 'var(--text-tertiary)' }} />
                     </button>
+                </div>
+
+                {/* Language Toggle */}
+                <div style={{ padding: '0 var(--space-4) var(--space-4)' }}>
+                    <div style={{
+                        display: 'flex',
+                        background: 'var(--bg-tertiary)',
+                        padding: '4px',
+                        borderRadius: 'var(--radius-lg)',
+                        gap: '4px'
+                    }}>
+                        <button
+                            onClick={() => setLanguage('en')}
+                            style={{
+                                flex: 1,
+                                border: 'none',
+                                background: language === 'en' ? 'var(--bg-primary)' : 'transparent',
+                                color: language === 'en' ? 'var(--text-primary)' : 'var(--text-muted)',
+                                padding: '4px',
+                                borderRadius: 'var(--radius-md)',
+                                fontSize: '11px',
+                                fontWeight: '600',
+                                cursor: 'pointer',
+                                boxShadow: language === 'en' ? '0 1px 2px rgba(0,0,0,0.1)' : 'none',
+                                transition: 'all 0.2s'
+                            }}
+                        >
+                            EN
+                        </button>
+                        <button
+                            onClick={() => setLanguage('es')}
+                            style={{
+                                flex: 1,
+                                border: 'none',
+                                background: language === 'es' ? 'var(--bg-primary)' : 'transparent',
+                                color: language === 'es' ? 'var(--text-primary)' : 'var(--text-muted)',
+                                padding: '4px',
+                                borderRadius: 'var(--radius-md)',
+                                fontSize: '11px',
+                                fontWeight: '600',
+                                cursor: 'pointer',
+                                boxShadow: language === 'es' ? '0 1px 2px rgba(0,0,0,0.1)' : 'none',
+                                transition: 'all 0.2s'
+                            }}
+                        >
+                            ES
+                        </button>
+                    </div>
                 </div>
             </aside>
 

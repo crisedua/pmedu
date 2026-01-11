@@ -22,6 +22,18 @@ export function DataProvider({ children }) {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [language, setLanguage] = useState(() => {
+    // Initial language: Check localStorage first, then browser
+    const stored = localStorage.getItem('pm-app-language');
+    if (stored) return stored;
+    const browser = navigator.language || navigator.userLanguage;
+    return browser?.startsWith('es') ? 'es' : 'en';
+  });
+
+  // Save language to localStorage when changed
+  useEffect(() => {
+    localStorage.setItem('pm-app-language', language);
+  }, [language]);
 
   // Initialize data from Supabase
   useEffect(() => {
@@ -826,6 +838,9 @@ export function DataProvider({ children }) {
     files,
     loading,
     error,
+
+    language,
+    setLanguage,
 
     // Auth
     login,
