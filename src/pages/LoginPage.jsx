@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useData } from '../context/DataContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Sparkles, User, ArrowRight, Lock, Mail } from 'lucide-react';
+import { Sparkles, User, ArrowRight, Lock, Mail, Globe } from 'lucide-react';
 
 export default function LoginPage() {
-    const { login, users, register, loginWithGoogle, currentUser } = useData();
+    const { login, users, register, loginWithGoogle, currentUser, language, setLanguage } = useData();
     const navigate = useNavigate();
     const location = useLocation();
     const from = location.state?.from?.pathname || '/';
@@ -129,14 +129,67 @@ export default function LoginPage() {
             }}>
                 <div style={{ maxWidth: '400px', margin: '0 auto', width: '100%' }}>
 
+                    {/* Language Selector - Very Prominent */}
+                    <div style={{
+                        display: 'flex',
+                        justifyContent: 'flex-end',
+                        marginBottom: '2rem'
+                    }}>
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            background: 'var(--bg-tertiary)',
+                            padding: '6px',
+                            borderRadius: 'var(--radius-lg)',
+                            border: '1px solid var(--border-light)',
+                        }}>
+                            <Globe size={16} style={{ marginLeft: '8px', color: 'var(--text-muted)' }} />
+                            <button
+                                onClick={() => setLanguage('en')}
+                                style={{
+                                    padding: '8px 16px',
+                                    border: 'none',
+                                    borderRadius: 'var(--radius-md)',
+                                    background: language === 'en' ? 'var(--color-primary-600)' : 'transparent',
+                                    color: language === 'en' ? 'white' : 'var(--text-secondary)',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s',
+                                    fontSize: '14px',
+                                }}
+                            >
+                                English
+                            </button>
+                            <button
+                                onClick={() => setLanguage('es')}
+                                style={{
+                                    padding: '8px 16px',
+                                    border: 'none',
+                                    borderRadius: 'var(--radius-md)',
+                                    background: language === 'es' ? 'var(--color-primary-600)' : 'transparent',
+                                    color: language === 'es' ? 'white' : 'var(--text-secondary)',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s',
+                                    fontSize: '14px',
+                                }}
+                            >
+                                Español
+                            </button>
+                        </div>
+                    </div>
+
                     <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
                         <h2 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.5rem' }}>
-                            {mode === 'login' ? 'Welcome back' : 'Create account'}
+                            {mode === 'login'
+                                ? (language === 'es' ? 'Bienvenido' : 'Welcome back')
+                                : (language === 'es' ? 'Crear cuenta' : 'Create account')}
                         </h2>
                         <p style={{ color: 'var(--text-muted)' }}>
                             {mode === 'login'
-                                ? 'Enter your details to access your workspace'
-                                : 'Get started with your AI-powered workspace'}
+                                ? (language === 'es' ? 'Ingresa tus datos para acceder' : 'Enter your details to access your workspace')
+                                : (language === 'es' ? 'Comienza con tu espacio de trabajo con IA' : 'Get started with your AI-powered workspace')}
                         </p>
                     </div>
 
