@@ -116,21 +116,34 @@ export function DataProvider({ children }) {
         setCurrentUser(JSON.parse(savedUser));
       }
 
-      // Load all data from Supabase
-      await Promise.all([
-        loadUsers(),
-        loadProjects(),
-        loadTasks(),
-        loadDocuments(),
-        loadInbox(),
-        loadFiles(),
+      // Create a promise that rejects after 10 seconds to prevent infinite loading
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Initialization timed out')), 10000);
+      });
+
+      // Load all data from Supabase (race against timeout)
+      await Promise.race([
+        Promise.all([
+          loadUsers(),
+          loadProjects(),
+          loadTasks(),
+          loadDocuments(),
+          loadInbox(),
+          loadFiles(),
+        ]),
+        timeoutPromise
       ]);
 
       // Subscribe to real-time changes
       setupRealtimeSubscriptions();
     } catch (err) {
       console.error('Error initializing app:', err);
-      setError(err.message);
+      // Don't set global error for timeout, just proceed with what we have
+      if (err.message !== 'Initialization timed out') {
+        setError(err.message);
+      } else {
+        console.warn('App initialization timed out - likely network issues. Proceeding with partial data.');
+      }
     } finally {
       setLoading(false);
     }
