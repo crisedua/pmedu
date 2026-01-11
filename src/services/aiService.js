@@ -222,7 +222,7 @@ export async function transcribeAudio(audioBlob) {
     const formData = new FormData();
     formData.append('file', audioBlob, 'audio.webm');
     formData.append('model', 'whisper-1');
-    formData.append('language', 'en'); // Force English to prevent incorrect detection
+    // formData.append('language', 'en'); // Reverted: Allow auto-detection
     formData.append('response_format', 'verbose_json'); // Gets us language detection data
 
     try {
