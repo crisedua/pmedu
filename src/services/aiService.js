@@ -1,11 +1,45 @@
 // AI Service - Connects to OpenAI API
-// Using the API key from environment variables
+// Using the API key from environment variables (local dev only)
+// In production, uses Netlify function proxy to avoid CORS
 
 const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
 const API_URL = 'https://api.openai.com/v1/chat/completions';
+const PROXY_URL = '/api/openai'; // Netlify function proxy
+
+// Detect if we're in production (Netlify)
+const isProduction = import.meta.env.PROD;
 
 // Helper function to call OpenAI
 async function callOpenAI(messages, temperature = 0.7, jsonMode = false) {
+    // In production, use the proxy to avoid CORS
+    if (isProduction) {
+        try {
+            const response = await fetch(PROXY_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    messages,
+                    temperature,
+                    jsonMode
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to call AI service');
+            }
+
+            const data = await response.json();
+            return data.content;
+        } catch (error) {
+            console.error('AI Service Error (Proxy):', error);
+            throw error;
+        }
+    }
+
+    // Local development: call OpenAI directly
     if (!OPENAI_API_KEY) {
         throw new Error('OpenAI API Key is missing. Please add VITE_OPENAI_API_KEY to your .env file.');
     }
@@ -18,7 +52,7 @@ async function callOpenAI(messages, temperature = 0.7, jsonMode = false) {
                 'Authorization': `Bearer ${OPENAI_API_KEY}`
             },
             body: JSON.stringify({
-                model: "gpt-4o-mini", // Fast and efficient model
+                model: "gpt-4o-mini",
                 messages: messages,
                 temperature: temperature,
                 response_format: jsonMode ? { type: "json_object" } : { type: "text" }
