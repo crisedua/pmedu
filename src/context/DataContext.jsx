@@ -21,6 +21,7 @@ export function DataProvider({ children }) {
   const [inbox, setInbox] = useState([]);
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [dataLoaded, setDataLoaded] = useState(false);
   const [error, setError] = useState(null);
   const [language, setLanguage] = useState(() => {
     // Initial language: Check localStorage first, then browser
@@ -35,9 +36,24 @@ export function DataProvider({ children }) {
     localStorage.setItem('pm-app-language', language);
   }, [language]);
 
-  // Initialize data from Supabase
+  // Check for saved user session on mount (instant, no API calls)
   useEffect(() => {
-    initializeApp();
+    const savedUser = localStorage.getItem('pm-app-user');
+    if (savedUser) {
+      setCurrentUser(JSON.parse(savedUser));
+    }
+    setLoading(false); // Login page can now show immediately
+  }, []);
+
+  // Only load data from Supabase AFTER user is authenticated
+  useEffect(() => {
+    if (currentUser && !dataLoaded) {
+      loadAllData();
+    }
+  }, [currentUser, dataLoaded]);
+
+  // Initialize auth listener
+  useEffect(() => {
 
     // Listen for Supabase Auth changes (Google SSO)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -105,20 +121,13 @@ export function DataProvider({ children }) {
     };
   }, []);
 
-  const initializeApp = async () => {
+  const loadAllData = async () => {
     try {
-      setLoading(true);
-      setError(null);
-
-      // Load current user session from localStorage
-      const savedUser = localStorage.getItem('pm-app-user');
-      if (savedUser) {
-        setCurrentUser(JSON.parse(savedUser));
-      }
+      console.log('[Init] User authenticated, loading data...');
 
       // Create a promise that rejects after 30 seconds to prevent infinite loading
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Initialization timed out')), 30000);
+        setTimeout(() => reject(new Error('Data loading timed out')), 30000);
       });
 
       // Helper to log each load
@@ -144,16 +153,16 @@ export function DataProvider({ children }) {
 
       // Subscribe to real-time changes
       setupRealtimeSubscriptions();
+      setDataLoaded(true);
+      console.log('[Init] ✓ All data loaded successfully');
     } catch (err) {
-      console.error('Error initializing app:', err);
-      // Don't set global error for timeout, just proceed with what we have
-      if (err.message !== 'Initialization timed out') {
+      console.error('Error loading data:', err);
+      if (err.message !== 'Data loading timed out') {
         setError(err.message);
       } else {
-        console.warn('App initialization timed out - likely network issues. Proceeding with partial data.');
+        console.warn('Data loading timed out - proceeding with partial data.');
       }
-    } finally {
-      setLoading(false);
+      setDataLoaded(true); // Mark as done even on timeout to prevent retries
     }
   };
 
