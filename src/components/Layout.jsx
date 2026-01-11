@@ -191,10 +191,17 @@ export default function Layout() {
 
                     {/* Logout Button - Standalone Row */}
                     <button
-                        className="sidebar-link"
-                        onClick={() => {
-                            logout();
-                            navigate('/login');
+                        className="sidebar-link logout-btn"
+                        onClick={async (e) => {
+                            e.preventDefault();
+                            console.log('[Logout] Button clicked');
+                            try {
+                                await logout();
+                                console.log('[Logout] Success, navigating to login');
+                                navigate('/login');
+                            } catch (err) {
+                                console.error('[Logout] Error:', err);
+                            }
                         }}
                         style={{
                             width: '100%',
@@ -203,6 +210,10 @@ export default function Layout() {
                             background: 'none',
                             cursor: 'pointer',
                             color: 'var(--text-tertiary)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px',
+                            padding: '12px 16px',
                         }}
                     >
                         <LogOut size={18} />
