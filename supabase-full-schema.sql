@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS pm_tasks (
   status TEXT NOT NULL DEFAULT 'To Do',
   project_id UUID REFERENCES pm_projects(id) ON DELETE CASCADE,
   created_by_ai BOOLEAN DEFAULT FALSE,
+  source TEXT DEFAULT 'manual' CHECK (source IN ('voice', 'upload', 'email', 'manual')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -64,7 +65,17 @@ CREATE TABLE IF NOT EXISTS pm_inbox (
   language TEXT,
   user_id UUID REFERENCES pm_users(id) ON DELETE CASCADE,
   processed BOOLEAN DEFAULT FALSE,
+  audio_file_id UUID REFERENCES pm_files(id) ON DELETE SET NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Task Attachments (links files to tasks)
+CREATE TABLE IF NOT EXISTS pm_task_attachments (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  task_id UUID REFERENCES pm_tasks(id) ON DELETE CASCADE,
+  file_id UUID REFERENCES pm_files(id) ON DELETE CASCADE,
+  attached_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(task_id, file_id)
 );
 
 -- 3. Enable RLS
@@ -74,6 +85,7 @@ ALTER TABLE pm_tasks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE pm_documents ENABLE ROW LEVEL SECURITY;
 ALTER TABLE pm_files ENABLE ROW LEVEL SECURITY;
 ALTER TABLE pm_inbox ENABLE ROW LEVEL SECURITY;
+ALTER TABLE pm_task_attachments ENABLE ROW LEVEL SECURITY;
 
 -- 4. Clean up and Recreate Policies
 -- Users
@@ -131,6 +143,10 @@ DO $$ BEGIN
     DROP POLICY IF EXISTS "Enable delete for owners" ON pm_inbox;
 END $$;
 CREATE POLICY "Allow everything for inbox" ON pm_inbox FOR ALL USING (true) WITH CHECK (true);
+
+-- Task Attachments
+DROP POLICY IF EXISTS "Allow everything for task_attachments" ON pm_task_attachments;
+CREATE POLICY "Allow everything for task_attachments" ON pm_task_attachments FOR ALL USING (true) WITH CHECK (true);
 
 -- 5. Admin Trigger
 CREATE OR REPLACE FUNCTION set_pm_admin_role()

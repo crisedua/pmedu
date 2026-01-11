@@ -439,3 +439,319 @@ export function parseProjectSummary(aiResponse) {
         return null;
     }
 }
+
+// ============================================
+// VOICE-FIRST PM COMMAND CENTER FUNCTIONS
+// ============================================
+
+/**
+ * Extract tasks from voice transcription.
+ * Identifies task descriptions, owners, and due dates from natural speech.
+ * @param {string} transcription - The voice transcription text
+ * @param {Object} context - Context with users and projects
+ * @returns {Object} - { tasks: Task[], needsFollowUp: boolean, followUpQuestion: string|null }
+ */
+export async function extractTasksFromVoice(transcription, context = {}) {
+    const { users = [], projects = [], language = 'en' } = context;
+    const isSpanish = language.startsWith('es');
+    const today = new Date().toISOString().split('T')[0];
+
+    // Build user context for AI
+    const userContext = users.map(u => ({ id: u.id, name: u.name, email: u.email })).slice(0, 20);
+
+    const systemPrompt = `
+    You are an expert task extraction assistant for a Voice-First PM system.
+    Your job is to listen to spoken commitments and extract structured tasks.
+    
+    LANGUAGE: Respond in ${isSpanish ? 'Spanish' : 'English'}.
+    Current Date: ${today}
+    
+    Available Team Members:
+    ${JSON.stringify(userContext, null, 2)}
+    
+    INSTRUCTIONS:
+    1. Analyze the transcription for any tasks, action items, or commitments.
+    2. For each task found, extract:
+       - name: Clear, actionable task title
+       - description: Brief context (if any)
+       - assignedTo: Match to a team member ID from the list above (or null if unspecified)
+       - dueDate: Parse relative dates ("next Tuesday", "tomorrow", "in 3 days") to ISO format
+       - confidence: 0-1 score of extraction confidence
+    
+    3. If a task is mentioned but missing critical info (owner or date), set needsFollowUp = true.
+    
+    4. For date parsing examples:
+       - "next Tuesday" → calculate from ${today}
+       - "tomorrow" → next day from ${today}
+       - "next week" → 7 days from ${today}
+       - "for Friday" → next Friday from ${today}
+    
+    5. For assignee matching, be flexible with names:
+       - "Maria" matches "Maria Garcia"
+       - "Juan" matches "Juan Rodriguez"
+       - Use fuzzy matching on first names
+    
+    Return ONLY valid JSON:
+    {
+        "tasks": [
+            {
+                "name": "Task title",
+                "description": "Context if any",
+                "assignedTo": "user_id_or_null",
+                "assignedToName": "Matched user name or null",
+                "dueDate": "ISO date or null",
+                "dueDateParsed": "Human readable date",
+                "confidence": 0.9
+            }
+        ],
+        "needsFollowUp": false,
+        "followUpQuestion": null,
+        "rawParsedIntents": ["list", "of", "detected", "intents"]
+    }
+    
+    If no tasks are found, return:
+    {
+        "tasks": [],
+        "needsFollowUp": false,
+        "followUpQuestion": null,
+        "note": "Reason why no tasks were extracted"
+    }
+    `;
+
+    try {
+        const response = await callOpenAI([
+            { role: "system", content: systemPrompt },
+            { role: "user", content: `Voice transcription: "${transcription}"` }
+        ], 0.3, true);
+
+        const result = JSON.parse(response);
+
+        // Post-process: validate user IDs exist
+        if (result.tasks && result.tasks.length > 0) {
+            result.tasks = result.tasks.map(task => {
+                // Verify assignee exists in user list
+                if (task.assignedTo && !users.some(u => u.id === task.assignedTo)) {
+                    task.assignedTo = null;
+                    task.assignedToName = null;
+                }
+                return task;
+            });
+        }
+
+        return result;
+    } catch (error) {
+        console.error('Voice task extraction error:', error);
+        return {
+            tasks: [],
+            needsFollowUp: true,
+            followUpQuestion: isSpanish
+                ? "No pude entender la tarea. ¿Podrías repetirla más claramente?"
+                : "I couldn't parse that task. Could you repeat it more clearly?",
+            error: error.message
+        };
+    }
+}
+
+/**
+ * Generate a follow-up question when task info is incomplete.
+ * @param {Object} partialTask - The partial task data
+ * @param {string} missingField - 'assignee' | 'dueDate' | 'both'
+ * @param {string} language - 'en' | 'es'
+ * @returns {string} - The follow-up question
+ */
+export function generateFollowUpQuestion(partialTask, missingField, language = 'en') {
+    const isSpanish = language.startsWith('es');
+    const taskName = partialTask.name || (isSpanish ? 'esa tarea' : 'that task');
+
+    const questions = {
+        assignee: {
+            en: `Got it! Who should "${taskName}" be assigned to?`,
+            es: `¡Entendido! ¿A quién debo asignar "${taskName}"?`
+        },
+        dueDate: {
+            en: `When is "${taskName}" due?`,
+            es: `¿Para cuándo es "${taskName}"?`
+        },
+        both: {
+            en: `For "${taskName}" - who should do it and when is it due?`,
+            es: `Para "${taskName}" - ¿quién lo hará y para cuándo?`
+        }
+    };
+
+    return questions[missingField]?.[isSpanish ? 'es' : 'en'] || questions.both[isSpanish ? 'es' : 'en'];
+}
+
+/**
+ * Enhanced AI Assistant specifically for accountability queries.
+ * Optimized for questions like "What does X owe?" or "What's overdue?"
+ * @param {string} userInput - The user's question
+ * @param {Object} context - Full context with projects, tasks, users
+ * @returns {string} - Formatted response
+ */
+export async function askAccountabilityQuery(userInput, context) {
+    const { projects, tasks, users, currentUser, language = 'en' } = context;
+    const isSpanish = language.startsWith('es');
+    const today = new Date();
+    const nextWeek = new Date(today);
+    nextWeek.setDate(today.getDate() + 7);
+
+    // Categorize tasks for quick reference
+    const overdueTasks = tasks.filter(t =>
+        t.status !== 'Done' && t.due_date && new Date(t.due_date) < today
+    );
+
+    const thisWeekTasks = tasks.filter(t => {
+        if (t.status === 'Done' || !t.due_date) return false;
+        const due = new Date(t.due_date);
+        return due >= today && due <= nextWeek;
+    });
+
+    const pendingByUser = {};
+    users.forEach(user => {
+        pendingByUser[user.name] = tasks.filter(t =>
+            t.assigned_to === user.id && t.status !== 'Done'
+        );
+    });
+
+    // Build compact context for the AI
+    const contextSummary = {
+        totalTasks: tasks.length,
+        pendingTasks: tasks.filter(t => t.status !== 'Done').length,
+        overdueTasks: overdueTasks.length,
+        dueThisWeek: thisWeekTasks.length,
+        teamMembers: users.map(u => ({
+            name: u.name,
+            pendingCount: pendingByUser[u.name]?.length || 0,
+            overdue: pendingByUser[u.name]?.filter(t => t.due_date && new Date(t.due_date) < today).length || 0
+        })),
+        projects: projects.map(p => ({
+            name: p.name,
+            taskCount: tasks.filter(t => t.project_id === p.id).length
+        }))
+    };
+
+    // Detailed task lists for specific queries
+    const taskDetails = {
+        overdue: overdueTasks.slice(0, 15).map(t => ({
+            name: t.name,
+            project: projects.find(p => p.id === t.project_id)?.name || 'No Project',
+            assignee: users.find(u => u.id === t.assigned_to)?.name || 'Unassigned',
+            dueDate: t.due_date ? new Date(t.due_date).toLocaleDateString() : 'No date'
+        })),
+        thisWeek: thisWeekTasks.slice(0, 15).map(t => ({
+            name: t.name,
+            project: projects.find(p => p.id === t.project_id)?.name || 'No Project',
+            assignee: users.find(u => u.id === t.assigned_to)?.name || 'Unassigned',
+            dueDate: t.due_date ? new Date(t.due_date).toLocaleDateString() : 'No date'
+        })),
+        byUser: Object.fromEntries(
+            Object.entries(pendingByUser).map(([name, userTasks]) => [
+                name,
+                userTasks.slice(0, 10).map(t => ({
+                    name: t.name,
+                    project: projects.find(p => p.id === t.project_id)?.name || 'No Project',
+                    dueDate: t.due_date ? new Date(t.due_date).toLocaleDateString() : 'No date',
+                    status: t.status
+                }))
+            ])
+        )
+    };
+
+    const systemPrompt = `
+    You are the AI Command Center for a Voice-First PM system.
+    Your specialty is ACCOUNTABILITY TRACKING - answering questions about who owes what.
+    
+    LANGUAGE: ${isSpanish ? 'SPANISH (respond in Spanish)' : 'ENGLISH'}
+    Current User: ${currentUser?.name || 'Unknown'}
+    Today: ${today.toLocaleDateString()}
+    
+    WORKSPACE STATUS:
+    ${JSON.stringify(contextSummary, null, 2)}
+    
+    DETAILED TASK DATA:
+    ${JSON.stringify(taskDetails, null, 2)}
+    
+    COMMON QUERY PATTERNS:
+    1. "What does [Name] owe?" → List their pending tasks with due dates
+    2. "What's overdue?" → List all overdue tasks with owners
+    3. "What's due this week?" → List upcoming tasks
+    4. "Who owes what?" → Summary by person
+    5. "Status of [Project]" → Project-specific breakdown
+    
+    RESPONSE GUIDELINES:
+    1. Be DIRECT and ACTIONABLE - executives want quick answers
+    2. Use Markdown formatting:
+       - **Bold** for task names
+       - Bullet points for lists
+       - 📅 for due dates, ⚠️ for overdue, ✅ for done
+       - Group by person or project as appropriate
+    3. Highlight overdue items first
+    4. Keep responses concise but complete
+    5. If someone has no pending tasks, say so clearly
+    6. Use the person's first name for familiarity
+    
+    Example response format:
+    **Maria has 3 pending tasks:**
+    
+    ⚠️ **Budget Report** 📅 Jan 8 (overdue!)
+    • Project: Q1 Planning
+    
+    **Client Proposal** 📅 Jan 15
+    • Project: Sales Initiative
+    `;
+
+    try {
+        const response = await callOpenAI([
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userInput }
+        ], 0.5);
+        return response;
+    } catch (error) {
+        console.error('Accountability query error:', error);
+        return isSpanish
+            ? "Lo siento, hubo un error al consultar. Intenta de nuevo."
+            : "Sorry, there was an error processing your query. Please try again.";
+    }
+}
+
+/**
+ * Get quick accountability stats for the Command Center dashboard
+ * @param {Object} context - Context with tasks, users
+ * @returns {Object} - Quick stats object
+ */
+export function getAccountabilityStats(tasks, users) {
+    const today = new Date();
+    const nextWeek = new Date(today);
+    nextWeek.setDate(today.getDate() + 7);
+
+    const pending = tasks.filter(t => t.status !== 'Done');
+    const overdue = pending.filter(t => t.due_date && new Date(t.due_date) < today);
+    const dueThisWeek = pending.filter(t => {
+        if (!t.due_date) return false;
+        const due = new Date(t.due_date);
+        return due >= today && due <= nextWeek;
+    });
+    const unassigned = pending.filter(t => !t.assigned_to);
+    const voiceCreated = tasks.filter(t => t.source === 'voice');
+
+    // Top 3 people with most pending tasks
+    const byPerson = {};
+    users.forEach(u => {
+        byPerson[u.id] = {
+            name: u.name,
+            count: pending.filter(t => t.assigned_to === u.id).length
+        };
+    });
+    const topOwners = Object.values(byPerson)
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 3);
+
+    return {
+        totalPending: pending.length,
+        overdue: overdue.length,
+        dueThisWeek: dueThisWeek.length,
+        unassigned: unassigned.length,
+        voiceCreated: voiceCreated.length,
+        topOwners
+    };
+}

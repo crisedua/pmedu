@@ -16,6 +16,7 @@ import {
     Users,
     Brain,
     Inbox,
+    Activity,
 } from 'lucide-react';
 import { getTodaySummary } from '../services/aiService';
 import CreateProjectModal from './modals/CreateProjectModal';
@@ -83,8 +84,16 @@ export default function Layout() {
                             className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
                             onClick={() => setSidebarOpen(false)}
                         >
+                            <Activity size={20} />
+                            Command Center
+                        </NavLink>
+                        <NavLink
+                            to="/projects"
+                            className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+                            onClick={() => setSidebarOpen(false)}
+                        >
                             <LayoutDashboard size={20} />
-                            Dashboard
+                            All Projects
                         </NavLink>
                         <NavLink
                             to="/inbox"

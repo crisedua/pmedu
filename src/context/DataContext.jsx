@@ -867,6 +867,71 @@ export function DataProvider({ children }) {
     return Math.round((stats.done / stats.total) * 100);
   };
 
+  // ============================================
+  // VOICE-FIRST ACCOUNTABILITY HELPERS
+  // ============================================
+
+  // Get all tasks assigned to a specific user
+  const getTasksByUser = (userId) => {
+    return tasks.filter(t => t.assigned_to === userId);
+  };
+
+  // Get all overdue tasks
+  const getOverdueTasks = () => {
+    const today = new Date();
+    return tasks.filter(t =>
+      t.status !== 'Done' &&
+      t.due_date &&
+      new Date(t.due_date) < today
+    );
+  };
+
+  // Get tasks due within next N days (default 7)
+  const getTasksDueWithin = (days = 7) => {
+    const today = new Date();
+    const future = new Date(today);
+    future.setDate(today.getDate() + days);
+
+    return tasks.filter(t => {
+      if (t.status === 'Done' || !t.due_date) return false;
+      const due = new Date(t.due_date);
+      return due >= today && due <= future;
+    });
+  };
+
+  // Get tasks due this week (convenience)
+  const getTasksDueThisWeek = () => getTasksDueWithin(7);
+
+  // Fuzzy match user by name (for voice queries)
+  const getUserByName = (name) => {
+    if (!name) return null;
+    const lowName = name.toLowerCase().trim();
+
+    // Exact match first
+    let match = users.find(u => u.name.toLowerCase() === lowName);
+    if (match) return match;
+
+    // First name match
+    match = users.find(u => u.name.toLowerCase().startsWith(lowName));
+    if (match) return match;
+
+    // Contains match
+    match = users.find(u => u.name.toLowerCase().includes(lowName));
+    return match || null;
+  };
+
+  // Get pending tasks (not done) for a user by name
+  const getPendingTasksForPerson = (personName) => {
+    const user = getUserByName(personName);
+    if (!user) return [];
+    return tasks.filter(t => t.assigned_to === user.id && t.status !== 'Done');
+  };
+
+  // Get voice-created tasks
+  const getVoiceCreatedTasks = () => {
+    return tasks.filter(t => t.source === 'voice');
+  };
+
   const value = {
     // Data
     users,
@@ -926,6 +991,15 @@ export function DataProvider({ children }) {
     getUser,
     getTaskStats,
     getProjectProgress,
+
+    // Voice-First Accountability Helpers
+    getTasksByUser,
+    getOverdueTasks,
+    getTasksDueWithin,
+    getTasksDueThisWeek,
+    getUserByName,
+    getPendingTasksForPerson,
+    getVoiceCreatedTasks,
   };
 
   return (

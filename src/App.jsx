@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { DataProvider } from './context/DataContext';
 import Layout from './components/Layout';
+import CommandCenter from './pages/CommandCenter';
 import Dashboard from './pages/Dashboard';
 import ProjectView from './pages/ProjectView';
 import DocumentEditor from './pages/DocumentEditor';
@@ -24,7 +25,8 @@ function App() {
               <Layout />
             </ProtectedRoute>
           }>
-            <Route index element={<Dashboard />} />
+            <Route index element={<CommandCenter />} />
+            <Route path="projects" element={<Dashboard />} />
             <Route path="inbox" element={<Inbox />} />
             <Route path="users" element={<UserManagement />} />
             <Route path="project/:projectId" element={<ProjectView />} />

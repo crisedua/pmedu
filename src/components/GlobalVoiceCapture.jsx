@@ -5,27 +5,40 @@ import {
     Square,
     CheckCircle2,
     Sparkles,
-    X
+    X,
+    MessageSquare,
+    Calendar,
+    User,
+    ArrowRight,
+    Loader2
 } from 'lucide-react';
-import { transcribeAudio } from '../services/aiService';
+import { transcribeAudio, extractTasksFromVoice, generateFollowUpQuestion } from '../services/aiService';
 
 export default function GlobalVoiceCapture() {
-    const { createInboxItem } = useData();
+    const { createInboxItem, users, projects, language, createMultipleTasks } = useData();
     const [isRecording, setIsRecording] = useState(false);
     const [recordingTime, setRecordingTime] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
-    const [status, setStatus] = useState(''); // '', 'recording', 'processing', 'success'
-    const [detectedLanguage, setDetectedLanguage] = useState('');
+    const [processingStage, setProcessingStage] = useState(''); // 'transcribing', 'analyzing'
+    const [status, setStatus] = useState(''); // '', 'recording', 'review', 'success'
+
+    // Extracted Data State
+    const [extractedTasks, setExtractedTasks] = useState([]);
+    const [transcription, setTranscription] = useState('');
+    const [followUpQuestion, setFollowUpQuestion] = useState(null);
+    const [needsClarification, setNeedsClarification] = useState(false);
 
     const mediaRecorder = useRef(null);
     const audioChunks = useRef([]);
     const timerInterval = useRef(null);
 
+    // Auto-close success message
     useEffect(() => {
         if (status === 'success') {
             const timer = setTimeout(() => {
                 setStatus('');
-                setDetectedLanguage('');
+                setExtractedTasks([]);
+                setTranscription('');
             }, 4000);
             return () => clearTimeout(timer);
         }
@@ -43,7 +56,7 @@ export default function GlobalVoiceCapture() {
 
             mediaRecorder.current.onstop = async () => {
                 const audioBlob = new Blob(audioChunks.current, { type: 'audio/webm' });
-                handleTranscription(audioBlob);
+                handleProcessing(audioBlob);
                 stream.getTracks().forEach(track => track.stop());
             };
 
@@ -68,24 +81,68 @@ export default function GlobalVoiceCapture() {
         }
     };
 
-    const handleTranscription = async (blob) => {
+    const handleProcessing = async (blob) => {
         setIsLoading(true);
-        setStatus('processing');
+        setProcessingStage('transcribing');
+
         try {
+            // 1. Transcribe
             const result = await transcribeAudio(blob);
-            if (result && result.text) {
-                await createInboxItem(result.text, result.language);
-                setDetectedLanguage(result.language);
-                setStatus('success');
+            if (!result || !result.text) throw new Error("No transcription");
+
+            setTranscription(result.text);
+
+            // 2. Analyze & Extract Tasks
+            setProcessingStage('analyzing');
+            const extraction = await extractTasksFromVoice(result.text, { users, projects, language });
+
+            if (extraction.tasks.length > 0) {
+                setExtractedTasks(extraction.tasks);
+
+                // If AI flags need for follow up, set it
+                if (extraction.needsFollowUp) {
+                    setNeedsClarification(true);
+                    setFollowUpQuestion(extraction.followUpQuestion);
+                }
+
+                setStatus('review');
             } else {
-                setStatus('');
+                // Determine if it was just a note or failed extraction
+                // For MVP, just save to inbox if no tasks found
+                await createInboxItem(result.text, result.language);
+                setStatus('success');
             }
+
         } catch (err) {
-            console.error('Transcription error:', err);
+            console.error('Processing error:', err);
             setStatus('');
         } finally {
             setIsLoading(false);
+            setProcessingStage('');
         }
+    };
+
+    const handleConfirmTasks = async () => {
+        try {
+            // Add metadata source = 'voice'
+            const tasksToCreate = extractedTasks.map(t => ({
+                ...t,
+                source: 'voice',
+                created_by_ai: true
+            }));
+
+            await createMultipleTasks(tasksToCreate);
+            setStatus('success');
+        } catch (err) {
+            console.error('Error creating tasks:', err);
+            alert('Failed to create tasks');
+        }
+    };
+
+    const handleDiscard = () => {
+        setStatus('');
+        setExtractedTasks([]);
+        setTranscription('');
     };
 
     const formatTime = (seconds) => {
@@ -96,49 +153,105 @@ export default function GlobalVoiceCapture() {
 
     return (
         <div className={`global-voice-capture ${status}`}>
+            {/* 1. Recording Overlay */}
             {status === 'recording' && (
                 <div className="capture-overlay">
                     <div className="capture-content">
                         <div className="capture-waves">
-                            <div className="wave-bar"></div>
-                            <div className="wave-bar"></div>
-                            <div className="wave-bar"></div>
-                            <div className="wave-bar"></div>
-                            <div className="wave-bar"></div>
+                            {[1, 2, 3, 4, 5].map(i => <div key={i} className="wave-bar"></div>)}
                         </div>
                         <div className="capture-timer">{formatTime(recordingTime)}</div>
-                        <div className="capture-label">Listening to your thoughts...</div>
+                        <div className="capture-label">Listening...</div>
                         <button className="stop-action" onClick={stopRecording}>
                             <Square size={20} fill="currentColor" />
-                            Stop & Transcribe
+                            Stop & Process
                         </button>
                     </div>
                 </div>
             )}
 
-            {status === 'processing' && (
+            {/* 2. Loading State */}
+            {isLoading && (
                 <div className="status-pill processing">
-                    <div className="mini-spinner"></div>
-                    <span>AI is transcribing...</span>
+                    <Loader2 className="animate-spin" size={18} />
+                    <span>
+                        {processingStage === 'transcribing' ? 'Transcribing...' : 'Extracting Tasks...'}
+                    </span>
                 </div>
             )}
 
+            {/* 3. Task Review Modal (Mini) */}
+            {status === 'review' && !isLoading && (
+                <div className="review-card">
+                    <div className="review-header">
+                        <Sparkles size={16} className="text-secondary" />
+                        <span className="text-sm font-medium">Captured {extractedTasks.length} Task{extractedTasks.length > 1 ? 's' : ''}</span>
+                        <button className="close-btn" onClick={handleDiscard}><X size={14} /></button>
+                    </div>
+
+                    <div className="tasks-preview">
+                        {extractedTasks.map((task, idx) => (
+                            <div key={idx} className="task-preview-item">
+                                <div className="task-preview-title">{task.name}</div>
+                                <div className="task-preview-meta">
+                                    {task.assignedTo ? (
+                                        <span className="meta-tag">
+                                            <User size={12} /> {users.find(u => u.id === task.assignedTo)?.name || 'Unknown'}
+                                        </span>
+                                    ) : (
+                                        <span className="meta-tag warning">
+                                            <User size={12} /> Unassigned
+                                        </span>
+                                    )}
+                                    {task.dueDate ? (
+                                        <span className="meta-tag">
+                                            <Calendar size={12} /> {new Date(task.dueDate).toLocaleDateString()}
+                                        </span>
+                                    ) : (
+                                        <span className="meta-tag warning">
+                                            <Calendar size={12} /> No Date
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {needsClarification && followUpQuestion && (
+                        <div className="clarification-box">
+                            <MessageSquare size={14} />
+                            {followUpQuestion}
+                            {/* Future: Add input for clarification */}
+                        </div>
+                    )}
+
+                    <div className="review-actions">
+                        <button className="btn-secondary-sm" onClick={() => {
+                            // Save to inbox instead
+                            createInboxItem(transcription, language);
+                            setStatus('success');
+                        }}>
+                            Save to Inbox
+                        </button>
+                        <button className="btn-primary-sm" onClick={handleConfirmTasks}>
+                            Confirm & Create
+                            <ArrowRight size={14} />
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* 4. Success State */}
             {status === 'success' && (
                 <div className="status-pill success">
                     <CheckCircle2 size={16} />
-                    <span>Captured in {detectedLanguage || 'auto'}!</span>
-                    <button className="close-pill" onClick={() => setStatus('')}>
-                        <X size={14} />
-                    </button>
+                    <span>Captured Successfully!</span>
                 </div>
             )}
 
-            {!isRecording && !isLoading && status !== 'success' && (
-                <button
-                    className="voice-fab"
-                    onClick={startRecording}
-                    title="Quick Voice Note"
-                >
+            {/* 5. Floating Action Button (Idle) */}
+            {!isRecording && !isLoading && status !== 'review' && status !== 'success' && (
+                <button className="voice-fab" onClick={startRecording} title="Voice Command">
                     <Mic size={24} />
                     <div className="fab-glow"></div>
                 </button>
@@ -154,6 +267,7 @@ export default function GlobalVoiceCapture() {
                     flex-direction: column;
                     align-items: flex-end;
                     gap: 1rem;
+                    font-family: var(--font-sans);
                 }
 
                 .voice-fab {
@@ -194,55 +308,10 @@ export default function GlobalVoiceCapture() {
                     100% { transform: scale(1); opacity: 0.3; }
                 }
 
-                .status-pill {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.75rem;
-                    padding: 0.75rem 1.25rem;
-                    border-radius: var(--radius-full);
-                    background: white;
-                    box-shadow: var(--shadow-lg);
-                    border: 1px solid var(--border-light);
-                    font-size: var(--text-sm);
-                    font-weight: var(--font-medium);
-                    animation: slideInRight 0.3s ease;
-                }
-
-                .status-pill.success {
-                    background: var(--color-success);
-                    color: white;
-                    border: none;
-                }
-
-                .status-pill.processing {
-                    background: white;
-                    color: var(--text-primary);
-                }
-
-                .mini-spinner {
-                    width: 16px;
-                    height: 16px;
-                    border: 2px solid var(--color-primary-100);
-                    border-top-color: var(--color-primary-600);
-                    border-radius: 50%;
-                    animation: spin 1s linear infinite;
-                }
-
-                .close-pill {
-                    background: rgba(255, 255, 255, 0.2);
-                    border: none;
-                    color: white;
-                    border-radius: 50%;
-                    display: flex;
-                    padding: 2px;
-                    cursor: pointer;
-                }
-
-                /* Recording Overlay */
                 .capture-overlay {
                     position: fixed;
                     inset: 0;
-                    background: rgba(255, 255, 255, 0.8);
+                    background: rgba(255, 255, 255, 0.85);
                     backdrop-filter: blur(8px);
                     display: flex;
                     align-items: center;
@@ -279,6 +348,29 @@ export default function GlobalVoiceCapture() {
                     font-weight: 500;
                 }
 
+                .capture-waves {
+                    display: flex;
+                    gap: 0.5rem;
+                    height: 40px;
+                    align-items: center;
+                }
+
+                .wave-bar {
+                    width: 6px;
+                    height: 15px;
+                    background: var(--color-primary-500);
+                    border-radius: 3px;
+                    animation: wave-anim 1s infinite ease-in-out;
+                }
+                .wave-bar:nth-child(2) { animation-delay: 0.1s; height: 30px; }
+                .wave-bar:nth-child(3) { animation-delay: 0.2s; height: 40px; }
+                .wave-bar:nth-child(4) { animation-delay: 0.1s; height: 25px; }
+
+                @keyframes wave-anim {
+                    0%, 100% { transform: scaleY(0.5); opacity: 0.5; }
+                    50% { transform: scaleY(1); opacity: 1; }
+                }
+
                 .stop-action {
                     display: flex;
                     align-items: center;
@@ -294,38 +386,150 @@ export default function GlobalVoiceCapture() {
                     box-shadow: 0 8px 16px rgba(239, 68, 68, 0.3);
                 }
 
-                .stop-action:hover {
-                    transform: translateY(-2px);
-                    background: #dc2626;
+                .status-pill {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.75rem;
+                    padding: 0.75rem 1.25rem;
+                    border-radius: var(--radius-full);
+                    background: white;
+                    box-shadow: var(--shadow-lg);
+                    border: 1px solid var(--border-light);
+                    font-size: var(--text-sm);
+                    font-weight: var(--font-medium);
+                    animation: slideInRight 0.3s ease;
                 }
 
-                .capture-waves {
+                .status-pill.success { background: var(--color-success); color: white; border: none; }
+                .status-pill.processing { color: var(--text-primary); }
+
+                /* Review Card */
+                .review-card {
+                    background: white;
+                    border-radius: var(--radius-xl);
+                    box-shadow: var(--shadow-xl);
+                    border: 1px solid var(--border-light);
+                    width: 320px;
+                    overflow: hidden;
+                    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+                }
+
+                .review-header {
+                    padding: 1rem;
+                    background: var(--bg-tertiary);
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    border-bottom: 1px solid var(--border-light);
+                }
+
+                .close-btn {
+                    margin-left: auto;
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+                    color: var(--text-tertiary);
+                    padding: 4px;
+                    border-radius: 4px;
+                }
+
+                .close-btn:hover { background: rgba(0,0,0,0.05); color: var(--text-primary); }
+
+                .tasks-preview {
+                    padding: 1rem;
+                    max-height: 300px;
+                    overflow-y: auto;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.75rem;
+                }
+
+                .task-preview-item {
+                    border: 1px solid var(--border-light);
+                    border-radius: var(--radius-md);
+                    padding: 0.75rem;
+                    background: var(--bg-primary);
+                }
+
+                .task-preview-title {
+                    font-weight: 600;
+                    margin-bottom: 0.5rem;
+                    font-size: 0.95rem;
+                }
+
+                .task-preview-meta {
                     display: flex;
                     gap: 0.5rem;
-                    height: 40px;
+                    flex-wrap: wrap;
+                }
+
+                .meta-tag {
+                    font-size: 0.75rem;
+                    padding: 2px 6px;
+                    border-radius: 4px;
+                    background: var(--bg-secondary);
+                    color: var(--text-secondary);
+                    display: flex;
                     align-items: center;
+                    gap: 4px;
+                }
+                
+                .meta-tag.warning {
+                    background: #fff7ed;
+                    color: #c2410c;
+                    border: 1px solid #ffedd5;
                 }
 
-                .wave-bar {
-                    width: 6px;
-                    height: 15px;
-                    background: var(--color-primary-500);
-                    border-radius: 3px;
-                    animation: wave-bar-anim 1s infinite ease-in-out;
+                .clarification-box {
+                    margin: 0 1rem 1rem;
+                    padding: 0.75rem;
+                    background: #eff6ff;
+                    border-radius: var(--radius-md);
+                    color: #1e40af;
+                    font-size: 0.85rem;
+                    display: flex;
+                    gap: 0.5rem;
+                    align-items: flex-start;
                 }
 
-                .wave-bar:nth-child(2) { animation-delay: 0.1s; height: 30px; }
-                .wave-bar:nth-child(3) { animation-delay: 0.2s; height: 40px; }
-                .wave-bar:nth-child(4) { animation-delay: 0.3s; height: 25px; }
-                .wave-bar:nth-child(5) { animation-delay: 0.4s; height: 15px; }
-
-                @keyframes wave-bar-anim {
-                    0%, 100% { transform: scaleY(0.5); opacity: 0.5; }
-                    50% { transform: scaleY(1); opacity: 1; }
+                .review-actions {
+                    padding: 1rem;
+                    border-top: 1px solid var(--border-light);
+                    display: flex;
+                    gap: 0.5rem;
+                    justify-content: flex-end;
                 }
 
-                @keyframes spin {
-                    to { transform: rotate(360deg); }
+                .btn-primary-sm, .btn-secondary-sm {
+                    padding: 0.5rem 1rem;
+                    border-radius: var(--radius-lg);
+                    font-size: 0.85rem;
+                    font-weight: 500;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                }
+
+                .btn-primary-sm {
+                    background: var(--color-primary-600);
+                    color: white;
+                    border: none;
+                }
+
+                .btn-primary-sm:hover { background: var(--color-primary-700); }
+
+                .btn-secondary-sm {
+                    background: white;
+                    border: 1px solid var(--border-medium);
+                    color: var(--text-secondary);
+                }
+
+                .btn-secondary-sm:hover { background: var(--bg-secondary); }
+
+                @keyframes slideUp {
+                    from { opacity: 0; transform: translateY(20px); }
+                    to { opacity: 1; transform: translateY(0); }
                 }
             `}</style>
         </div>
