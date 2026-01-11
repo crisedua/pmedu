@@ -401,6 +401,14 @@ export function DataProvider({ children }) {
   const logout = async () => {
     await supabase.auth.signOut();
     setCurrentUser(null);
+    setDataLoaded(false);
+    // Clear all cached data
+    setProjects([]);
+    setTasks([]);
+    setDocuments([]);
+    setInbox([]);
+    setFiles([]);
+    setUsers([]);
     localStorage.removeItem('pm-app-user');
   };
 
