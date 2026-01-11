@@ -8,6 +8,19 @@ export default function ProjectSetupWizard({ onClose, onCreated }) {
     const { createProject, createMultipleTasks, currentUser, language } = useData();
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
+    const [isTyping, setIsTyping] = useState(false);
+    const [conversationHistory, setConversationHistory] = useState([]);
+    const [projectData, setProjectData] = useState(null);
+    const [isCreating, setIsCreating] = useState(false);
+    const messagesEndRef = useRef(null);
+
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
+
+    useEffect(() => {
+        scrollToBottom();
+    }, [messages, isTyping]);
 
     // Start the conversation on mount
     useEffect(() => {
