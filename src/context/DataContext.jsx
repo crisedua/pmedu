@@ -474,6 +474,47 @@ export function DataProvider({ children }) {
     }
   };
 
+  const createTeamMember = async (name) => {
+    try {
+      // Create a placeholder email
+      const email = `${name.toLowerCase().replace(/\s+/g, '.')}@placeholder.com`;
+      const newUser = {
+        name: name,
+        email: email,
+        avatar: name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2),
+      };
+
+      const { data, error } = await supabase
+        .from('pm_users')
+        .insert([newUser])
+        .select()
+        .single();
+
+      if (error) {
+        // If duplicate email (placeholder collision), try appending random string
+        if (error.code === '23505') {
+          const randomSuffix = Math.floor(Math.random() * 1000);
+          newUser.email = `${name.toLowerCase().replace(/\s+/g, '.')}${randomSuffix}@placeholder.com`;
+          const { data: retryData, error: retryError } = await supabase
+            .from('pm_users')
+            .insert([newUser])
+            .select()
+            .single();
+          if (retryError) throw retryError;
+          setUsers(prev => [retryData, ...prev]);
+          return retryData;
+        }
+        throw error;
+      }
+
+      setUsers(prev => [data, ...prev]);
+      return data;
+    } catch (err) {
+      console.error('Error creating team member:', err);
+      throw err;
+    }
+  };
+
   // User Management
   const updateUser = async (userId, updates) => {
     try {
@@ -1064,6 +1105,7 @@ export function DataProvider({ children }) {
     getProjectFiles,
 
     // User operations
+    createTeamMember,
     updateUser,
     deleteUser,
 

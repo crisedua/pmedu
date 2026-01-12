@@ -15,7 +15,7 @@ import {
 import { transcribeAudio, extractTasksFromVoice, classifyVoiceContent, generateFollowUpQuestion, askAccountabilityQuery } from '../services/aiService';
 
 export default function GlobalVoiceCapture() {
-    const { createInboxItem, users, projects, language, createMultipleTasks, createProject } = useData();
+    const { createInboxItem, users, projects, language, createMultipleTasks, createProject, createTeamMember } = useData();
     const [isRecording, setIsRecording] = useState(false);
     const [recordingTime, setRecordingTime] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
@@ -121,6 +121,39 @@ export default function GlobalVoiceCapture() {
         }
     };
 
+    const speak = (text) => {
+        if (!('speechSynthesis' in window)) return;
+
+        // Cancel any current speech
+        window.speechSynthesis.cancel();
+
+        const utterance = new SpeechSynthesisUtterance(text);
+
+        // Improve Voice Selection
+        const voices = window.speechSynthesis.getVoices();
+
+        // Priority: "Google" voices usually sound better, or native OS enhanced voices
+        const preferredVoice = voices.find(v =>
+            v.lang.startsWith(language) &&
+            (v.name.includes('Google') || v.name.includes('Premium') || v.name.includes('Enhanced'))
+        ) || voices.find(v => v.lang.startsWith(language));
+
+        if (preferredVoice) {
+            utterance.voice = preferredVoice;
+        }
+
+        // Adjust rate/pitch for slightly more natural feel
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+
+        window.speechSynthesis.speak(utterance);
+    };
+
+    // Ensure voices are loaded (needed for Chrome)
+    useEffect(() => {
+        window.speechSynthesis.getVoices();
+    }, []);
+
     const handleProcessing = async (blob) => {
         setIsLoading(true);
         setProcessingStage('transcribing');
@@ -131,6 +164,21 @@ export default function GlobalVoiceCapture() {
             if (!result || !result.text) throw new Error("No transcription");
 
             setTranscription(result.text);
+
+            // 4. CONVERSATION LOOP: Check for Yes/No answer to clarification
+            if (needsClarification) {
+                const lowerText = result.text.toLowerCase();
+                const affirmative = ['yes', 'yeah', 'sure', 'ok', 'okay', 'si', 'sí', 'claro', 'por supuesto', 'dale', 'bueno', 'create', 'do it', 'hazlo'];
+
+                if (affirmative.some(word => lowerText.includes(word))) {
+                    // User said YES! Proceed to execute the pending tasks (including user creation)
+                    speak(language === 'es' ? 'Entendido. Procesando...' : 'Got it. Processing...');
+                    await handleConfirmTasks();
+                    setNeedsClarification(false);
+                    setFollowUpQuestion(null);
+                    return; // Stop further processing
+                }
+            }
 
             // 2. CLASSIFY CONTENT with timeout protection
             setProcessingStage('analyzing');
@@ -162,6 +210,8 @@ export default function GlobalVoiceCapture() {
                 try {
                     const answer = await askAccountabilityQuery(result.text, { tasks, users, projects, language });
                     classification.aiAnswer = answer;
+                    // Speak the answer automatically for questions
+                    speak(answer);
                 } catch (qaErr) {
                     console.error('QA Error:', qaErr);
                 }
@@ -235,6 +285,8 @@ export default function GlobalVoiceCapture() {
                     if (extraction.needsFollowUp) {
                         setNeedsClarification(true);
                         setFollowUpQuestion(extraction.followUpQuestion);
+                        // Speak the clarification question!
+                        speak(extraction.followUpQuestion);
                     }
                     setStatus('review');
                 } else {
@@ -262,12 +314,39 @@ export default function GlobalVoiceCapture() {
 
             // Check for new projects to create
             const projectMap = {}; // name -> id
+            const userMap = {}; // name -> id (cache for new users created in this batch)
             const tasksWithProjects = [];
 
             console.log('Finalizing confirmation with tasks:', extractedTasks);
 
             for (const task of extractedTasks) {
                 let finalProjectId = task.projectId;
+                let finalAssignedTo = task.assignedTo;
+
+                // 1. AUTO-CREATE USER if missing and we are in clarification mode (user said Yes)
+                if (!finalAssignedTo && task.assignedToName) {
+                    // Check if we already created them in this batch
+                    if (userMap[task.assignedToName]) {
+                        finalAssignedTo = userMap[task.assignedToName];
+                    } else {
+                        // Create the user
+                        console.log(`Creating new user for: "${task.assignedToName}"`);
+                        try {
+                            const newUser = await createTeamMember(task.assignedToName);
+                            if (newUser && newUser.id) {
+                                finalAssignedTo = newUser.id;
+                                userMap[task.assignedToName] = finalAssignedTo;
+                                // Speak confirmation
+                                speak(language === 'es'
+                                    ? `Perfil creado para ${task.assignedToName}.`
+                                    : `Profile created for ${task.assignedToName}.`
+                                );
+                            }
+                        } catch (uErr) {
+                            console.error('Failed to create user:', uErr);
+                        }
+                    }
+                }
 
                 console.log(`Processing task: "${task.name}", current projectId: ${finalProjectId}, suggestedProject: ${task.suggestedProjectName}`);
 
@@ -281,6 +360,7 @@ export default function GlobalVoiceCapture() {
                         console.log(`Using existing project ID from current session: ${finalProjectId}`);
                     } else {
                         // Create new project
+
                         try {
                             console.log(`Calling createProject for: "${pname}"`);
                             const newProject = await createProject({
@@ -304,6 +384,7 @@ export default function GlobalVoiceCapture() {
 
                 tasksWithProjects.push({
                     ...task,
+                    assignedTo: finalAssignedTo || task.assignedTo || null, // Use the NEW ID if created
                     projectId: finalProjectId || null,
                     source: 'voice',
                     created_by_ai: true

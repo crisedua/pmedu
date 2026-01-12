@@ -655,16 +655,28 @@ export async function extractTasksFromVoice(transcription, context = {}) {
 
         const result = JSON.parse(response);
 
-        // Post-process: validate user IDs exist
+        // Post-process: validate user IDs exist and DETECT UNKNOWN USERS
         if (result.tasks && result.tasks.length > 0) {
             result.tasks = result.tasks.map(task => {
                 // Verify assignee exists in user list
                 if (task.assignedTo && !users.some(u => u.id === task.assignedTo)) {
+                    // ID returned but not in our list? Trust the ID less, or keep it null.
                     task.assignedTo = null;
-                    task.assignedToName = null;
+                    // BUT keep assignedToName if it was extracted!
                 }
                 return task;
             });
+
+            // check for unknown users to trigger interactiveness
+            const taskWithUnknownUser = result.tasks.find(t => !t.assignedTo && t.assignedToName && t.assignedToName.toLowerCase() !== 'me' && t.assignedToName.toLowerCase() !== 'moi' && t.assignedToName.toLowerCase() !== 'yo');
+
+            if (taskWithUnknownUser) {
+                result.needsFollowUp = true;
+                const unknownName = taskWithUnknownUser.assignedToName;
+                result.followUpQuestion = isSpanish
+                    ? `No tengo a "${unknownName}" en tu equipo. ¿Quieres que cree un perfil para esta persona?`
+                    : `I don't have "${unknownName}" in your team. Do you want me to create a profile for them?`;
+            }
         }
 
         return result;
