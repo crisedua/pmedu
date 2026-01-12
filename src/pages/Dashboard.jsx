@@ -15,6 +15,7 @@ import EditInboxItemModal from '../components/modals/EditInboxItemModal';
 import ActionCard from '../components/ActionCard';
 import AIAssistantSidebar from '../components/AIAssistantSidebar';
 import { format, isToday, isPast, isFuture } from 'date-fns';
+import { supabase } from '../lib/supabase';
 
 export default function Dashboard() {
     const {
