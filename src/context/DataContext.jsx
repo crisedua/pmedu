@@ -89,27 +89,13 @@ export function DataProvider({ children }) {
       const timer = setTimeout(() => {
         console.log('[DEBUG-EFFECT] Timer fired, loading data now');
         
-        // Wrap everything in try-catch to catch any errors
-        (async () => {
-          try {
-            // Ensure Supabase session is ready before loading
-            console.log('[DEBUG-EFFECT] Getting Supabase session...');
-            const result = await supabase.auth.getSession();
-            console.log('[DEBUG-EFFECT] Got session:', { hasSession: !!result?.data?.session });
-          } catch (err) {
-            console.warn('[DEBUG-EFFECT] Session check failed:', err);
-          }
-          
-          try {
-            console.log('[DEBUG-EFFECT] About to call loadAllData()');
-            await loadAllData();
-            console.log('[DEBUG-EFFECT] loadAllData() completed');
-          } catch (err) {
-            console.error('[DEBUG-EFFECT] loadAllData() threw error:', err);
-          }
-        })().catch(err => {
-          console.error('[DEBUG-EFFECT] Async callback error:', err);
+        // Don't wait for session - just load data directly
+        // (session check was hanging on refresh)
+        console.log('[DEBUG-EFFECT] About to call loadAllData()');
+        loadAllData().catch(err => {
+          console.error('[DEBUG-EFFECT] loadAllData() error:', err);
         });
+        console.log('[DEBUG-EFFECT] loadAllData() called');
       }, delay);
 
       return () => clearTimeout(timer);
