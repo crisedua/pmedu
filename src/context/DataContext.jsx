@@ -86,19 +86,30 @@ export function DataProvider({ children }) {
         sessionStorage.setItem('veta-session-warmed', 'true');
       }
 
-      const timer = setTimeout(async () => {
+      const timer = setTimeout(() => {
         console.log('[DEBUG-EFFECT] Timer fired, loading data now');
-        // Ensure Supabase session is ready before loading
-        try {
-          console.log('[DEBUG-EFFECT] Getting Supabase session...');
-          const result = await supabase.auth.getSession();
-          console.log('[DEBUG-EFFECT] Got session:', { hasSession: !!result?.data?.session });
-        } catch (err) {
-          console.warn('Session check failed, proceeding anyway:', err);
-        }
-        console.log('[DEBUG-EFFECT] About to call loadAllData()');
-        loadAllData();
-        console.log('[DEBUG-EFFECT] loadAllData() called');
+        
+        // Wrap everything in try-catch to catch any errors
+        (async () => {
+          try {
+            // Ensure Supabase session is ready before loading
+            console.log('[DEBUG-EFFECT] Getting Supabase session...');
+            const result = await supabase.auth.getSession();
+            console.log('[DEBUG-EFFECT] Got session:', { hasSession: !!result?.data?.session });
+          } catch (err) {
+            console.warn('[DEBUG-EFFECT] Session check failed:', err);
+          }
+          
+          try {
+            console.log('[DEBUG-EFFECT] About to call loadAllData()');
+            await loadAllData();
+            console.log('[DEBUG-EFFECT] loadAllData() completed');
+          } catch (err) {
+            console.error('[DEBUG-EFFECT] loadAllData() threw error:', err);
+          }
+        })().catch(err => {
+          console.error('[DEBUG-EFFECT] Async callback error:', err);
+        });
       }, delay);
 
       return () => clearTimeout(timer);
