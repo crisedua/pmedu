@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useData } from '../context/DataContext';
+import EditInboxItemModal from '../components/modals/EditInboxItemModal';
 import {
     Trash2,
     ExternalLink,
@@ -31,6 +32,7 @@ export default function Inbox() {
     const [dueDate, setDueDate] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
     const [showArchive, setShowArchive] = useState(false);
+    const [editingItem, setEditingItem] = useState(null);
 
     const activeItems = inbox.filter(item => !item.processed);
     const archivedItems = inbox.filter(item => item.processed);
@@ -127,8 +129,15 @@ export default function Inbox() {
                                     </button>
                                     <div className="flex gap-1">
                                         <button
+                                            className="btn btn-ghost btn-sm"
+                                            title="Edit content"
+                                            onClick={() => setEditingItem(item)}
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
                                             className="btn btn-ghost btn-sm archive-btn"
-                                            title="Archive without converting"
+                                            title="Archive/Close without converting"
                                             onClick={() => updateInboxItem(item.id, { processed: true })}
                                         >
                                             <Archive size={14} />
@@ -275,6 +284,13 @@ export default function Inbox() {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {editingItem && (
+                <EditInboxItemModal
+                    item={editingItem}
+                    onClose={() => setEditingItem(null)}
+                />
             )}
 
             <style>{`
