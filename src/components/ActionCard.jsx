@@ -209,6 +209,7 @@ export default function ActionCard({ item, type, onAction, onEdit, onDelete, onM
                             boxShadow: '0 10px 25px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -4px rgba(0, 0, 0, 0.15)',
                             padding: '4px 0'
                         }}>
+                            <div style={{ padding: '10px', color: 'red', fontWeight: 'bold' }}>TEST - Menu Type: {type}</div>
                             {/* Edit option for action/waiting types */}
                             {(isAction || isWaiting) && onEdit && (
                                 <button className="dropdown-item" onClick={(e) => {
