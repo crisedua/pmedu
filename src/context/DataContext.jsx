@@ -506,14 +506,21 @@ export function DataProvider({ children }) {
 
   // Project CRUD
   const createProject = async (projectData) => {
+    if (!currentUser?.id) {
+      console.error('Cannot create project: No currentUser available');
+      throw new Error('User session missing. Please log in again.');
+    }
+
     try {
       const newProject = {
         name: projectData.name,
-        description: projectData.description,
+        description: projectData.description || '',
         status: projectData.status || 'Planning',
         owner_id: currentUser.id,
         members: [currentUser.id],
       };
+
+      console.log('Creating project in Supabase:', newProject);
 
       const { data, error } = await supabase
         .from('pm_projects')
@@ -521,8 +528,12 @@ export function DataProvider({ children }) {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error creating project:', error);
+        throw error;
+      }
 
+      console.log('Project created successfully:', data);
       setProjects(prev => [data, ...prev]);
       return data;
     } catch (err) {

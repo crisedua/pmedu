@@ -193,20 +193,52 @@ export default function GlobalVoiceCapture() {
                 return;
             }
 
-            if (classificationResult.suggestedAction === 'extract_tasks') {
-                // User wants to extract tasks
+            if (classificationResult.suggestedAction === 'extract_tasks' || classificationResult.contentType === 'project') {
+                // User wants to extract tasks or create a project
                 setProcessingStage('extracting');
                 const extraction = await extractTasksFromVoice(transcription, { users, projects, language });
 
-                if (extraction.tasks.length > 0) {
-                    setExtractedTasks(extraction.tasks);
+                let tasksToReview = extraction.tasks || [];
+
+                // If it's a project intent or mentions "proyecto", ensure we handle it
+                const isProjectIntent = classificationResult.contentType === 'project' ||
+                    transcription.toLowerCase().includes('proyecto') ||
+                    transcription.toLowerCase().includes('project');
+
+                if (isProjectIntent && tasksToReview.length === 0) {
+                    console.log('Project intent detected but no tasks found. Injecting virtual project task.');
+                    // Try to extract project name: remove "crear", "proyecto", etc.
+                    let projectName = transcription
+                        .replace(/[Cc]rear/g, '')
+                        .replace(/[Nn]uevo/g, '')
+                        .replace(/[Pp]royecto/g, '')
+                        .replace(/[Cc]reate/g, '')
+                        .replace(/[Nn]ew/g, '')
+                        .replace(/[Pp]roject/g, '')
+                        .trim();
+
+                    if (!projectName || projectName.length < 2) {
+                        projectName = classificationResult.summary.replace(/.*proyecto /i, '').trim();
+                    }
+
+                    tasksToReview = [{
+                        name: language === 'es' ? `Crear Proyecto: ${projectName}` : `Create Project: ${projectName}`,
+                        description: transcription,
+                        suggestedProjectName: projectName,
+                        confidence: 1.0
+                    }];
+                }
+
+                if (tasksToReview.length > 0) {
+                    console.log('Final tasks for review:', tasksToReview);
+                    setExtractedTasks(tasksToReview);
                     if (extraction.needsFollowUp) {
                         setNeedsClarification(true);
                         setFollowUpQuestion(extraction.followUpQuestion);
                     }
                     setStatus('review');
                 } else {
-                    // No tasks found, save to inbox
+                    // No tasks found, save to inbox as a regular note
                     const saved = await createInboxItem(transcription, language);
                     setStatus(saved ? 'success' : 'error');
                 }
@@ -232,18 +264,25 @@ export default function GlobalVoiceCapture() {
             const projectMap = {}; // name -> id
             const tasksWithProjects = [];
 
+            console.log('Finalizing confirmation with tasks:', extractedTasks);
+
             for (const task of extractedTasks) {
                 let finalProjectId = task.projectId;
+
+                console.log(`Processing task: "${task.name}", current projectId: ${finalProjectId}, suggestedProject: ${task.suggestedProjectName}`);
 
                 // If no ID but has suggested name, create project
                 if (!finalProjectId && task.suggestedProjectName) {
                     const pname = task.suggestedProjectName;
+                    console.log(`Attempting to create/match project: "${pname}"`);
 
                     if (projectMap[pname]) {
                         finalProjectId = projectMap[pname];
+                        console.log(`Using existing project ID from current session: ${finalProjectId}`);
                     } else {
                         // Create new project
                         try {
+                            console.log(`Calling createProject for: "${pname}"`);
                             const newProject = await createProject({
                                 name: pname,
                                 status: 'Active',
@@ -253,6 +292,9 @@ export default function GlobalVoiceCapture() {
                             if (newProject && newProject.id) {
                                 finalProjectId = newProject.id;
                                 projectMap[pname] = finalProjectId;
+                                console.log(`Project created successfully with ID: ${finalProjectId}`);
+                            } else {
+                                console.warn('createProject returned no data or ID:', newProject);
                             }
                         } catch (pErr) {
                             console.error('Failed to create project:', pErr);
