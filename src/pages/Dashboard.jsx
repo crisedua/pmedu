@@ -200,19 +200,43 @@ export default function Dashboard() {
                             <button
                                 onClick={async () => {
                                     const btn = document.getElementById('test-conn-btn');
-                                    if (btn) btn.innerText = 'Testing...';
+                                    if (btn) btn.innerText = 'Testing (Raw Fetch)...';
+
                                     try {
-                                        const start = Date.now();
-                                        console.log('Testing connection...');
-                                        const { data, error, status } = await supabase.from('pm_projects').select('count', { count: 'exact', head: true });
-                                        const duration = Date.now() - start;
-                                        if (error) {
-                                            alert(`Connection FAILED (${duration}ms)\nStatus: ${status}\nError: ${error.message}\nDetails: ${JSON.stringify(error)}`);
-                                        } else {
-                                            alert(`Connection SUCCESS (${duration}ms)\nStatus: ${status}\nData accessible!`);
+                                        const url = import.meta.env.VITE_SUPABASE_URL;
+                                        const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+                                        if (!url || !key) {
+                                            alert('Missing Config! Check .env');
+                                            return;
                                         }
+
+                                        // 1. Raw Network Test (Bypass Supabase Client)
+                                        console.log('Starting raw fetch test...');
+                                        const start = Date.now();
+                                        const response = await fetch(`${url}/rest/v1/pm_projects?select=count`, {
+                                            method: 'HEAD',
+                                            headers: {
+                                                'apikey': key,
+                                                'Authorization': `Bearer ${key}`
+                                            }
+                                        });
+                                        const duration = Date.now() - start;
+
+                                        if (response.ok) {
+                                            alert(`✅ RAW FETCH SUCCESS (${duration}ms)\nNetwork is working!\n\nIf the app is still stuck, the issue is likely a corrupted user session.`);
+
+                                            // Optional: Clear session if stuck
+                                            if (confirm("Clear local session cache to fix potential auth issues?")) {
+                                                localStorage.clear();
+                                                window.location.reload();
+                                            }
+                                        } else {
+                                            alert(`❌ API ERROR: ${response.status} ${response.statusText}`);
+                                        }
+
                                     } catch (e) {
-                                        alert(`Connection CRASHED\n${e.message}`);
+                                        alert(`❌ NETWORK BLOCK: ${e.message}\nCheck your Firewall/VPN.`);
                                     } finally {
                                         if (btn) btn.innerText = 'Test Connect';
                                     }
