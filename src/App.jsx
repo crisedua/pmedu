@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { DataProvider } from './context/DataContext';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
+import DemoDashboard from './pages/DemoDashboard';
 import DocumentEditor from './pages/DocumentEditor';
 import UserManagement from './pages/UserManagement';
 import Inbox from './pages/Inbox';
@@ -15,6 +16,9 @@ function App() {
     <DataProvider>
       <BrowserRouter>
         <Routes>
+          {/* Demo Route - No auth required */}
+          <Route path="/demo" element={<DemoDashboard />} />
+
           {/* Public Routes */}
           <Route path="/login" element={<LoginPage />} />
 
