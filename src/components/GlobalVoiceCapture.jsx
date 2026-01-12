@@ -429,7 +429,23 @@ export default function GlobalVoiceCapture() {
                     <div className="tasks-preview">
                         {extractedTasks.map((task, idx) => (
                             <div key={idx} className="task-preview-item">
-                                <div className="task-preview-title">{task.name}</div>
+                                <div className="task-preview-title">
+                                    {task.actionType && (
+                                        <span style={{
+                                            fontSize: '10px',
+                                            textTransform: 'uppercase',
+                                            background: 'var(--bg-tertiary)',
+                                            padding: '2px 4px',
+                                            borderRadius: '4px',
+                                            marginRight: '6px',
+                                            fontWeight: 'bold',
+                                            color: 'var(--text-secondary)'
+                                        }}>
+                                            {task.actionType}
+                                        </span>
+                                    )}
+                                    {task.name}
+                                </div>
                                 <div className="task-preview-meta">
                                     {task.assignedTo ? (
                                         <span className="meta-tag">

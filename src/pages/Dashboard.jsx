@@ -1,214 +1,316 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import {
     Plus,
     FolderKanban,
-    CheckCircle2,
-    Clock,
-    FileText,
     Sparkles,
-    ArrowRight,
-    Loader2
+    Loader2,
+    Zap,
+    Clock,
+    Inbox
 } from 'lucide-react';
 import CreateProjectModal from '../components/modals/CreateProjectModal';
-import { format } from 'date-fns';
+import EditTaskModal from '../components/modals/EditTaskModal';
+import ActionCard from '../components/ActionCard';
+import { format, isToday, isPast, isFuture } from 'date-fns';
 
 export default function Dashboard() {
-    const { projects, tasks, documents, getTaskStats, getProjectProgress, getUser, dataLoaded, loading } = useData();
+    const {
+        projects,
+        tasks,
+        inbox,
+        currentUser,
+        updateTask,
+        deleteTask,
+        deleteInboxItem,
+        updateInboxItem,
+        dataLoaded,
+        loading
+    } = useData();
     const navigate = useNavigate();
     const [createProjectOpen, setCreateProjectOpen] = useState(false);
+    const [editingTask, setEditingTask] = useState(null);
 
     const isSlowConnection = !dataLoaded && loading;
 
-    const handleProjectCreated = (project) => {
-        setCreateProjectOpen(false);
-        navigate(`/project/${project.id}`);
+    // Filter Logic
+    const { immediateActions, waitingFor, recentCaptures } = useMemo(() => {
+        if (!currentUser) return { immediateActions: [], waitingFor: [], recentCaptures: [] };
+
+        // 1. Immediate Actions: Assigned to me, not done
+        const myTasks = tasks.filter(t =>
+            (t.assigned_to === currentUser.id || !t.assigned_to) &&
+            t.status !== 'Done'
+        ).sort((a, b) => {
+            // Sort by due date (asc), then created_at (desc)
+            if (!a.due_date && !b.due_date) return new Date(b.created_at) - new Date(a.created_at);
+            if (!a.due_date) return 1;
+            if (!b.due_date) return -1;
+            return new Date(a.due_date) - new Date(b.due_date);
+        });
+
+        // 2. Waiting For: Assigned to others, not done
+        const delegatedTasks = tasks.filter(t =>
+            t.assigned_to &&
+            t.assigned_to !== currentUser.id &&
+            t.status !== 'Done'
+        );
+
+        // 3. Inbox: Unprocessed items
+        const inboxItems = inbox.filter(i => !i.processed);
+
+        return {
+            immediateActions: myTasks,
+            waitingFor: delegatedTasks,
+            recentCaptures: inboxItems
+        };
+    }, [tasks, inbox, currentUser]);
+
+    // Handlers
+    const handleTaskComplete = (task) => {
+        updateTask(task.id, { status: 'Done' });
     };
 
-    // Calculate overall stats
-    const totalTasks = tasks.length;
-    const completedTasks = tasks.filter(t => t.status === 'Done').length;
-    const aiCreatedTasks = tasks.filter(t => t.created_by_ai).length;
+    const handleInboxProcess = (item) => {
+        // Navigate to inbox page with this item focused or just go to inbox
+        // For MVP, simply go to Inbox page
+        navigate('/inbox', { state: { highlightItem: item.id } });
+    };
+
+    const handleEdit = (task) => {
+        setEditingTask(task);
+    };
 
     return (
-        <div>
-            {/* Connectivity Status Indicator */}
+        <div className="dashboard-stream">
+            {/* Connectivity Status */}
             {isSlowConnection && (
-                <div style={{
-                    background: '#fff7ed',
-                    border: '1px solid #ffedd5',
-                    padding: '8px 16px',
-                    borderRadius: '8px',
-                    marginBottom: '16px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    fontSize: '14px',
-                    color: '#9a3412'
-                }}>
+                <div className="connection-banner">
                     <Loader2 size={16} className="animate-spin" />
-                    <span>Conexión lenta detectada. Sincronizando datos con el servidor...</span>
+                    <span>Syncing your action stream...</span>
                 </div>
             )}
 
-            {/* Page Header */}
-            <div className="page-header">
+            {/* Header */}
+            <div className="stream-header mb-8">
                 <div>
-                    <h1 className="page-title">Welcome back 👋</h1>
+                    <h1 className="page-title">Command Center</h1>
                     <p className="page-subtitle">
-                        {dataLoaded ? "Here's what's happening across your projects" : "Sincronizando tus proyectos..."}
+                        {dataLoaded
+                            ? `You have ${immediateActions.length} immediate actions and ${recentCaptures.length} unprocessed ideas.`
+                            : "Loading your second brain..."
+                        }
                     </p>
                 </div>
-                <div className="page-actions">
-                    <button className="btn btn-primary btn-lg" onClick={() => setCreateProjectOpen(true)} disabled={!dataLoaded}>
-                        <Plus size={20} />
-                        New Project
+                <div className="flex gap-3">
+                    <button className="btn btn-ghost" onClick={() => navigate('/projects')}>
+                        <FolderKanban size={18} />
+                        <span className="hidden md:inline ml-2">Contexts</span>
                     </button>
+                    {/* <button className="btn btn-primary" onClick={() => setCreateProjectOpen(true)}>
+                        <Plus size={18} />
+                        <span className="hidden md:inline ml-2">New Context</span>
+                    </button> */}
                 </div>
             </div>
 
-            {/* Stats Overview - Simplified */}
-            <div className="stats-grid mb-6" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
-                <div className="stat-card">
-                    <div className="stat-value">{projects.length}</div>
-                    <div className="stat-label">Active Projects</div>
-                </div>
-                <div className="stat-card">
-                    <div className="stat-value" style={{ color: 'var(--color-accent-emerald)' }}>
-                        {completedTasks}
-                    </div>
-                    <div className="stat-label">Tasks Completed</div>
-                </div>
-            </div>
+            {/* 3-Column Stream Layout */}
+            <div className="stream-grid">
 
-            {/* Projects Section */}
-            <div className="section">
-                <div className="section-header">
-                    <h2 className="section-title">Your Projects</h2>
-                    <button className="btn btn-ghost btn-sm" onClick={() => setCreateProjectOpen(true)}>
-                        <Plus size={16} />
-                        Add Project
-                    </button>
-                </div>
-
-                {projects.length === 0 ? (
-                    <div className="card">
-                        <div className="empty-state">
-                            <div className="empty-state-icon">
-                                <FolderKanban size={40} />
-                            </div>
-                            <h3 className="empty-state-title">No projects yet</h3>
-                            <p className="empty-state-description">
-                                Create your first project to start organizing your work with AI assistance
-                            </p>
-                            <button className="btn btn-primary" onClick={() => setCreateProjectOpen(true)}>
-                                <Plus size={18} />
-                                Create Your First Project
-                            </button>
+                {/* Column 1: Immediate Actions */}
+                <div className="stream-column">
+                    <div className="column-header">
+                        <div className="header-icon bg-red-100 text-red-600">
+                            <Zap size={18} />
                         </div>
+                        <h2>Do Now</h2>
+                        <span className="badge">{immediateActions.length}</span>
                     </div>
-                ) : (
-                    <div className="grid-auto">
-                        {projects.map(project => {
-                            const stats = getTaskStats(project.id);
-                            const progress = getProjectProgress(project.id);
-                            const owner = getUser(project.owner_id);
-
-                            return (
-                                <Link
-                                    key={project.id}
-                                    to={`/project/${project.id}`}
-                                    className="project-card"
-                                >
-                                    <div className="project-card-header">
-                                        <div className="project-icon">
-                                            <FolderKanban size={24} />
-                                        </div>
-                                        <span className={`status-badge status-${project.status.toLowerCase().replace(' ', '-')}`}>
-                                            {project.status}
-                                        </span>
-                                    </div>
-
-                                    <h3 className="project-name">{project.name}</h3>
-                                    <p className="project-description">{project.description}</p>
-
-                                    {stats.total > 0 && (
-                                        <div style={{ marginBottom: 'var(--space-4)' }}>
-                                            <div style={{
-                                                display: 'flex',
-                                                justifyContent: 'space-between',
-                                                fontSize: 'var(--text-xs)',
-                                                marginBottom: 'var(--space-2)',
-                                                color: 'var(--text-tertiary)'
-                                            }}>
-                                                <span>{progress}% complete</span>
-                                                <span>{stats.done}/{stats.total} tasks</span>
-                                            </div>
-                                            <div className="progress-bar">
-                                                <div className="progress-fill" style={{ width: `${progress}%` }} />
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    <div className="project-stats">
-                                        <div className="project-stat">
-                                            <CheckCircle2 size={16} />
-                                            <span>{stats.done} done</span>
-                                        </div>
-                                        <div className="project-stat">
-                                            <Clock size={16} />
-                                            <span>{stats.inProgress} in progress</span>
-                                        </div>
-                                    </div>
-                                </Link>
-                            );
-                        })}
-
-                        {/* Add Project Card */}
-                        <button
-                            className="project-card"
-                            onClick={() => setCreateProjectOpen(true)}
-                            style={{
-                                border: '2px dashed var(--border-medium)',
-                                background: 'transparent',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                minHeight: '250px',
-                                cursor: 'pointer',
-                            }}
-                        >
-                            <div style={{
-                                width: '48px',
-                                height: '48px',
-                                borderRadius: 'var(--radius-full)',
-                                background: 'var(--bg-tertiary)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                marginBottom: 'var(--space-3)',
-                                color: 'var(--text-muted)',
-                            }}>
-                                <Plus size={24} />
+                    <div className="column-content">
+                        {immediateActions.length === 0 ? (
+                            <div className="empty-stream">
+                                <p>All caught up! 🎉</p>
                             </div>
-                            <span style={{ color: 'var(--text-secondary)', fontWeight: 'var(--font-medium)' }}>
-                                Add New Project
-                            </span>
-                        </button>
+                        ) : (
+                            immediateActions.map(task => (
+                                <ActionCard
+                                    key={task.id}
+                                    item={task}
+                                    type="action"
+                                    onAction={handleTaskComplete}
+                                    onDelete={(t) => deleteTask(t.id)}
+                                    onEdit={handleEdit}
+                                    onClick={(t) => navigate(`/project/${t.project_id}`)} // Or open detail modal
+                                />
+                            ))
+                        )}
                     </div>
-                )}
+                </div>
+
+                {/* Column 2: Waiting For */}
+                <div className="stream-column">
+                    <div className="column-header">
+                        <div className="header-icon bg-orange-100 text-orange-600">
+                            <Clock size={18} />
+                        </div>
+                        <h2>Waiting For</h2>
+                        <span className="badge">{waitingFor.length}</span>
+                    </div>
+                    <div className="column-content">
+                        {waitingFor.length === 0 ? (
+                            <div className="empty-stream">
+                                <p>No pending delegations.</p>
+                            </div>
+                        ) : (
+                            waitingFor.map(task => (
+                                <ActionCard
+                                    key={task.id}
+                                    item={task}
+                                    type="waiting"
+                                    onDelete={(t) => deleteTask(t.id)}
+                                    onEdit={handleEdit}
+                                // onClick={(t) => navigate(`/project/${t.project_id}`)} 
+                                />
+                            ))
+                        )}
+                    </div>
+                </div>
+
+                {/* Column 3: Recent Captures */}
+                <div className="stream-column">
+                    <div className="column-header">
+                        <div className="header-icon bg-blue-100 text-blue-600">
+                            <Inbox size={18} />
+                        </div>
+                        <h2>Inbox</h2>
+                        <span className="badge">{recentCaptures.length}</span>
+                    </div>
+                    <div className="column-content">
+                        {recentCaptures.length === 0 ? (
+                            <div className="empty-stream">
+                                <p>Inbox zero! 🧠</p>
+                            </div>
+                        ) : (
+                            recentCaptures.map(item => (
+                                <ActionCard
+                                    key={item.id}
+                                    item={item}
+                                    type="inbox"
+                                    onAction={handleInboxProcess}
+                                    onDelete={(i) => deleteInboxItem(i.id)}
+                                // onEdit={(i) => navigate('/inbox')}
+                                />
+                            ))
+                        )}
+                    </div>
+                </div>
+
             </div>
 
-
-            {/* Create Project Modal */}
+            {/* Create Project Modal (Hidden but preserved for now) */}
             {createProjectOpen && (
                 <CreateProjectModal
                     onClose={() => setCreateProjectOpen(false)}
-                    onCreated={handleProjectCreated}
+                    onCreated={(p) => navigate(`/project/${p.id}`)}
                 />
             )}
+
+            {/* Edit Task Modal */}
+            {editingTask && (
+                <EditTaskModal
+                    task={editingTask}
+                    onClose={() => setEditingTask(null)}
+                />
+            )}
+
+            <style>{`
+                .dashboard-stream {
+                    padding-bottom: 4rem;
+                }
+                .connection-banner {
+                    background: #fff7ed;
+                    border: 1px solid #ffedd5;
+                    padding: 8px 16px;
+                    border-radius: 8px;
+                    margin-bottom: 16px;
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    font-size: 14px;
+                    color: #9a3412;
+                }
+                .stream-grid {
+                    display: grid;
+                    grid-template-columns: repeat(3, 1fr);
+                    gap: var(--space-6);
+                    align-items: start;
+                }
+                @media (max-width: 1024px) {
+                    .stream-grid {
+                        grid-template-columns: repeat(2, 1fr);
+                    }
+                }
+                @media (max-width: 768px) {
+                    .stream-grid {
+                        grid-template-columns: 1fr;
+                    }
+                }
+                .stream-column {
+                    background: var(--bg-secondary);
+                    border-radius: var(--radius-xl);
+                    padding: var(--space-4);
+                    min-height: 200px;
+                }
+                .column-header {
+                    display: flex;
+                    align-items: center;
+                    gap: var(--space-3);
+                    margin-bottom: var(--space-4);
+                    padding-bottom: var(--space-3);
+                    border-bottom: 2px solid var(--border-light);
+                }
+                .header-icon {
+                    width: 32px;
+                    height: 32px;
+                    border-radius: var(--radius-md);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .column-header h2 {
+                    font-size: var(--text-lg);
+                    font-weight: var(--font-bold);
+                    color: var(--text-primary);
+                    flex: 1;
+                    margin: 0;
+                }
+                .badge {
+                    background: var(--bg-tertiary);
+                    color: var(--text-secondary);
+                    padding: 2px 8px;
+                    border-radius: var(--radius-full);
+                    font-size: var(--text-xs);
+                    font-weight: var(--font-bold);
+                }
+                .empty-stream {
+                    text-align: center;
+                    padding: var(--space-8);
+                    color: var(--text-muted);
+                    font-style: italic;
+                }
+                .bg-red-100 { background-color: #fee2e2; }
+                .text-red-600 { color: #dc2626; }
+                .bg-orange-100 { background-color: #ffedd5; }
+                .text-orange-600 { color: #ea580c; }
+                .bg-blue-100 { background-color: #dbeafe; }
+                .text-blue-600 { color: #2563eb; }
+                
+                .hidden { display: none; }
+                @media (min-width: 768px) {
+                    .md\\:inline { display: inline; }
+                }
+            `}</style>
         </div>
     );
 }

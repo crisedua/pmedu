@@ -3,10 +3,12 @@ import { DataProvider } from './context/DataContext';
 import Layout from './components/Layout';
 import CommandCenter from './pages/CommandCenter';
 import Dashboard from './pages/Dashboard';
+import ProjectsList from './pages/ProjectsList';
 import ProjectView from './pages/ProjectView';
 import DocumentEditor from './pages/DocumentEditor';
 import UserManagement from './pages/UserManagement';
 import Inbox from './pages/Inbox';
+import Archive from './pages/Archive';
 import LoginPage from './pages/LoginPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import './index.css';
@@ -25,10 +27,12 @@ function App() {
               <Layout />
             </ProtectedRoute>
           }>
-            <Route index element={<CommandCenter />} />
-            <Route path="projects" element={<Dashboard />} />
+            <Route index element={<Dashboard />} />
+            <Route path="projects" element={<ProjectsList />} />
             <Route path="inbox" element={<Inbox />} />
+            <Route path="archive" element={<Archive />} />
             <Route path="users" element={<UserManagement />} />
+            <Route path="command" element={<CommandCenter />} />
             <Route path="project/:projectId" element={<ProjectView />} />
             <Route path="project/:projectId/document/:docId" element={<DocumentEditor />} />
           </Route>

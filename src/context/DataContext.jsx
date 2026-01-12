@@ -614,6 +614,7 @@ export function DataProvider({ children }) {
         status: taskData.status || 'To Do',
         project_id: taskData.projectId || taskData.project_id,
         created_by_ai: taskData.createdByAI || taskData.created_by_ai || false,
+        action_type: taskData.actionType || taskData.action_type || 'todo',
       };
 
       const { data, error } = await supabase
@@ -642,6 +643,7 @@ export function DataProvider({ children }) {
         status: task.status || 'To Do',
         project_id: task.projectId || task.project_id,
         created_by_ai: task.created_by_ai !== undefined ? task.created_by_ai : true,
+        action_type: task.actionType || task.action_type || 'todo',
       }));
 
       const { data, error } = await Promise.race([
@@ -678,6 +680,7 @@ export function DataProvider({ children }) {
       }
       if (getVal('status', 'status') !== undefined) dbUpdates.status = getVal('status', 'status');
       if (getVal('projectId', 'project_id') !== undefined) dbUpdates.project_id = getVal('projectId', 'project_id');
+      if (getVal('actionType', 'action_type') !== undefined) dbUpdates.action_type = getVal('actionType', 'action_type');
 
       const { data, error } = await supabase
         .from('pm_tasks')

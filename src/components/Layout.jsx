@@ -17,6 +17,7 @@ import {
     Brain,
     Inbox,
     Activity,
+    Archive
 } from 'lucide-react';
 import { getTodaySummary } from '../services/aiService';
 import CreateProjectModal from './modals/CreateProjectModal';
@@ -85,7 +86,7 @@ export default function Layout() {
                             onClick={() => setSidebarOpen(false)}
                         >
                             <Activity size={20} />
-                            {language === 'es' ? 'Centro de Comando' : 'Command Center'}
+                            {language === 'es' ? 'Flujo de Acción' : 'Action Stream'}
                         </NavLink>
                         <NavLink
                             to="/projects"
@@ -93,7 +94,15 @@ export default function Layout() {
                             onClick={() => setSidebarOpen(false)}
                         >
                             <LayoutDashboard size={20} />
-                            {language === 'es' ? 'Todos los Proyectos' : 'All Projects'}
+                            {language === 'es' ? 'Contextos' : 'Contexts'}
+                        </NavLink>
+                        <NavLink
+                            to="/command"
+                            className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+                            onClick={() => setSidebarOpen(false)}
+                        >
+                            <Brain size={20} />
+                            {language === 'es' ? 'Cerebro de Voz' : 'Voice Brain'}
                         </NavLink>
                         <NavLink
                             to="/inbox"
@@ -103,6 +112,15 @@ export default function Layout() {
                             <Inbox size={20} />
                             {language === 'es' ? 'Bandeja de Entrada' : 'Inbox'}
                         </NavLink>
+                        <NavLink
+                            to="/archive"
+                            className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+                            onClick={() => setSidebarOpen(false)}
+                        >
+                            <Archive size={20} />
+                            {language === 'es' ? 'Historial' : 'History'}
+                        </NavLink>
+
                         {currentUser?.role === 'admin' && (
                             <NavLink
                                 to="/users"
@@ -117,7 +135,7 @@ export default function Layout() {
 
                     <div className="sidebar-section">
                         <div className="sidebar-section-title">
-                            {language === 'es' ? 'Proyectos' : 'Projects'}
+                            {language === 'es' ? 'Contextos' : 'Contexts'}
                         </div>
 
                         <button
@@ -126,7 +144,7 @@ export default function Layout() {
                             style={{ width: '100%', textAlign: 'left', border: 'none', background: 'none' }}
                         >
                             <Plus size={20} />
-                            {language === 'es' ? 'Nuevo Proyecto' : 'New Project'}
+                            {language === 'es' ? 'Nuevo Contexto' : 'New Context'}
                         </button>
 
                         {projects.map(project => (
@@ -149,7 +167,7 @@ export default function Layout() {
                                 color: 'var(--text-muted)',
                                 fontStyle: 'italic'
                             }}>
-                                No projects yet
+                                No contexts yet
                             </p>
                         )}
                     </div>

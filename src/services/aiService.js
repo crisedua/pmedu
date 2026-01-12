@@ -587,21 +587,29 @@ export async function extractTasksFromVoice(transcription, context = {}) {
     2. For each task found, extract:
        - name: Clear, actionable task title
        - description: Brief context (if any)
+       - actionType: "todo" | "delegate" | "discuss" | "buy" | "read"
        - assignedTo: Match to a team member ID from the list above (or null if unspecified)
        - projectId: Match to a project ID from the list above if explicitly mentioned or contextually obvious (or null)
-       - suggestedProjectName: If a new project is mentioned (e.g., "for the launch campaign"), name it.
+       - suggestedProjectName: If a new project (context) is mentioned (e.g., "for Marketing"), name it.
        - dueDate: Parse relative dates ("next Tuesday", "tomorrow", "in 3 days") to ISO format
        - confidence: 0-1 score of extraction confidence
     
     3. If a task is mentioned but missing critical info (owner or date), set needsFollowUp = true.
     
-    4. For date parsing examples:
+    4. Action Type Guidelines:
+       - "delegate": Explicitly assigning to someone else ("Tell Juan to...")
+       - "discuss": Needs a conversation ("Ask Maria about...", "Discuss budget with Alex")
+       - "buy": Purchasing ("Buy milk", "Order software")
+       - "read": Reading/Reviewing ("Read report", "Review proposal")
+       - "todo": General personal tasks
+    
+    5. For date parsing examples:
        - "next Tuesday" → calculate from ${today}
        - "tomorrow" → next day from ${today}
        - "next week" → 7 days from ${today}
        - "for Friday" → next Friday from ${today}
     
-    5. For assignee matching, be flexible with names:
+    6. For assignee matching, be flexible with names:
        - "Maria" matches "Maria Garcia"
        - "Juan" matches "Juan Rodriguez"
        - Use fuzzy matching on first names
