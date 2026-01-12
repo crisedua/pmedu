@@ -25,6 +25,7 @@ export default function GlobalVoiceCapture() {
     // Extracted Data State
     const [extractedTasks, setExtractedTasks] = useState([]);
     const [transcription, setTranscription] = useState('');
+    const [classificationResult, setClassificationResult] = useState(null);
     const [followUpQuestion, setFollowUpQuestion] = useState(null);
     const [needsClarification, setNeedsClarification] = useState(false);
 
@@ -43,7 +44,21 @@ export default function GlobalVoiceCapture() {
         confirmCreate: language === 'es' ? 'Confirmar y Crear' : 'Confirm & Create',
         success: language === 'es' ? '¡Capturado Exitosamente!' : 'Captured Successfully!',
         error: language === 'es' ? 'Error al guardar. Revisa tu conexión.' : 'Save failed. Check your connection.',
-        voiceCommand: language === 'es' ? 'Nota de Voz' : 'Voice Note'
+        voiceCommand: language === 'es' ? 'Nota de Voz' : 'Voice Note',
+        // Preview card translations
+        aiUnderstood: language === 'es' ? 'IA entendió:' : 'AI understood:',
+        youSaid: language === 'es' ? 'Dijiste:' : 'You said:',
+        summary: language === 'es' ? 'Resumen:' : 'Summary:',
+        discard: language === 'es' ? 'Descartar' : 'Discard',
+        extractTasks: language === 'es' ? 'Extraer Tareas' : 'Extract Tasks',
+        contentTypes: {
+            task: language === 'es' ? 'Tarea' : 'Task',
+            note: language === 'es' ? 'Nota' : 'Note',
+            idea: language === 'es' ? 'Idea' : 'Idea',
+            question: language === 'es' ? 'Pregunta' : 'Question',
+            meeting_summary: language === 'es' ? 'Resumen' : 'Summary',
+            unclear: language === 'es' ? 'No claro' : 'Unclear'
+        }
     };
 
     const mediaRecorder = useRef(null);
@@ -126,7 +141,7 @@ export default function GlobalVoiceCapture() {
                 console.log('[Voice Capture] Classification:', classification);
             } catch (classErr) {
                 console.warn('[Voice Capture] Classification failed, using fallback:', classErr);
-                // Fallback: treat as unclear content → save to inbox
+                // Fallback: treat as note
                 classification = {
                     contentType: 'note',
                     confidence: 0.5,
@@ -135,45 +150,51 @@ export default function GlobalVoiceCapture() {
                 };
             }
 
-            // 3. Route based on classification
-            if (classification.suggestedAction === 'extract_tasks') {
-                // Content is task-related → extract tasks
+            // 3. Store classification and show PREVIEW (NEW!)
+            setClassificationResult(classification);
+            setStatus('preview');
+
+        } catch (err) {
+            console.error('Processing error:', err);
+            setStatus('error');
+        } finally {
+            setIsLoading(false);
+            setProcessingStage('');
+        }
+    };
+
+    // Handle user confirmation from preview
+    const handlePreviewConfirm = async () => {
+        if (!classificationResult) return;
+
+        setIsLoading(true);
+
+        try {
+            if (classificationResult.suggestedAction === 'extract_tasks') {
+                // User wants to extract tasks
                 setProcessingStage('extracting');
-                const extraction = await extractTasksFromVoice(result.text, { users, projects, language });
+                const extraction = await extractTasksFromVoice(transcription, { users, projects, language });
 
                 if (extraction.tasks.length > 0) {
                     setExtractedTasks(extraction.tasks);
-
-                    // If AI flags need for follow up, set it
                     if (extraction.needsFollowUp) {
                         setNeedsClarification(true);
                         setFollowUpQuestion(extraction.followUpQuestion);
                     }
-
                     setStatus('review');
                 } else {
-                    // Extraction found no tasks → save to inbox
-                    const saved = await createInboxItem(result.text, result.language);
+                    // No tasks found, save to inbox
+                    const saved = await createInboxItem(transcription, language);
                     setStatus(saved ? 'success' : 'error');
                 }
-            } else if (classification.suggestedAction === 'save_to_inbox') {
-                // Content is note/idea/question → save directly to inbox
-                const saved = await createInboxItem(result.text, result.language);
-                setStatus(saved ? 'success' : 'error');
             } else {
-                // Content is unclear → ask for clarification
-                setNeedsClarification(true);
-                setFollowUpQuestion(classification.intent || (language === 'es'
-                    ? '¿Podrías aclarar qué quieres registrar?'
-                    : 'Could you clarify what you want to record?'));
-                // Still save to inbox for now
-                const saved = await createInboxItem(result.text, result.language);
+                // Save to inbox directly
+                const saved = await createInboxItem(transcription, language);
                 setStatus(saved ? 'success' : 'error');
             }
-
         } catch (err) {
-            console.error('Processing error:', err);
-            setStatus('');
+            console.error('Confirm error:', err);
+            setStatus('error');
         } finally {
             setIsLoading(false);
             setProcessingStage('');
@@ -201,6 +222,7 @@ export default function GlobalVoiceCapture() {
         setStatus('');
         setExtractedTasks([]);
         setTranscription('');
+        setClassificationResult(null);
     };
 
     const formatTime = (seconds) => {
@@ -237,6 +259,43 @@ export default function GlobalVoiceCapture() {
                         {processingStage === 'analyzing' && t.analyzing}
                         {processingStage === 'extracting' && t.extracting}
                     </span>
+                </div>
+            )}
+
+            {/* 2b. PREVIEW CARD - Shows AI understanding before saving */}
+            {status === 'preview' && !isLoading && classificationResult && (
+                <div className="preview-card">
+                    <div className="preview-header">
+                        <Sparkles size={16} className="text-secondary" />
+                        <span className="text-sm font-medium">{t.aiUnderstood}</span>
+                        <span className="content-type-badge">
+                            {t.contentTypes[classificationResult.contentType] || classificationResult.contentType}
+                        </span>
+                        <button className="close-btn" onClick={handleDiscard}><X size={14} /></button>
+                    </div>
+
+                    <div className="transcription-box">
+                        <div className="transcription-label">{t.youSaid}</div>
+                        <p className="transcription-text">"{transcription}"</p>
+                    </div>
+
+                    {classificationResult.summary && (
+                        <div className="ai-summary">
+                            <strong>{t.summary}</strong> {classificationResult.summary}
+                        </div>
+                    )}
+
+                    <div className="preview-actions">
+                        <button className="btn-secondary-sm" onClick={handleDiscard}>
+                            {t.discard}
+                        </button>
+                        <button className="btn-primary-sm" onClick={handlePreviewConfirm}>
+                            {classificationResult.suggestedAction === 'extract_tasks'
+                                ? t.extractTasks
+                                : t.saveInbox}
+                            <ArrowRight size={14} />
+                        </button>
+                    </div>
                 </div>
             )}
 
@@ -318,7 +377,7 @@ export default function GlobalVoiceCapture() {
             )}
 
             {/* 5. Floating Action Button (Idle) */}
-            {!isRecording && !isLoading && status !== 'review' && status !== 'success' && status !== 'error' && (
+            {!isRecording && !isLoading && status !== 'review' && status !== 'preview' && status !== 'success' && status !== 'error' && (
                 <button className="voice-fab" onClick={startRecording} title={t.voiceCommand}>
                     <Mic size={24} />
                     <div className="fab-glow"></div>
@@ -472,6 +531,90 @@ export default function GlobalVoiceCapture() {
                 .status-pill.success { background: var(--color-success); color: white; border: none; }
                 .status-pill.error { background: var(--color-error); color: white; border: none; }
                 .status-pill.processing { color: var(--text-primary); }
+
+                /* Preview Card - Shows AI understanding */
+                .preview-card {
+                    background: white;
+                    border-radius: var(--radius-xl);
+                    box-shadow: var(--shadow-xl);
+                    border: 1px solid var(--border-light);
+                    width: 340px;
+                    overflow: hidden;
+                    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+                }
+
+                .preview-header {
+                    padding: 0.75rem 1rem;
+                    background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-secondary-light) 100%);
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    font-size: var(--text-sm);
+                }
+
+                .preview-header .close-btn {
+                    margin-left: auto;
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+                    padding: 4px;
+                    border-radius: var(--radius-sm);
+                    color: var(--text-muted);
+                }
+
+                .preview-header .close-btn:hover {
+                    background: rgba(0,0,0,0.1);
+                }
+
+                .content-type-badge {
+                    padding: 0.25rem 0.5rem;
+                    background: var(--color-primary);
+                    color: white;
+                    border-radius: var(--radius-full);
+                    font-size: 11px;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                }
+
+                .transcription-box {
+                    padding: 1rem;
+                    border-bottom: 1px solid var(--border-light);
+                }
+
+                .transcription-label {
+                    font-size: 11px;
+                    color: var(--text-muted);
+                    text-transform: uppercase;
+                    margin-bottom: 0.5rem;
+                    font-weight: 500;
+                }
+
+                .transcription-text {
+                    font-size: var(--text-sm);
+                    color: var(--text-primary);
+                    line-height: 1.5;
+                    font-style: italic;
+                    margin: 0;
+                }
+
+                .ai-summary {
+                    padding: 0.75rem 1rem;
+                    background: var(--bg-secondary);
+                    font-size: var(--text-xs);
+                    color: var(--text-secondary);
+                    border-bottom: 1px solid var(--border-light);
+                }
+
+                .ai-summary strong {
+                    color: var(--text-primary);
+                }
+
+                .preview-actions {
+                    padding: 0.75rem 1rem;
+                    display: flex;
+                    gap: 0.5rem;
+                    justify-content: flex-end;
+                }
 
                 /* Review Card */
                 .review-card {
