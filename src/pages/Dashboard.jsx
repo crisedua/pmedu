@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import CreateTaskModal from '../components/modals/CreateTaskModal';
 import EditTaskModal from '../components/modals/EditTaskModal';
+import EditInboxItemModal from '../components/modals/EditInboxItemModal';
 import ActionCard from '../components/ActionCard';
 import AIAssistantSidebar from '../components/AIAssistantSidebar';
 import { format, isToday, isPast, isFuture } from 'date-fns';
@@ -31,6 +32,7 @@ export default function Dashboard() {
     const navigate = useNavigate();
     const [aiSidebarOpen, setAiSidebarOpen] = useState(false);
     const [editingTask, setEditingTask] = useState(null);
+    const [editingInboxItem, setEditingInboxItem] = useState(null);
     const [processInboxItem, setProcessInboxItem] = useState(null);
     const [draggedItem, setDraggedItem] = useState(null);
     const [dragOverColumn, setDragOverColumn] = useState(null);
@@ -311,6 +313,7 @@ export default function Dashboard() {
                                         type="inbox"
                                         onAction={handleInboxProcess}
                                         onDelete={(i) => deleteInboxItem(i.id)}
+                                        onEdit={(item, mode) => mode === 'auto' ? handleEdit(item, 'auto') : setEditingInboxItem(item)}
                                     />
                                 </div>
                             ))
@@ -327,6 +330,14 @@ export default function Dashboard() {
                 <EditTaskModal
                     task={editingTask}
                     onClose={() => setEditingTask(null)}
+                />
+            )}
+
+            {/* Edit Inbox Item Modal */}
+            {editingInboxItem && (
+                <EditInboxItemModal
+                    item={editingInboxItem}
+                    onClose={() => setEditingInboxItem(null)}
                 />
             )}
 
