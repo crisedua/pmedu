@@ -271,48 +271,20 @@ export function DataProvider({ children }) {
     console.log('[DEBUG-A] loadUsers:entry - loadUsers started');
     // #endregion
     try {
-      // robust: try to get session first to ensure we aren't hanging on client
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
-      const url = import.meta.env.VITE_SUPABASE_URL;
-      const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
+      // Skip session check on refresh - just use Supabase client directly
+      // (getSession hangs on refresh causing timeouts)
       // #region agent log
-      console.log('[DEBUG-A] loadUsers:session - Session check:', {hasSession:!!session,hasToken:!!token,hasUrl:!!url,hasKey:!!key,tokenLength:token?.length||0});
+      console.log('[DEBUG-A] loadUsers:directQuery - Using direct Supabase query');
       // #endregion
 
-      if (token && url && key) {
-        // #region agent log
-        const fetchStart = Date.now();
-        console.log('[DEBUG-C] loadUsers:rawFetch - Starting raw fetch:', {url:`${url}/rest/v1/pm_users`});
-        // #endregion
-        // Use Raw Fetch for maximum reliability
-        const response = await fetch(`${url}/rest/v1/pm_users?select=*&order=created_at.desc`, {
-          headers: {
-            'apikey': key,
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        // #region agent log
-        console.log('[DEBUG-C] loadUsers:rawFetchDone - Raw fetch completed:', {status:response.status,ok:response.ok,durationMs:Date.now()-fetchStart});
-        // #endregion
-
-        if (!response.ok) throw new Error(`Fetch error: ${response.status}`);
-        const data = await response.json();
-        setUsers(data || []);
-        return;
-      }
-
-      // #region agent log
-      console.log('[DEBUG-A] loadUsers:fallback - Using Supabase client fallback (no session)');
-      // #endregion
-
-      // Fallback (or if no session yet)
       const { data, error } = await supabase
         .from('pm_users')
         .select('*')
         .order('created_at', { ascending: false });
+
+      // #region agent log
+      console.log('[DEBUG-A] loadUsers:result - Query completed:', {hasError:!!error,dataCount:data?.length||0});
+      // #endregion
 
       if (error) throw error;
       setUsers(data || []);
@@ -321,8 +293,6 @@ export function DataProvider({ children }) {
       console.log('[DEBUG-A] loadUsers:error - loadUsers failed:', {error:err.message});
       // #endregion
       console.error('Error loading users:', err);
-      // Don't set empty on error immediately, as it might be a temp glitch, 
-      // but the retry logic in loadAllData handles the throw.
       throw err;
     }
   };
