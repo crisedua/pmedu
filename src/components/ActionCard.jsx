@@ -138,19 +138,7 @@ export default function ActionCard({ item, type, onAction, onEdit, onDelete, onC
                         </span>
                     )}
 
-                    {project && (
-                        <span className="meta-tag" style={{
-                            background: 'var(--bg-tertiary)',
-                            padding: '1px 6px',
-                            borderRadius: '4px',
-                            maxWidth: '100px',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap'
-                        }}>
-                            #{project.name}
-                        </span>
-                    )}
+
 
                     {dateStr && (
                         <span style={{

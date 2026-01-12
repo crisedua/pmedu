@@ -126,31 +126,35 @@ export function DataProvider({ children }) {
       console.log('[Init] User authenticated, loading data...');
 
       // Helper to load with individual timeout and optional retry
-      const loadWithRetry = async (name, fn, { timeoutMs = 60000, retries = 3 } = {}) => {
+      const loadWithRetry = async (name, fn, { timeoutMs = 10000, retries = 2 } = {}) => {
         let attempt = 0;
         const start = Date.now();
 
         while (attempt < retries) {
           attempt++;
-          console.log(`[Init] Loading ${name} (Attempt ${attempt}/${retries})...`);
+          if (attempt > 1) console.log(`[Init] Retrying ${name} (Attempt ${attempt}/${retries})...`);
 
           try {
-            await Promise.race([
-              fn(),
-              new Promise((_, reject) =>
-                setTimeout(() => reject(new Error(`${name} loading timed out after ${timeoutMs}ms`)), timeoutMs)
-              )
-            ]);
+            // Create a promise that rejects on timeout
+            const timeoutPromise = new Promise((_, reject) =>
+              setTimeout(() => reject(new Error('TIMEOUT')), timeoutMs)
+            );
+
+            // Race the function against the timeout
+            await Promise.race([fn(), timeoutPromise]);
+
             console.log(`[Init] ✓ ${name} loaded in ${Date.now() - start}ms`);
-            return; // Success!
+            return; // Success
           } catch (err) {
-            console.warn(`[Init] ⚠ ${name} failed attempt ${attempt}:`, err.message);
+            const isTimeout = err.message === 'TIMEOUT';
+            const msg = isTimeout ? `timed out after ${timeoutMs}ms` : err.message;
+            console.warn(`[Init] ⚠ ${name} failed attempt ${attempt}: ${msg}`);
+
             if (attempt >= retries) {
               console.error(`[Init] ✘ ${name} failed all ${retries} attempts.`);
-              // If critical data fails completely, we keep consistency but dashboard will be empty
             } else {
-              // Wait 1s before retrying
-              await new Promise(r => setTimeout(r, 1000));
+              // Backoff: 1s, 2s...
+              await new Promise(r => setTimeout(r, attempt * 1000));
             }
           }
         }
@@ -160,9 +164,9 @@ export function DataProvider({ children }) {
       // These are essential for the dashboard/project pages to work
       console.log('[Init] Phase 1: Loading critical data...');
       await Promise.all([
-        loadWithRetry('users', loadUsers, { timeoutMs: 60000, retries: 3 }),
-        loadWithRetry('projects', loadProjects, { timeoutMs: 60000, retries: 3 }),
-        loadWithRetry('tasks', loadTasks, { timeoutMs: 60000, retries: 3 }),
+        loadWithRetry('users', loadUsers, { timeoutMs: 10000, retries: 2 }),
+        loadWithRetry('projects', loadProjects, { timeoutMs: 10000, retries: 2 }),
+        loadWithRetry('tasks', loadTasks, { timeoutMs: 10000, retries: 2 }),
       ]);
 
       // Mark as loaded after critical data - app is now usable

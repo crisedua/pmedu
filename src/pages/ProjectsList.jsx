@@ -18,13 +18,13 @@ export default function ProjectsList() {
         <div>
             <div className="page-header">
                 <div>
-                    <h1 className="page-title">Contexts & Projects</h1>
+                    <h1 className="page-title">Projects</h1>
                     <p className="page-subtitle">Organize your actions into buckets</p>
                 </div>
                 <div className="page-actions">
                     <button className="btn btn-primary" onClick={() => setCreateProjectOpen(true)} disabled={!dataLoaded}>
                         <Plus size={20} />
-                        New Context
+                        New Project
                     </button>
                 </div>
             </div>
@@ -34,11 +34,11 @@ export default function ProjectsList() {
                     <div className="empty-state-icon">
                         <FolderKanban size={40} />
                     </div>
-                    <h3>No contexts yet</h3>
-                    <p>Create a context (e.g., "Marketing", "Personal") to organize your actions.</p>
+                    <h3>No projects yet</h3>
+                    <p>Create a project (e.g., "Marketing", "Personal") to organize your actions.</p>
                     <button className="btn btn-primary" onClick={() => setCreateProjectOpen(true)}>
                         <Plus size={18} />
-                        Create Context
+                        Create Project
                     </button>
                 </div>
             ) : (

@@ -88,23 +88,9 @@ export default function Layout() {
                             <Activity size={20} />
                             {language === 'es' ? 'Flujo de Acción' : 'Action Stream'}
                         </NavLink>
-                        <NavLink
-                            to="/projects"
-                            className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
-                            onClick={() => setSidebarOpen(false)}
-                        >
-                            <LayoutDashboard size={20} />
-                            {language === 'es' ? 'Contextos' : 'Contexts'}
-                        </NavLink>
 
-                        <NavLink
-                            to="/inbox"
-                            className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
-                            onClick={() => setSidebarOpen(false)}
-                        >
-                            <Inbox size={20} />
-                            {language === 'es' ? 'Bandeja de Entrada' : 'Inbox'}
-                        </NavLink>
+
+
                         <NavLink
                             to="/archive"
                             className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}

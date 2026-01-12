@@ -286,7 +286,7 @@ function ArchiveItem({ task, onRestore }) {
                         <Calendar size={12} />
                         {format(new Date(task.due_date || task.created_at), 'MMM d, yyyy')}
                     </span>
-                    {task.project_id && <span>Context: {task.project_id}</span>}
+
                 </div>
             </div>
             <button

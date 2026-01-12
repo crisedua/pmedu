@@ -2,15 +2,12 @@ import { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import {
-    Plus,
-    FolderKanban,
     Sparkles,
     Loader2,
     Zap,
     Clock,
     Inbox
 } from 'lucide-react';
-import CreateProjectModal from '../components/modals/CreateProjectModal';
 import CreateTaskModal from '../components/modals/CreateTaskModal';
 import EditTaskModal from '../components/modals/EditTaskModal';
 import ActionCard from '../components/ActionCard';
@@ -32,7 +29,6 @@ export default function Dashboard() {
     } = useData();
     const [isProcessing, setIsProcessing] = useState(false); // Local loading for AI
     const navigate = useNavigate();
-    const [createProjectOpen, setCreateProjectOpen] = useState(false);
     const [aiSidebarOpen, setAiSidebarOpen] = useState(false);
     const [editingTask, setEditingTask] = useState(null);
     const [processInboxItem, setProcessInboxItem] = useState(null);
@@ -212,10 +208,7 @@ export default function Dashboard() {
                         <Sparkles size={18} />
                         <span className="hidden md:inline ml-2">AI Assistant</span>
                     </button>
-                    <button className="btn btn-ghost" onClick={() => navigate('/projects')}>
-                        <FolderKanban size={18} />
-                        <span className="hidden md:inline ml-2">Contexts</span>
-                    </button>
+
                 </div>
             </div>
 
@@ -327,13 +320,7 @@ export default function Dashboard() {
 
             </div>
 
-            {/* Create Project Modal (Hidden but preserved for now) */}
-            {createProjectOpen && (
-                <CreateProjectModal
-                    onClose={() => setCreateProjectOpen(false)}
-                    onCreated={(p) => navigate(`/project/${p.id}`)}
-                />
-            )}
+
 
             {/* Edit Task Modal */}
             {editingTask && (

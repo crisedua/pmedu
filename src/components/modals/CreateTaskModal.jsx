@@ -77,21 +77,7 @@ export default function CreateTaskModal({ projectId, onClose, initialData, onSuc
                                 </select>
                             </div>
 
-                            {!projectId && (
-                                <div className="form-group">
-                                    <label className="form-label">Context (Project)</label>
-                                    <select
-                                        className="form-select"
-                                        value={selectedProjectId}
-                                        onChange={(e) => setSelectedProjectId(e.target.value)}
-                                    >
-                                        <option value="">No Context (General)</option>
-                                        {projects.map(p => (
-                                            <option key={p.id} value={p.id}>{p.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                            )}
+
                         </div>
 
                         <div className="form-group">
