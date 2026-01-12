@@ -553,8 +553,8 @@ export async function extractTasksFromVoice(transcription, context = {}) {
     const isSpanish = language.startsWith('es');
     const today = new Date().toISOString().split('T')[0];
 
-    // Build user context for AI
-    const userContext = users.map(u => ({ id: u.id, name: u.name, email: u.email })).slice(0, 20);
+    // Build project context for AI
+    const projectContext = projects.map(p => ({ id: p.id, name: p.name })).slice(0, 20);
 
     const systemPrompt = `
     You are an expert task extraction assistant for a Voice-First PM system.
@@ -565,6 +565,9 @@ export async function extractTasksFromVoice(transcription, context = {}) {
     
     Available Team Members:
     ${JSON.stringify(userContext, null, 2)}
+
+    Available Projects:
+    ${JSON.stringify(projectContext, null, 2)}
     
     INSTRUCTIONS:
     1. Analyze the transcription for any tasks, action items, or commitments.
@@ -572,6 +575,8 @@ export async function extractTasksFromVoice(transcription, context = {}) {
        - name: Clear, actionable task title
        - description: Brief context (if any)
        - assignedTo: Match to a team member ID from the list above (or null if unspecified)
+       - projectId: Match to a project ID from the list above if explicitly mentioned or contextually obvious (or null)
+       - suggestedProjectName: If a new project is mentioned (e.g., "for the launch campaign"), name it.
        - dueDate: Parse relative dates ("next Tuesday", "tomorrow", "in 3 days") to ISO format
        - confidence: 0-1 score of extraction confidence
     
@@ -587,6 +592,10 @@ export async function extractTasksFromVoice(transcription, context = {}) {
        - "Maria" matches "Maria Garcia"
        - "Juan" matches "Juan Rodriguez"
        - Use fuzzy matching on first names
+
+    6. For project matching:
+       - "in the website project" → match to project with name "Website Redesign"
+       - "create a new project called X" → projectId: null, suggestedProjectName: "X"
     
     Return ONLY valid JSON:
     {
@@ -596,6 +605,8 @@ export async function extractTasksFromVoice(transcription, context = {}) {
                 "description": "Context if any",
                 "assignedTo": "user_id_or_null",
                 "assignedToName": "Matched user name or null",
+                "projectId": "project_id_or_null",
+                "suggestedProjectName": "Name for new project or null",
                 "dueDate": "ISO date or null",
                 "dueDateParsed": "Human readable date",
                 "confidence": 0.9
