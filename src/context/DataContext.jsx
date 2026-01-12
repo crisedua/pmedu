@@ -39,11 +39,22 @@ export function DataProvider({ children }) {
 
   // Check for saved user session on mount (instant, no API calls)
   useEffect(() => {
-    const savedUser = localStorage.getItem('pm-app-user');
-    if (savedUser) {
-      setCurrentUser(JSON.parse(savedUser));
-    }
-    setLoading(false); // Login page can now show immediately
+    const initAuth = async () => {
+      const savedUser = localStorage.getItem('pm-app-user');
+      if (savedUser) {
+        // Wait for Supabase session to restore
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          setCurrentUser(JSON.parse(savedUser));
+        } else {
+          // Session expired, clear saved user
+          localStorage.removeItem('pm-app-user');
+        }
+      }
+      setLoading(false); // Login page can now show immediately
+    };
+    
+    initAuth();
   }, []);
 
   const initStarted = useRef(false);
