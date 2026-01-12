@@ -1020,7 +1020,11 @@ export function DataProvider({ children }) {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // Surface the error for debugging
+        console.error('Supabase insert error (pm_inbox):', error);
+        throw error;
+      }
 
       // Replace temp item with real data
       setInbox(prev => prev.map(item => item.id === tempId ? data : item));
@@ -1028,7 +1032,7 @@ export function DataProvider({ children }) {
     } catch (err) {
       console.error('Error creating inbox item:', err);
       // Mark as error in UI
-      setInbox(prev => prev.map(item => item.id === tempId ? { ...item, error: true } : item));
+      setInbox(prev => prev.map(item => item.id === tempId ? { ...item, error: true, errorMessage: err.message } : item));
       throw err;
     }
   };
