@@ -20,4 +20,21 @@ if (!supabaseUrl || !supabaseAnonKey) {
     }
 }
 
-export const supabase = createClient(supabaseUrl || 'https://missing-url.supabase.co', supabaseAnonKey || 'missing-key');
+// Safe Mode: Disable Realtime to prevent connection hangs
+const options = {
+    realtime: { enabled: false },
+    auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+    },
+    db: {
+        schema: 'public'
+    }
+};
+
+export const supabase = createClient(
+    supabaseUrl || 'https://missing-url.supabase.co',
+    supabaseAnonKey || 'missing-key',
+    options
+);

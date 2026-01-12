@@ -188,11 +188,28 @@ export default function Dashboard() {
         <div className="dashboard-stream">
             {/* Connectivity Status */}
             {connectionError && (
-                <div className="connection-banner danger" style={{ background: '#fef2f2', border: '1px solid #fee2e2', color: '#991b1b', padding: '12px', borderRadius: '8px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <AlertCircle size={18} />
-                    <div style={{ fontSize: '14px' }}>
-                        <strong>Database Unavailable:</strong> We couldn't connect to your data. Please check your internet connection or Supabase project status.
+                <div className="connection-banner danger" style={{ background: '#fef2f2', border: '1px solid #fee2e2', color: '#991b1b', padding: '12px', borderRadius: '8px', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <AlertCircle size={18} />
+                        <div style={{ fontSize: '14px' }}>
+                            <strong>Database Unavailable:</strong> Connection timed out. Your Supabase project might be paused.
+                        </div>
                     </div>
+                    <button
+                        onClick={() => window.location.reload()}
+                        style={{
+                            background: '#fff',
+                            border: '1px solid #991b1b',
+                            color: '#991b1b',
+                            padding: '4px 12px',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '12px',
+                            fontWeight: 'bold'
+                        }}
+                    >
+                        Retry
+                    </button>
                 </div>
             )}
 
