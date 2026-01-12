@@ -777,7 +777,7 @@ export function DataProvider({ children }) {
         .single();
 
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Inbox save timeout')), 10000)
+        setTimeout(() => reject(new Error('Inbox save timeout')), 30000)
       );
 
       const { data, error } = await Promise.race([insertPromise, timeoutPromise]);
