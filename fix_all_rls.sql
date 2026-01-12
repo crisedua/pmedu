@@ -1,13 +1,12 @@
 -- FIX ALL SYNC & PERMISSION ISSUES (Universal Fix)
 
--- 1. Enable Realtime for ALL tables
-ALTER PUBLICATION supabase_realtime ADD TABLE pm_projects;
-ALTER PUBLICATION supabase_realtime ADD TABLE pm_tasks;
-ALTER PUBLICATION supabase_realtime ADD TABLE pm_documents;
-ALTER PUBLICATION supabase_realtime ADD TABLE pm_files;
--- pm_inbox and pm_users should already be there from previous fix, but good to ensure
-ALTER PUBLICATION supabase_realtime ADD TABLE pm_inbox;
-ALTER PUBLICATION supabase_realtime ADD TABLE pm_users;
+-- 1. Enable Realtime (Commented out to prevent errors if already enabled)
+-- ALTER PUBLICATION supabase_realtime ADD TABLE pm_projects;
+-- ALTER PUBLICATION supabase_realtime ADD TABLE pm_tasks;
+-- ALTER PUBLICATION supabase_realtime ADD TABLE pm_documents;
+-- ALTER PUBLICATION supabase_realtime ADD TABLE pm_files;
+-- ALTER PUBLICATION supabase_realtime ADD TABLE pm_inbox;
+-- ALTER PUBLICATION supabase_realtime ADD TABLE pm_users;
 
 -- 2. Relax RLS for ALL tables
 -- Projects

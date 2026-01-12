@@ -127,18 +127,21 @@ export function DataProvider({ children }) {
       console.log('[Init] User authenticated, loading data...');
 
       // Helper to load with individual timeout and optional retry
-      const loadWithRetry = async (name, fn, { timeoutMs = 10000, retries = 2 } = {}) => {
+      const loadWithRetry = async (name, fn, { timeoutMs = 20000, retries = 2 } = {}) => {
         let attempt = 0;
         const start = Date.now();
 
         while (attempt < retries) {
           attempt++;
-          if (attempt > 1) console.log(`[Init] Retrying ${name} (Attempt ${attempt}/${retries})...`);
+          // Linear backoff for timeout: 20s, 30s...
+          const currentTimeout = timeoutMs + ((attempt - 1) * 10000);
+
+          if (attempt > 1) console.log(`[Init] Retrying ${name} (Attempt ${attempt}/${retries}) with ${currentTimeout}ms...`);
 
           try {
             // Create a promise that rejects on timeout
             const timeoutPromise = new Promise((_, reject) =>
-              setTimeout(() => reject(new Error('TIMEOUT')), timeoutMs)
+              setTimeout(() => reject(new Error('TIMEOUT')), currentTimeout)
             );
 
             // Race the function against the timeout
@@ -148,7 +151,7 @@ export function DataProvider({ children }) {
             return; // Success
           } catch (err) {
             const isTimeout = err.message === 'TIMEOUT';
-            const msg = isTimeout ? `timed out after ${timeoutMs}ms` : err.message;
+            const msg = isTimeout ? `timed out after ${currentTimeout}ms` : err.message;
             console.warn(`[Init] ⚠ ${name} failed attempt ${attempt}: ${msg}`);
 
             if (attempt >= retries) {
@@ -168,9 +171,9 @@ export function DataProvider({ children }) {
       // These are essential for the dashboard/project pages to work
       console.log('[Init] Phase 1: Loading critical data...');
       await Promise.all([
-        loadWithRetry('users', loadUsers, { timeoutMs: 10000, retries: 2 }),
-        loadWithRetry('projects', loadProjects, { timeoutMs: 10000, retries: 2 }),
-        loadWithRetry('tasks', loadTasks, { timeoutMs: 10000, retries: 2 }),
+        loadWithRetry('users', loadUsers, { timeoutMs: 20000, retries: 2 }),
+        loadWithRetry('projects', loadProjects, { timeoutMs: 20000, retries: 2 }),
+        loadWithRetry('tasks', loadTasks, { timeoutMs: 20000, retries: 2 }),
       ]);
 
       // Mark as loaded after critical data - app is now usable
