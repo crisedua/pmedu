@@ -271,26 +271,42 @@ export function DataProvider({ children }) {
     console.log('[DEBUG-A] loadUsers:entry - loadUsers started');
     // #endregion
     try {
-      // Skip session check on refresh - just use Supabase client directly
-      // (getSession hangs on refresh causing timeouts)
-      // #region agent log
-      console.log('[DEBUG-A] loadUsers:directQuery - Using direct Supabase query');
-      // #endregion
+      const url = import.meta.env.VITE_SUPABASE_URL;
+      const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-      const { data, error } = await supabase
-        .from('pm_users')
-        .select('*')
-        .order('created_at', { ascending: false });
+      if (!url || !key) {
+        throw new Error('Missing Supabase env vars');
+      }
 
-      // #region agent log
-      console.log('[DEBUG-A] loadUsers:result - Query completed:', {hasError:!!error,dataCount:data?.length||0});
-      // #endregion
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 12000);
 
-      if (error) throw error;
+      const fetchStart = Date.now();
+      console.log('[DEBUG-A] loadUsers:rawFetch - starting raw fetch with anon key');
+
+      const response = await fetch(`${url}/rest/v1/pm_users?select=*&order=created_at.desc`, {
+        headers: {
+          apikey: key,
+          Authorization: `Bearer ${key}`,
+        },
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeout);
+
+      console.log('[DEBUG-A] loadUsers:rawFetchDone', { status: response.status, ok: response.ok, durationMs: Date.now() - fetchStart });
+
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`Fetch users failed ${response.status}: ${text}`);
+      }
+
+      const data = await response.json();
+      console.log('[DEBUG-A] loadUsers:result - Query completed:', { hasError: false, dataCount: data?.length || 0 });
       setUsers(data || []);
     } catch (err) {
       // #region agent log
-      console.log('[DEBUG-A] loadUsers:error - loadUsers failed:', {error:err.message});
+      console.log('[DEBUG-A] loadUsers:error - loadUsers failed:', { error: err.message });
       // #endregion
       console.error('Error loading users:', err);
       throw err;
@@ -318,20 +334,41 @@ export function DataProvider({ children }) {
     console.log('[DEBUG-D] loadTasks:entry - loadTasks started');
     // #endregion
     try {
-      const { data, error } = await supabase
-        .from('pm_tasks')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const url = import.meta.env.VITE_SUPABASE_URL;
+      const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-      // #region agent log
-      console.log('[DEBUG-D] loadTasks:result - Query completed:', {hasError:!!error,errorMsg:error?.message||null,dataCount:data?.length||0,durationMs:Date.now()-taskStart});
-      // #endregion
+      if (!url || !key) {
+        throw new Error('Missing Supabase env vars');
+      }
 
-      if (error) throw error;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 12000);
+
+      console.log('[DEBUG-D] loadTasks:rawFetch - starting raw fetch with anon key');
+
+      const response = await fetch(`${url}/rest/v1/pm_tasks?select=*&order=created_at.desc`, {
+        headers: {
+          apikey: key,
+          Authorization: `Bearer ${key}`,
+        },
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeout);
+
+      console.log('[DEBUG-D] loadTasks:rawFetchDone', { status: response.status, ok: response.ok, durationMs: Date.now() - taskStart });
+
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`Fetch tasks failed ${response.status}: ${text}`);
+      }
+
+      const data = await response.json();
+      console.log('[DEBUG-D] loadTasks:result - Query completed:', { hasError: false, dataCount: data?.length || 0, durationMs: Date.now() - taskStart });
       setTasks(data || []);
     } catch (err) {
       // #region agent log
-      console.log('[DEBUG-D] loadTasks:error - loadTasks failed:', {error:err.message});
+      console.log('[DEBUG-D] loadTasks:error - loadTasks failed:', { error: err.message });
       // #endregion
       console.error('Error loading tasks:', err);
       setTasks([]);
