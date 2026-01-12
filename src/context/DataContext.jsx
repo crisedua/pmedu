@@ -43,11 +43,11 @@ export function DataProvider({ children }) {
       // Reset data loading state on mount/refresh
       setDataLoaded(false);
       initStarted.current = false;
-      
+
       const savedUser = localStorage.getItem('pm-app-user');
       if (savedUser) {
         setCurrentUser(JSON.parse(savedUser));
-        
+
         // Try to restore Supabase session in background (for SSO users)
         // but don't block on it
         supabase.auth.getSession().catch(err => {
@@ -56,7 +56,7 @@ export function DataProvider({ children }) {
       }
       setLoading(false); // Login page can now show immediately
     };
-    
+
     initAuth();
   }, []);
 
@@ -72,7 +72,7 @@ export function DataProvider({ children }) {
       willLoadData: !!(currentUser && !dataLoaded && !initStarted.current)
     });
     // #endregion
-    
+
     if (currentUser && !dataLoaded && !initStarted.current) {
       initStarted.current = true;
       console.log('[DEBUG-EFFECT] Starting data load timer');
@@ -88,7 +88,7 @@ export function DataProvider({ children }) {
 
       const timer = setTimeout(() => {
         console.log('[DEBUG-EFFECT] Timer fired, loading data now');
-        
+
         // Don't wait for session - just load data directly
         // (session check was hanging on refresh)
         console.log('[DEBUG-EFFECT] About to call loadAllData()');
@@ -182,7 +182,7 @@ export function DataProvider({ children }) {
         const start = Date.now();
 
         // #region agent log
-        console.log(`[DEBUG-E] loadWithRetry:start - Starting ${name}:`, {name,timeoutMs,retries});
+        console.log(`[DEBUG-E] loadWithRetry:start - Starting ${name}:`, { name, timeoutMs, retries });
         // #endregion
 
         while (attempt < retries) {
@@ -203,7 +203,7 @@ export function DataProvider({ children }) {
 
             console.log(`[Init] ✓ ${name} loaded in ${Date.now() - start}ms`);
             // #region agent log
-            console.log(`[DEBUG-E] loadWithRetry:success - SUCCESS ${name}:`, {name,attempt,durationMs:Date.now()-start});
+            console.log(`[DEBUG-E] loadWithRetry:success - SUCCESS ${name}:`, { name, attempt, durationMs: Date.now() - start });
             // #endregion
             return; // Success
           } catch (err) {
@@ -212,7 +212,7 @@ export function DataProvider({ children }) {
             console.warn(`[Init] ⚠ ${name} failed attempt ${attempt}:`, err);
 
             // #region agent log
-            console.log(`[DEBUG-E] loadWithRetry:failed - FAILED ${name} attempt ${attempt}:`, {name,attempt,isTimeout,errorMsg:err.message,durationMs:Date.now()-start});
+            console.log(`[DEBUG-E] loadWithRetry:failed - FAILED ${name} attempt ${attempt}:`, { name, attempt, isTimeout, errorMsg: err.message, durationMs: Date.now() - start });
             // #endregion
 
             if (attempt >= retries) {
@@ -387,20 +387,43 @@ export function DataProvider({ children }) {
     console.log('[DEBUG-D] loadDocuments:entry - loadDocuments started');
     // #endregion
     try {
-      const { data, error } = await supabase
-        .from('pm_documents')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const url = import.meta.env.VITE_SUPABASE_URL;
+      const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+      if (!url || !key) {
+        throw new Error('Missing Supabase env vars');
+      }
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 12000);
+
+      console.log('[DEBUG-D] loadDocuments:rawFetch - starting raw fetch with anon key');
+
+      const response = await fetch(`${url}/rest/v1/pm_documents?select=*&order=created_at.desc`, {
+        headers: {
+          apikey: key,
+          Authorization: `Bearer ${key}`,
+        },
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeout);
+
+      console.log('[DEBUG-D] loadDocuments:rawFetchDone', { status: response.status, ok: response.ok, durationMs: Date.now() - docStart });
+
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`Fetch documents failed ${response.status}: ${text}`);
+      }
+
+      const data = await response.json();
       // #region agent log
-      console.log('[DEBUG-D] loadDocuments:result - Query completed:', {hasError:!!error,errorMsg:error?.message||null,dataCount:data?.length||0,durationMs:Date.now()-docStart});
+      console.log('[DEBUG-D] loadDocuments:result - Query completed:', { hasError: false, dataCount: data?.length || 0, durationMs: Date.now() - docStart });
       // #endregion
-
-      if (error) throw error;
       setDocuments(data || []);
     } catch (err) {
       // #region agent log
-      console.log('[DEBUG-D] loadDocuments:error - loadDocuments failed:', {error:err.message});
+      console.log('[DEBUG-D] loadDocuments:error - loadDocuments failed:', { error: err.message });
       // #endregion
       console.error('Error loading documents (diagnostic):', {
         message: err.message,
