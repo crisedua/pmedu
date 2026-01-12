@@ -125,9 +125,9 @@ export function DataProvider({ children }) {
     try {
       console.log('[Init] User authenticated, loading data...');
 
-      // Create a promise that rejects after 30 seconds to prevent infinite loading
+      // Create a promise that rejects after 60 seconds to prevent infinite loading
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Data loading timed out')), 30000);
+        setTimeout(() => reject(new Error('Data loading timed out')), 60000);
       });
 
       // Helper to log each load
