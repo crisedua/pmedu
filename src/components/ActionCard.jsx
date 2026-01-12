@@ -7,19 +7,22 @@ import {
     Trash2,
     Edit3,
     User,
+    UserPlus,
     ArrowRight,
     Sparkles,
     MessageSquare,
     ShoppingCart,
     BookOpen,
-    Zap
+    Zap,
+    ChevronRight
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useData } from '../context/DataContext';
 
-export default function ActionCard({ item, type, onAction, onEdit, onDelete, onMarkProcessed, onClick }) {
-    const { getUser, getProject } = useData();
+export default function ActionCard({ item, type, onAction, onEdit, onDelete, onMarkProcessed, onClick, onAssign }) {
+    const { getUser, getProject, users, updateTask } = useData();
     const [menuOpen, setMenuOpen] = useState(false);
+    const [showAssignMenu, setShowAssignMenu] = useState(false);
 
     // Determine visual style based on type
     const isInbox = type === 'inbox';
@@ -184,7 +187,8 @@ export default function ActionCard({ item, type, onAction, onEdit, onDelete, onM
                             zIndex: 11,
                             minWidth: '120px'
                         }}>
-                            {onEdit && (
+                            {/* Edit option for action/waiting types */}
+                            {(isAction || isWaiting) && onEdit && (
                                 <button className="dropdown-item" onClick={(e) => {
                                     e.stopPropagation();
                                     setMenuOpen(false);
@@ -193,7 +197,93 @@ export default function ActionCard({ item, type, onAction, onEdit, onDelete, onM
                                     <Edit3 size={14} /> Edit
                                 </button>
                             )}
-                            {onDelete && (
+
+                            {/* Assign To submenu for action/waiting types */}
+                            {(isAction || isWaiting) && users && users.length > 0 && (
+                                <div className="dropdown-submenu" style={{ position: 'relative' }}>
+                                    <button
+                                        className="dropdown-item"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setShowAssignMenu(!showAssignMenu);
+                                        }}
+                                        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                                    >
+                                        <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <UserPlus size={14} /> Assign To
+                                        </span>
+                                        <ChevronRight size={12} />
+                                    </button>
+                                    {showAssignMenu && (
+                                        <div className="dropdown-menu submenu" style={{
+                                            position: 'absolute',
+                                            left: '100%',
+                                            top: 0,
+                                            marginLeft: '4px',
+                                            minWidth: '140px',
+                                            maxHeight: '200px',
+                                            overflowY: 'auto',
+                                            zIndex: 12
+                                        }}>
+                                            <button
+                                                className="dropdown-item"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setMenuOpen(false);
+                                                    setShowAssignMenu(false);
+                                                    updateTask(item.id, { assigned_to: null });
+                                                }}
+                                                style={{ color: 'var(--text-muted)' }}
+                                            >
+                                                <User size={14} /> Unassigned
+                                            </button>
+                                            {users.map(user => (
+                                                <button
+                                                    key={user.id}
+                                                    className={`dropdown-item ${item.assigned_to === user.id ? 'active' : ''}`}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setMenuOpen(false);
+                                                        setShowAssignMenu(false);
+                                                        updateTask(item.id, { assigned_to: user.id });
+                                                    }}
+                                                >
+                                                    <div className="avatar avatar-xs" style={{ width: '18px', height: '18px', fontSize: '8px' }}>
+                                                        {user.avatar || user.name[0]}
+                                                    </div>
+                                                    {user.name.split(' ')[0]}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Delete option for action/waiting types */}
+                            {(isAction || isWaiting) && onDelete && (
+                                <>
+                                    <div className="dropdown-divider" style={{ borderTop: '1px solid var(--border-light)', margin: '4px 0' }}></div>
+                                    <button className="dropdown-item danger" onClick={(e) => {
+                                        e.stopPropagation();
+                                        setMenuOpen(false);
+                                        onDelete(item);
+                                    }}>
+                                        <Trash2 size={14} /> Delete
+                                    </button>
+                                </>
+                            )}
+
+                            {/* Original edit/delete for non-recognized types (fallback) */}
+                            {!isAction && !isWaiting && !isInbox && onEdit && (
+                                <button className="dropdown-item" onClick={(e) => {
+                                    e.stopPropagation();
+                                    setMenuOpen(false);
+                                    onEdit(item);
+                                }}>
+                                    <Edit3 size={14} /> Edit
+                                </button>
+                            )}
+                            {!isAction && !isWaiting && !isInbox && onDelete && (
                                 <button className="dropdown-item danger" onClick={(e) => {
                                     e.stopPropagation();
                                     setMenuOpen(false);
@@ -220,28 +310,28 @@ export default function ActionCard({ item, type, onAction, onEdit, onDelete, onM
                                     </button>
                                     <div className="dropdown-divider" style={{ borderTop: '1px solid var(--border-light)', margin: '4px 0' }}></div>
                                     {onEdit && (
-                                      <button className="dropdown-item" onClick={(e) => {
-                                          e.stopPropagation();
-                                          setMenuOpen(false);
-                                          onEdit(item);
-                                      }}>
-                                          <Edit3 size={14} /> Edit note
-                                      </button>
+                                        <button className="dropdown-item" onClick={(e) => {
+                                            e.stopPropagation();
+                                            setMenuOpen(false);
+                                            onEdit(item);
+                                        }}>
+                                            <Edit3 size={14} /> Edit note
+                                        </button>
                                     )}
                                     {onDelete && (
-                                      <button className="dropdown-item danger" onClick={(e) => {
-                                          e.stopPropagation();
-                                          setMenuOpen(false);
-                                          onDelete(item);
-                                      }}>
-                                          <Trash2 size={14} /> Delete
-                                      </button>
+                                        <button className="dropdown-item danger" onClick={(e) => {
+                                            e.stopPropagation();
+                                            setMenuOpen(false);
+                                            onDelete(item);
+                                        }}>
+                                            <Trash2 size={14} /> Delete
+                                        </button>
                                     )}
                                     <div className="dropdown-divider" style={{ borderTop: '1px solid var(--border-light)', margin: '4px 0' }}></div>
                                     <button className="dropdown-item" onClick={(e) => {
                                         e.stopPropagation();
                                         setMenuOpen(false);
-       									if (onMarkProcessed) onMarkProcessed(item);
+                                        if (onMarkProcessed) onMarkProcessed(item);
                                     }}>
                                         <CheckCircle2 size={14} /> Mark Processed
                                     </button>
@@ -285,6 +375,18 @@ export default function ActionCard({ item, type, onAction, onEdit, onDelete, onM
                 }
                 .btn-icon-ghost:hover {
                     opacity: 1;
+                }
+                .dropdown-item.active {
+                    background: var(--color-primary-50);
+                    color: var(--color-primary-700);
+                    font-weight: var(--font-semibold);
+                }
+                .dropdown-submenu .dropdown-menu.submenu {
+                    background: var(--bg-primary);
+                    border: 1px solid var(--border-light);
+                    border-radius: var(--radius-md);
+                    box-shadow: var(--shadow-lg);
+                    padding: 4px 0;
                 }
             `}</style>
         </div>
