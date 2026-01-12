@@ -187,59 +187,71 @@ export default function Dashboard() {
         <div className="dashboard-stream">
             {/* Connectivity Status */}
             {connectionError && (
-                <div className="connection-banner danger" style={{ background: '#fef2f2', border: '1px solid #fee2e2', color: '#991b1b', padding: '12px', borderRadius: '8px', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <AlertCircle size={18} />
-                        <div style={{ fontSize: '14px' }}>
-                            <strong>Database Unavailable:</strong> Connection timed out. Your Supabase project might be paused.
+                <div style={{ maxWidth: '800px', margin: '0 auto 20px auto' }}>
+                    <div className="connection-banner danger" style={{ background: '#fef2f2', border: '1px solid #fee2e2', color: '#991b1b', padding: '12px', borderRadius: '8px', marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <AlertCircle size={18} />
+                            <div style={{ fontSize: '14px' }}>
+                                <strong>Database Unavailable:</strong> Connection timed out (&gt;35s).
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                            <button
+                                onClick={() => window.location.reload()}
+                                style={{
+                                    background: '#fff',
+                                    border: '1px solid #991b1b',
+                                    color: '#991b1b',
+                                    padding: '4px 12px',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    fontSize: '12px',
+                                    fontWeight: 'bold'
+                                }}
+                            >
+                                Retry
+                            </button>
+                            <button
+                                onClick={() => window.location.href = "https://app.supabase.com"}
+                                style={{
+                                    background: '#991b1b',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '4px 12px',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    fontSize: '12px',
+                                    fontWeight: 'bold'
+                                }}
+                            >
+                                Check Status
+                            </button>
                         </div>
                     </div>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                        <button
-                            onClick={() => window.location.reload()}
-                            style={{
-                                background: '#fff',
-                                border: '1px solid #991b1b',
-                                color: '#991b1b',
-                                padding: '4px 12px',
-                                borderRadius: '4px',
-                                cursor: 'pointer',
-                                fontSize: '12px',
-                                fontWeight: 'bold'
-                            }}
-                        >
-                            Retry
-                        </button>
-                        <button
-                            onClick={async () => {
-                                await supabase.auth.signOut();
-                                window.location.reload();
-                            }}
-                            style={{
-                                background: 'transparent',
-                                border: '1px solid #991b1b',
-                                color: '#991b1b',
-                                padding: '4px 12px',
-                                borderRadius: '4px',
-                                cursor: 'pointer',
-                                fontSize: '12px',
-                                opacity: 0.7
-                            }}
-                        >
-                            Sign Out
-                        </button>
+
+                    <div style={{ background: '#fff', border: '1px solid #fee2e2', padding: '16px', borderRadius: '8px', animation: 'fadeIn 0.3s ease' }}>
+                        <h3 style={{ color: '#991b1b', marginTop: 0, display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px' }}>
+                            <AlertCircle size={16} /> Diagnostic Steps
+                        </h3>
+                        <ul style={{ fontSize: '13px', color: '#7f1d1d', paddingLeft: '20px', margin: '10px 0 0 0' }}>
+                            <li style={{ marginBottom: '4px' }}><strong>Project Paused?</strong> Log in to Supabase and check if your project is "Paused" (Free tier).</li>
+                            <li style={{ marginBottom: '4px' }}><strong>RLS Policy Block?</strong> You MUST run the updated <code>fix_all_rls.sql</code> script in the SQL Editor.</li>
+                            <li><strong>Network?</strong> Check your internet connection or firewall rules.</li>
+                        </ul>
                     </div>
                 </div>
             )}
 
-            {(isSlowConnection || isProcessing) && !connectionError && (
-                <div className="connection-banner" style={{ background: isProcessing ? 'var(--bg-primary)' : '#fff7ed', border: isProcessing ? '1px solid var(--color-primary-200)' : '1px solid #ffedd5' }}>
-                    <Loader2 size={16} className="animate-spin" style={{ color: isProcessing ? 'var(--color-primary-600)' : '#9a3412' }} />
-                    <span style={{ color: isProcessing ? 'var(--text-primary)' : '#9a3412' }}>
-                        {isProcessing ? "AI is analyzing your action..." : "Syncing your action stream..."}
-                    </span>
-                </div>
-            )}
+            {
+                (isSlowConnection || isProcessing) && !connectionError && (
+                    <div className="connection-banner" style={{ background: isProcessing ? 'var(--bg-primary)' : '#fff7ed', border: isProcessing ? '1px solid var(--color-primary-200)' : '1px solid #ffedd5' }}>
+                        <Loader2 size={16} className="animate-spin" style={{ color: isProcessing ? 'var(--color-primary-600)' : '#9a3412' }} />
+                        <span style={{ color: isProcessing ? 'var(--text-primary)' : '#9a3412' }}>
+                            {isProcessing ? "AI is analyzing your action..." : "Syncing your action stream..."}
+                        </span>
+                    </div>
+                )
+            }
 
             {/* Header */}
             <div className="stream-header mb-8">
@@ -372,29 +384,35 @@ export default function Dashboard() {
 
 
             {/* Edit Task Modal */}
-            {editingTask && (
-                <EditTaskModal
-                    task={editingTask}
-                    onClose={() => setEditingTask(null)}
-                />
-            )}
+            {
+                editingTask && (
+                    <EditTaskModal
+                        task={editingTask}
+                        onClose={() => setEditingTask(null)}
+                    />
+                )
+            }
 
             {/* Edit Inbox Item Modal */}
-            {editingInboxItem && (
-                <EditInboxItemModal
-                    item={editingInboxItem}
-                    onClose={() => setEditingInboxItem(null)}
-                />
-            )}
+            {
+                editingInboxItem && (
+                    <EditInboxItemModal
+                        item={editingInboxItem}
+                        onClose={() => setEditingInboxItem(null)}
+                    />
+                )
+            }
 
             {/* Process Inbox Item Modal */}
-            {processInboxItem && (
-                <CreateTaskModal
-                    initialData={processInboxItem}
-                    onClose={() => setProcessInboxItem(null)}
-                    onSuccess={handleProcessComplete}
-                />
-            )}
+            {
+                processInboxItem && (
+                    <CreateTaskModal
+                        initialData={processInboxItem}
+                        onClose={() => setProcessInboxItem(null)}
+                        onSuccess={handleProcessComplete}
+                    />
+                )
+            }
 
             {/* AI Sidebar */}
             <AIAssistantSidebar
@@ -495,6 +513,6 @@ export default function Dashboard() {
                     .md\\:inline { display: inline; }
                 }
             `}</style>
-        </div>
+        </div >
     );
 }
