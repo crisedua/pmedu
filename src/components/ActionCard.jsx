@@ -15,7 +15,8 @@ import {
     ShoppingCart,
     BookOpen,
     Zap,
-    ChevronRight
+    ChevronRight,
+    Archive
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useData } from '../context/DataContext';
@@ -31,12 +32,10 @@ export default function ActionCard({ item, type, onAction, onEdit, onDelete, onM
     useEffect(() => {
         if (menuOpen && menuButtonRef.current) {
             const rect = menuButtonRef.current.getBoundingClientRect();
-            const newPosition = {
+            setMenuPosition({
                 top: rect.bottom + 4,
                 right: window.innerWidth - rect.right
-            };
-            console.log('Setting menu position:', newPosition, 'Button rect:', rect);
-            setMenuPosition(newPosition);
+            });
         }
     }, [menuOpen]);
 
@@ -185,7 +184,6 @@ export default function ActionCard({ item, type, onAction, onEdit, onDelete, onM
                     className="btn btn-ghost btn-icon btn-sm"
                     onClick={(e) => {
                         e.stopPropagation();
-                        console.log('Menu button clicked! Current menuOpen:', menuOpen, 'Setting to:', !menuOpen);
                         setMenuOpen(!menuOpen);
                     }}
                     style={{ opacity: 0.7 }}
@@ -193,7 +191,6 @@ export default function ActionCard({ item, type, onAction, onEdit, onDelete, onM
                     <MoreVertical size={14} />
                 </button>
 
-                {menuOpen && console.log('Menu is OPEN - rendering dropdown via portal')}
                 {menuOpen && createPortal(
                     <>
                         <div
@@ -205,12 +202,12 @@ export default function ActionCard({ item, type, onAction, onEdit, onDelete, onM
                             top: menuPosition.top,
                             right: menuPosition.right,
                             zIndex: 9999,
-                            minWidth: '200px',
-                            background: '#ff0000',
-                            border: '3px solid #000000',
+                            minWidth: '180px',
+                            background: '#ffffff',
+                            border: '1px solid #d4d4d8',
                             borderRadius: '8px',
-                            boxShadow: '0 10px 25px -3px rgba(0, 0, 0, 0.5)',
-                            padding: '20px'
+                            boxShadow: '0 10px 25px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -4px rgba(0, 0, 0, 0.15)',
+                            padding: '4px 0'
                         }}>
                             {/* Edit option for action/waiting types */}
                             {(isAction || isWaiting) && onEdit && (
@@ -358,7 +355,7 @@ export default function ActionCard({ item, type, onAction, onEdit, onDelete, onM
                                         setMenuOpen(false);
                                         if (onMarkProcessed) onMarkProcessed(item);
                                     }}>
-                                        <CheckCircle2 size={14} /> Mark Processed
+                                        <Archive size={14} /> Archive
                                     </button>
                                     <div className="dropdown-divider" style={{ borderTop: '1px solid var(--border-light)', margin: '4px 0' }}></div>
                                     <button className="dropdown-item" onClick={(e) => {
