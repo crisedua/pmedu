@@ -42,14 +42,13 @@ export function DataProvider({ children }) {
     const initAuth = async () => {
       const savedUser = localStorage.getItem('pm-app-user');
       if (savedUser) {
-        // Wait for Supabase session to restore
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          setCurrentUser(JSON.parse(savedUser));
-        } else {
-          // Session expired, clear saved user
-          localStorage.removeItem('pm-app-user');
-        }
+        setCurrentUser(JSON.parse(savedUser));
+        
+        // Try to restore Supabase session in background (for SSO users)
+        // but don't block on it
+        supabase.auth.getSession().catch(err => {
+          console.warn('Failed to restore Supabase session:', err);
+        });
       }
       setLoading(false); // Login page can now show immediately
     };
