@@ -93,6 +93,14 @@ export default function Dashboard() {
         }
     };
 
+    const handleInboxMarkProcessed = async (item) => {
+        try {
+            await updateInboxItem(item.id, { processed: true });
+        } catch (err) {
+            console.error('Failed to mark inbox item processed:', err);
+        }
+    };
+
     const handleProcessComplete = async (newTask) => {
         if (processInboxItem) {
             await updateInboxItem(processInboxItem.id, { processed: true });
@@ -405,6 +413,7 @@ export default function Dashboard() {
                                         type="inbox"
                                         onAction={handleInboxProcess}
                                         onDelete={(i) => deleteInboxItem(i.id)}
+                                        onMarkProcessed={handleInboxMarkProcessed}
                                         onEdit={(item, mode) => mode === 'auto' ? handleEdit(item, 'auto') : setEditingInboxItem(item)}
                                     />
                                 </div>

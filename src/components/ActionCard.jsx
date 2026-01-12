@@ -17,7 +17,7 @@ import {
 import { format } from 'date-fns';
 import { useData } from '../context/DataContext';
 
-export default function ActionCard({ item, type, onAction, onEdit, onDelete, onClick }) {
+export default function ActionCard({ item, type, onAction, onEdit, onDelete, onMarkProcessed, onClick }) {
     const { getUser, getProject } = useData();
     const [menuOpen, setMenuOpen] = useState(false);
 
@@ -217,6 +217,14 @@ export default function ActionCard({ item, type, onAction, onEdit, onDelete, onC
                                         if (onEdit) onEdit(item, 'auto'); // Use onEdit callback to trigger auto-process
                                     }} style={{ color: 'var(--color-primary-600)' }}>
                                         <Sparkles size={14} /> Smart Process
+                                    </button>
+                                    <div className="dropdown-divider" style={{ borderTop: '1px solid var(--border-light)', margin: '4px 0' }}></div>
+                                    <button className="dropdown-item" onClick={(e) => {
+                                        e.stopPropagation();
+                                        setMenuOpen(false);
+       									if (onMarkProcessed) onMarkProcessed(item);
+                                    }}>
+                                        <CheckCircle2 size={14} /> Mark Processed
                                     </button>
                                     <div className="dropdown-divider" style={{ borderTop: '1px solid var(--border-light)', margin: '4px 0' }}></div>
                                     <button className="dropdown-item" onClick={(e) => {
