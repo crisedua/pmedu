@@ -219,6 +219,25 @@ export default function ActionCard({ item, type, onAction, onEdit, onDelete, onM
                                         <Sparkles size={14} /> Smart Process
                                     </button>
                                     <div className="dropdown-divider" style={{ borderTop: '1px solid var(--border-light)', margin: '4px 0' }}></div>
+                                    {onEdit && (
+                                      <button className="dropdown-item" onClick={(e) => {
+                                          e.stopPropagation();
+                                          setMenuOpen(false);
+                                          onEdit(item);
+                                      }}>
+                                          <Edit3 size={14} /> Edit note
+                                      </button>
+                                    )}
+                                    {onDelete && (
+                                      <button className="dropdown-item danger" onClick={(e) => {
+                                          e.stopPropagation();
+                                          setMenuOpen(false);
+                                          onDelete(item);
+                                      }}>
+                                          <Trash2 size={14} /> Delete
+                                      </button>
+                                    )}
+                                    <div className="dropdown-divider" style={{ borderTop: '1px solid var(--border-light)', margin: '4px 0' }}></div>
                                     <button className="dropdown-item" onClick={(e) => {
                                         e.stopPropagation();
                                         setMenuOpen(false);
