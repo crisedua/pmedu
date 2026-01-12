@@ -110,11 +110,29 @@ export default function GlobalVoiceCapture() {
 
             setTranscription(result.text);
 
-            // 2. CLASSIFY CONTENT (NEW!)
+            // 2. CLASSIFY CONTENT with timeout protection
             setProcessingStage('analyzing');
-            const classification = await classifyVoiceContent(result.text, { language });
+            let classification;
 
-            console.log('[Voice Capture] Classification:', classification);
+            try {
+                // Add 10-second timeout to classification
+                const classificationPromise = classifyVoiceContent(result.text, { language });
+                const timeoutPromise = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('Classification timeout')), 10000)
+                );
+
+                classification = await Promise.race([classificationPromise, timeoutPromise]);
+                console.log('[Voice Capture] Classification:', classification);
+            } catch (classErr) {
+                console.warn('[Voice Capture] Classification failed, using fallback:', classErr);
+                // Fallback: treat as unclear content → save to inbox
+                classification = {
+                    contentType: 'note',
+                    confidence: 0.5,
+                    suggestedAction: 'save_to_inbox',
+                    summary: result.text.substring(0, 100)
+                };
+            }
 
             // 3. Route based on classification
             if (classification.suggestedAction === 'extract_tasks') {
