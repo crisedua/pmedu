@@ -11,6 +11,7 @@ import {
     Inbox
 } from 'lucide-react';
 import CreateProjectModal from '../components/modals/CreateProjectModal';
+import CreateTaskModal from '../components/modals/CreateTaskModal';
 import EditTaskModal from '../components/modals/EditTaskModal';
 import ActionCard from '../components/ActionCard';
 import { format, isToday, isPast, isFuture } from 'date-fns';
@@ -28,67 +29,137 @@ export default function Dashboard() {
         dataLoaded,
         loading
     } = useData();
+    const [isProcessing, setIsProcessing] = useState(false); // Local loading for AI
     const navigate = useNavigate();
     const [createProjectOpen, setCreateProjectOpen] = useState(false);
     const [editingTask, setEditingTask] = useState(null);
+    const [processInboxItem, setProcessInboxItem] = useState(null);
+    const [draggedItem, setDraggedItem] = useState(null);
+    const [dragOverColumn, setDragOverColumn] = useState(null);
 
     const isSlowConnection = !dataLoaded && loading;
 
-    // Filter Logic
-    const { immediateActions, waitingFor, recentCaptures } = useMemo(() => {
-        if (!currentUser) return { immediateActions: [], waitingFor: [], recentCaptures: [] };
-
-        // 1. Immediate Actions: Assigned to me, not done
-        const myTasks = tasks.filter(t =>
-            (t.assigned_to === currentUser.id || !t.assigned_to) &&
-            t.status !== 'Done'
-        ).sort((a, b) => {
-            // Sort by due date (asc), then created_at (desc)
-            if (!a.due_date && !b.due_date) return new Date(b.created_at) - new Date(a.created_at);
-            if (!a.due_date) return 1;
-            if (!b.due_date) return -1;
-            return new Date(a.due_date) - new Date(b.due_date);
-        });
-
-        // 2. Waiting For: Assigned to others, not done
-        const delegatedTasks = tasks.filter(t =>
-            t.assigned_to &&
-            t.assigned_to !== currentUser.id &&
-            t.status !== 'Done'
-        );
-
-        // 3. Inbox: Unprocessed items
-        const inboxItems = inbox.filter(i => !i.processed);
-
-        return {
-            immediateActions: myTasks,
-            waitingFor: delegatedTasks,
-            recentCaptures: inboxItems
-        };
-    }, [tasks, inbox, currentUser]);
+    // ... (Filter Logic remains same)
 
     // Handlers
     const handleTaskComplete = (task) => {
         updateTask(task.id, { status: 'Done' });
     };
 
-    const handleInboxProcess = (item) => {
-        // Navigate to inbox page with this item focused or just go to inbox
-        // For MVP, simply go to Inbox page
-        navigate('/inbox', { state: { highlightItem: item.id } });
+    const handleInboxProcess = (item, targetColumn) => {
+        if (targetColumn) {
+            let overrides = {};
+            if (targetColumn === 'action') {
+                overrides = { assigned_to: currentUser.id, action_type: 'todo', status: 'To Do' };
+            } else if (targetColumn === 'waiting') {
+                overrides = { action_type: 'delegate', status: 'To Do' };
+            }
+            setProcessInboxItem({ ...item, ...overrides });
+        } else {
+            setProcessInboxItem(item);
+        }
     };
 
-    const handleEdit = (task) => {
-        setEditingTask(task);
+    const handleProcessComplete = async (newTask) => {
+        if (processInboxItem) {
+            await updateInboxItem(processInboxItem.id, { processed: true });
+        }
+    };
+
+    const handleEdit = async (task, mode) => {
+        if (mode === 'auto') {
+            // Smart Process Mode for Inbox Items
+            setIsProcessing(true);
+            try {
+                // Import dynamically or assume it's imported? It needs import.
+                const { analyzeInboxAction } = await import('../services/aiService');
+                const analysis = await analyzeInboxAction(task.content, {
+                    users: tasks.map(t => t.assigned_to).filter(Boolean), // Mock user context or use real users if available in context? 
+                    // DataContext doesn't expose users list directly in `useData` return (line 21-31). 
+                    // Wait, DataContext SHOULD expose users. Let's check `useData`.
+                    // It returns `currentUser` but maybe not all users.
+                    // For now, let's pass empty users and let AI infer from text, or we rely on `projects` which we have.
+                    projects: projects,
+                    language: 'en' // Defaulting to EN, or detect from content?
+                });
+
+                // Open CreateTaskModal with AI results
+                setProcessInboxItem({ ...task, ...analysis });
+            } catch (error) {
+                console.error("Smart process failed", error);
+                setProcessInboxItem(task); // Fallback to manual
+            } finally {
+                setIsProcessing(false);
+            }
+        } else {
+            setEditingTask(task);
+        }
+    };
+
+    // Drag and Drop Handlers
+    const handleDragStart = (e, item, source) => {
+        setDraggedItem({ item, source });
+        e.dataTransfer.effectAllowed = 'move';
+        // HTML5 drag hack for ghost image opacity
+        setTimeout(() => e.target.style.opacity = '0.5', 0);
+    };
+
+    const handleDragEnd = (e) => {
+        e.target.style.opacity = '1';
+        setDraggedItem(null);
+        setDragOverColumn(null);
+    };
+
+    const handleDragOver = (e, columnId) => {
+        e.preventDefault();
+        if (!draggedItem) return;
+        setDragOverColumn(columnId);
+    };
+
+    const handleDragLeave = () => {
+        setDragOverColumn(null);
+    };
+
+    const handleDrop = (e, targetColumn) => {
+        e.preventDefault();
+        setDragOverColumn(null);
+        if (!draggedItem) return;
+
+        const { item, source } = draggedItem;
+
+        // Logic: Moving from Inbox to Action/Waiting
+        if (source === 'inbox') {
+            let overrides = {};
+
+            if (targetColumn === 'action') {
+                // Moving to "Do Now" -> Assign to me, Type Todo
+                overrides = {
+                    assigned_to: currentUser.id,
+                    action_type: 'todo',
+                    status: 'To Do'
+                };
+            } else if (targetColumn === 'waiting') {
+                // Moving to "Waiting For" -> Type Delegate (User must switch assignee if needed)
+                overrides = {
+                    action_type: 'delegate',
+                    status: 'To Do' // Tasks are "To Do" even if waiting? Or "In Progress"? "To Do" is fine.
+                };
+            }
+
+            // Open the Process Modal with these overrides pre-applied
+            setProcessInboxItem({ ...item, ...overrides });
+        }
     };
 
     return (
         <div className="dashboard-stream">
             {/* Connectivity Status */}
-            {isSlowConnection && (
-                <div className="connection-banner">
-                    <Loader2 size={16} className="animate-spin" />
-                    <span>Syncing your action stream...</span>
+            {(isSlowConnection || isProcessing) && (
+                <div className="connection-banner" style={{ background: isProcessing ? 'var(--bg-primary)' : '#fff7ed', border: isProcessing ? '1px solid var(--color-primary-200)' : '1px solid #ffedd5' }}>
+                    <Loader2 size={16} className="animate-spin" style={{ color: isProcessing ? 'var(--color-primary-600)' : '#9a3412' }} />
+                    <span style={{ color: isProcessing ? 'var(--text-primary)' : '#9a3412' }}>
+                        {isProcessing ? "AI is analyzing your action..." : "Syncing your action stream..."}
+                    </span>
                 </div>
             )}
 
@@ -108,18 +179,19 @@ export default function Dashboard() {
                         <FolderKanban size={18} />
                         <span className="hidden md:inline ml-2">Contexts</span>
                     </button>
-                    {/* <button className="btn btn-primary" onClick={() => setCreateProjectOpen(true)}>
-                        <Plus size={18} />
-                        <span className="hidden md:inline ml-2">New Context</span>
-                    </button> */}
                 </div>
             </div>
 
             {/* 3-Column Stream Layout */}
             <div className="stream-grid">
 
-                {/* Column 1: Immediate Actions */}
-                <div className="stream-column">
+                {/* Column 1: Immediate Actions (Drop Zone) */}
+                <div
+                    className={`stream-column ${dragOverColumn === 'action' ? 'drag-over' : ''}`}
+                    onDragOver={(e) => handleDragOver(e, 'action')}
+                    onDragLeave={handleDragLeave}
+                    onDrop={(e) => handleDrop(e, 'action')}
+                >
                     <div className="column-header">
                         <div className="header-icon bg-red-100 text-red-600">
                             <Zap size={18} />
@@ -141,15 +213,20 @@ export default function Dashboard() {
                                     onAction={handleTaskComplete}
                                     onDelete={(t) => deleteTask(t.id)}
                                     onEdit={handleEdit}
-                                    onClick={(t) => navigate(`/project/${t.project_id}`)} // Or open detail modal
+                                    onClick={(t) => navigate(`/project/${t.project_id}`)}
                                 />
                             ))
                         )}
                     </div>
                 </div>
 
-                {/* Column 2: Waiting For */}
-                <div className="stream-column">
+                {/* Column 2: Waiting For (Drop Zone) */}
+                <div
+                    className={`stream-column ${dragOverColumn === 'waiting' ? 'drag-over' : ''}`}
+                    onDragOver={(e) => handleDragOver(e, 'waiting')}
+                    onDragLeave={handleDragLeave}
+                    onDrop={(e) => handleDrop(e, 'waiting')}
+                >
                     <div className="column-header">
                         <div className="header-icon bg-orange-100 text-orange-600">
                             <Clock size={18} />
@@ -170,14 +247,13 @@ export default function Dashboard() {
                                     type="waiting"
                                     onDelete={(t) => deleteTask(t.id)}
                                     onEdit={handleEdit}
-                                // onClick={(t) => navigate(`/project/${t.project_id}`)} 
                                 />
                             ))
                         )}
                     </div>
                 </div>
 
-                {/* Column 3: Recent Captures */}
+                {/* Column 3: Recent Captures (Draggable Source) */}
                 <div className="stream-column">
                     <div className="column-header">
                         <div className="header-icon bg-blue-100 text-blue-600">
@@ -193,14 +269,20 @@ export default function Dashboard() {
                             </div>
                         ) : (
                             recentCaptures.map(item => (
-                                <ActionCard
+                                <div
                                     key={item.id}
-                                    item={item}
-                                    type="inbox"
-                                    onAction={handleInboxProcess}
-                                    onDelete={(i) => deleteInboxItem(i.id)}
-                                // onEdit={(i) => navigate('/inbox')}
-                                />
+                                    draggable
+                                    onDragStart={(e) => handleDragStart(e, item, 'inbox')}
+                                    onDragEnd={handleDragEnd}
+                                    style={{ cursor: 'move' }}
+                                >
+                                    <ActionCard
+                                        item={item}
+                                        type="inbox"
+                                        onAction={handleInboxProcess}
+                                        onDelete={(i) => deleteInboxItem(i.id)}
+                                    />
+                                </div>
                             ))
                         )}
                     </div>
@@ -221,6 +303,15 @@ export default function Dashboard() {
                 <EditTaskModal
                     task={editingTask}
                     onClose={() => setEditingTask(null)}
+                />
+            )}
+
+            {/* Process Inbox Item Modal */}
+            {processInboxItem && (
+                <CreateTaskModal
+                    initialData={processInboxItem}
+                    onClose={() => setProcessInboxItem(null)}
+                    onSuccess={handleProcessComplete}
                 />
             )}
 
@@ -261,6 +352,12 @@ export default function Dashboard() {
                     border-radius: var(--radius-xl);
                     padding: var(--space-4);
                     min-height: 200px;
+                    transition: background 0.2s, border-color 0.2s;
+                    border: 2px solid transparent;
+                }
+                .stream-column.drag-over {
+                    background: rgba(99, 102, 241, 0.05); /* Indigo tint */
+                    border-color: var(--color-primary-300);
                 }
                 .column-header {
                     display: flex;

@@ -11,7 +11,8 @@ import {
     Sparkles,
     MessageSquare,
     ShoppingCart,
-    BookOpen
+    BookOpen,
+    Zap
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useData } from '../context/DataContext';
@@ -214,13 +215,37 @@ export default function ActionCard({ item, type, onAction, onEdit, onDelete, onC
                                 </button>
                             )}
                             {isInbox && (
-                                <button className="dropdown-item" onClick={(e) => {
-                                    e.stopPropagation();
-                                    setMenuOpen(false);
-                                    if (onAction) onAction(item); // Treat "process" as main action for inbox
-                                }}>
-                                    <ArrowRight size={14} /> Process
-                                </button>
+                                <>
+                                    <button className="dropdown-item" onClick={(e) => {
+                                        e.stopPropagation();
+                                        setMenuOpen(false);
+                                        if (onAction) onAction(item); // Process / Edit
+                                    }}>
+                                        <ArrowRight size={14} /> Process (Manual)
+                                    </button>
+                                    <button className="dropdown-item" onClick={(e) => {
+                                        e.stopPropagation();
+                                        setMenuOpen(false);
+                                        if (onEdit) onEdit(item, 'auto'); // Use onEdit callback to trigger auto-process
+                                    }} style={{ color: 'var(--color-primary-600)' }}>
+                                        <Sparkles size={14} /> Smart Process
+                                    </button>
+                                    <div className="dropdown-divider" style={{ borderTop: '1px solid var(--border-light)', margin: '4px 0' }}></div>
+                                    <button className="dropdown-item" onClick={(e) => {
+                                        e.stopPropagation();
+                                        setMenuOpen(false);
+                                        if (onAction) onAction(item, 'action'); // Pass target
+                                    }}>
+                                        <Zap size={14} /> Move to Do Now
+                                    </button>
+                                    <button className="dropdown-item" onClick={(e) => {
+                                        e.stopPropagation();
+                                        setMenuOpen(false);
+                                        if (onAction) onAction(item, 'waiting'); // Pass target
+                                    }}>
+                                        <Clock size={14} /> Move to Waiting
+                                    </button>
+                                </>
                             )}
                         </div>
                     </>

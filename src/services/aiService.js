@@ -681,6 +681,41 @@ export async function extractTasksFromVoice(transcription, context = {}) {
     }
 }
 
+// ... (extractTasksFromVoice implementation)
+
+/**
+ * Analyze a single inbox item to suggest smart processing fields.
+ * Wraps extractTasksFromVoice but returns a single structured suggestion.
+ * @param {string} text - The content to analyze
+ * @param {Object} context - Full user/project context
+ * @returns {Object} - { actionType, assigned_to, project_id, due_date, name }
+ */
+export async function analyzeInboxAction(text, context) {
+    // Reuse the robust extraction logic
+    const result = await extractTasksFromVoice(text, context);
+
+    if (result.tasks && result.tasks.length > 0) {
+        const task = result.tasks[0]; // Take the first/primary task detected
+
+        // Map extraction result to our internal fields
+        return {
+            name: task.name,
+            action_type: task.actionType || 'todo',
+            assigned_to: task.assignedTo,
+            project_id: task.projectId,
+            due_date: task.dueDate
+        };
+    }
+
+    // Fallback if no specific task structure detected
+    return {
+        name: text,
+        action_type: 'todo',
+        assigned_to: null,
+        project_id: null,
+        due_date: null
+    };
+}
 /**
  * Generate a follow-up question when task info is incomplete.
  * @param {Object} partialTask - The partial task data
