@@ -125,22 +125,34 @@ export function DataProvider({ children }) {
     try {
       console.log('[Init] User authenticated, loading data...');
 
-      // Helper to log each load with individual timeout
-      const loadWithTimeout = async (name, fn, timeoutMs = 15000) => {
-        console.log(`[Init] Loading ${name}...`);
+      // Helper to load with individual timeout and optional retry
+      const loadWithRetry = async (name, fn, { timeoutMs = 60000, retries = 3 } = {}) => {
+        let attempt = 0;
         const start = Date.now();
 
-        try {
-          await Promise.race([
-            fn(),
-            new Promise((_, reject) =>
-              setTimeout(() => reject(new Error(`${name} loading timed out`)), timeoutMs)
-            )
-          ]);
-          console.log(`[Init] ✓ ${name} loaded in ${Date.now() - start}ms`);
-        } catch (err) {
-          console.warn(`[Init] ⚠ ${name} failed to load:`, err.message);
-          // Continue despite individual failures
+        while (attempt < retries) {
+          attempt++;
+          console.log(`[Init] Loading ${name} (Attempt ${attempt}/${retries})...`);
+
+          try {
+            await Promise.race([
+              fn(),
+              new Promise((_, reject) =>
+                setTimeout(() => reject(new Error(`${name} loading timed out after ${timeoutMs}ms`)), timeoutMs)
+              )
+            ]);
+            console.log(`[Init] ✓ ${name} loaded in ${Date.now() - start}ms`);
+            return; // Success!
+          } catch (err) {
+            console.warn(`[Init] ⚠ ${name} failed attempt ${attempt}:`, err.message);
+            if (attempt >= retries) {
+              console.error(`[Init] ✘ ${name} failed all ${retries} attempts.`);
+              // If critical data fails completely, we keep consistency but dashboard will be empty
+            } else {
+              // Wait 1s before retrying
+              await new Promise(r => setTimeout(r, 1000));
+            }
+          }
         }
       };
 
@@ -148,26 +160,28 @@ export function DataProvider({ children }) {
       // These are essential for the dashboard/project pages to work
       console.log('[Init] Phase 1: Loading critical data...');
       await Promise.all([
-        loadWithTimeout('users', loadUsers, 20000),
-        loadWithTimeout('projects', loadProjects, 20000),
-        loadWithTimeout('tasks', loadTasks, 20000),
+        loadWithRetry('users', loadUsers, { timeoutMs: 60000, retries: 3 }),
+        loadWithRetry('projects', loadProjects, { timeoutMs: 60000, retries: 3 }),
+        loadWithRetry('tasks', loadTasks, { timeoutMs: 60000, retries: 3 }),
       ]);
 
       // Mark as loaded after critical data - app is now usable
       setDataLoaded(true);
-      console.log('[Init] ✓ Critical data loaded - app ready');
+      console.log('[Init] ✓ Phase 1 complete - critical data ready');
 
       // PHASE 2: Load secondary data in background
       // These are nice-to-have but not essential for initial render
       console.log('[Init] Phase 2: Loading secondary data in background...');
-      Promise.all([
-        loadWithTimeout('documents', loadDocuments, 15000),
-        loadWithTimeout('inbox', loadInbox, 15000),
-        loadWithTimeout('files', loadFiles, 15000),
-      ]).then(() => {
-        console.log('[Init] ✓ All secondary data loaded');
+      const secondaryItems = [
+        loadWithRetry('documents', loadDocuments, { timeoutMs: 30000, retries: 2 }),
+        loadWithRetry('inbox', loadInbox, { timeoutMs: 30000, retries: 2 }),
+        loadWithRetry('files', loadFiles, { timeoutMs: 30000, retries: 2 }),
+      ];
+
+      Promise.all(secondaryItems).then(() => {
+        console.log('[Init] ✓ Phase 2 complete - secondary data ready');
       }).catch((err) => {
-        console.warn('[Init] Some secondary data failed to load:', err);
+        console.warn('[Init] Some secondary data failed finally:', err);
       });
 
       // Subscribe to real-time changes
@@ -522,11 +536,16 @@ export function DataProvider({ children }) {
 
       console.log('Creating project in Supabase:', newProject);
 
-      const { data, error } = await supabase
-        .from('pm_projects')
-        .insert([newProject])
-        .select()
-        .single();
+      const { data, error } = await Promise.race([
+        supabase
+          .from('pm_projects')
+          .insert([newProject])
+          .select()
+          .single(),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Project creation timed out. Please try again.')), 30000)
+        )
+      ]);
 
       if (error) {
         console.error('Supabase error creating project:', error);
@@ -625,10 +644,15 @@ export function DataProvider({ children }) {
         created_by_ai: task.created_by_ai !== undefined ? task.created_by_ai : true,
       }));
 
-      const { data, error } = await supabase
-        .from('pm_tasks')
-        .insert(newTasks)
-        .select();
+      const { data, error } = await Promise.race([
+        supabase
+          .from('pm_tasks')
+          .insert(newTasks)
+          .select(),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Task creation timed out. Please try again.')), 30000)
+        )
+      ]);
 
       if (error) throw error;
 
@@ -994,6 +1018,7 @@ export function DataProvider({ children }) {
     inbox,
     files,
     loading,
+    dataLoaded,
     error,
 
     language,

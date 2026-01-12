@@ -9,14 +9,17 @@ import {
     FileText,
     Sparkles,
     ArrowRight,
+    Loader2
 } from 'lucide-react';
 import CreateProjectModal from '../components/modals/CreateProjectModal';
 import { format } from 'date-fns';
 
 export default function Dashboard() {
-    const { projects, tasks, documents, getTaskStats, getProjectProgress, getUser } = useData();
+    const { projects, tasks, documents, getTaskStats, getProjectProgress, getUser, dataLoaded, loading } = useData();
     const navigate = useNavigate();
     const [createProjectOpen, setCreateProjectOpen] = useState(false);
+
+    const isSlowConnection = !dataLoaded && loading;
 
     const handleProjectCreated = (project) => {
         setCreateProjectOpen(false);
@@ -30,14 +33,35 @@ export default function Dashboard() {
 
     return (
         <div>
+            {/* Connectivity Status Indicator */}
+            {isSlowConnection && (
+                <div style={{
+                    background: '#fff7ed',
+                    border: '1px solid #ffedd5',
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    marginBottom: '16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    fontSize: '14px',
+                    color: '#9a3412'
+                }}>
+                    <Loader2 size={16} className="animate-spin" />
+                    <span>Conexión lenta detectada. Sincronizando datos con el servidor...</span>
+                </div>
+            )}
+
             {/* Page Header */}
             <div className="page-header">
                 <div>
                     <h1 className="page-title">Welcome back 👋</h1>
-                    <p className="page-subtitle">Here's what's happening across your projects</p>
+                    <p className="page-subtitle">
+                        {dataLoaded ? "Here's what's happening across your projects" : "Sincronizando tus proyectos..."}
+                    </p>
                 </div>
                 <div className="page-actions">
-                    <button className="btn btn-primary btn-lg" onClick={() => setCreateProjectOpen(true)}>
+                    <button className="btn btn-primary btn-lg" onClick={() => setCreateProjectOpen(true)} disabled={!dataLoaded}>
                         <Plus size={20} />
                         New Project
                     </button>
