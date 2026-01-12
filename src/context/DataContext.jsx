@@ -755,42 +755,55 @@ export function DataProvider({ children }) {
 
   // Inbox CRUD
   const createInboxItem = async (content, language = null) => {
-    try {
-      // Guard against missing user
-      if (!currentUser?.id) {
-        console.warn('Cannot create inbox item: No current user');
-        return null;
-      }
-
-      const newItem = {
-        content,
-        language,
-        user_id: currentUser.id,
-        processed: false
-      };
-
-      // Add 10-second timeout to prevent hanging
-      const insertPromise = supabase
-        .from('pm_inbox')
-        .insert([newItem])
-        .select()
-        .single();
-
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Inbox save timeout')), 30000)
-      );
-
-      const { data, error } = await Promise.race([insertPromise, timeoutPromise]);
-
-      if (error) throw error;
-
-      setInbox(prev => [data, ...prev]);
-      return data;
-    } catch (err) {
-      console.error('Error creating inbox item:', err);
-      // Don't throw - return null to allow graceful degradation
+    // Guard against missing user
+    if (!currentUser?.id) {
+      console.warn('Cannot create inbox item: No current user');
       return null;
     }
+
+    // 1. Optimistic Update (Immediate UI Feedback)
+    const tempId = 'temp-' + Date.now();
+    const optimisticItem = {
+      id: tempId,
+      content,
+      language,
+      user_id: currentUser.id,
+      processed: false,
+      created_at: new Date().toISOString(),
+      isOptimistic: true
+    };
+
+    // Update local state immediately
+    setInbox(prev => [optimisticItem, ...prev]);
+
+    // 2. Background Save
+    (async () => {
+      try {
+        const newItem = {
+          content,
+          language,
+          user_id: currentUser.id,
+          processed: false
+        };
+
+        const { data, error } = await supabase
+          .from('pm_inbox')
+          .insert([newItem])
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        // Replace temp item with real data
+        setInbox(prev => prev.map(item => item.id === tempId ? data : item));
+      } catch (err) {
+        console.error('Error creating inbox item (background):', err);
+        // Mark as error in UI
+        setInbox(prev => prev.map(item => item.id === tempId ? { ...item, error: true } : item));
+      }
+    })();
+
+    return optimisticItem;
   };
 
   const updateInboxItem = async (itemId, updates) => {
