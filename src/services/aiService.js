@@ -504,6 +504,15 @@ export async function classifyVoiceContent(transcription, context = {}) {
         "summary": "Cliente aprobó diseño de landing page"
     }
     
+     Input: "Crear un nuevo proyecto llamado Plan Alfa"
+    Output: {
+        "contentType": "project",
+        "confidence": 0.98,
+        "intent": "Crear nuevo proyecto Plan Alfa",
+        "suggestedAction": "extract_tasks",
+        "summary": "Crear el proyecto Plan Alfa"
+    }
+    
     Input: "mm, no sé, algo sobre"
     Output: {
         "contentType": "unclear",
@@ -515,11 +524,13 @@ export async function classifyVoiceContent(transcription, context = {}) {
     `;
 
     try {
+        console.log('[Voice Capture] Classifying transcription:', transcription);
         const response = await callOpenAI([
             { role: "system", content: systemPrompt },
             { role: "user", content: `Transcription: "${transcription}"` }
         ], 0.2, true); // Low temperature for consistent classification
 
+        console.log('[Voice Capture] Classification:', response);
         const result = JSON.parse(response);
 
         // Validate confidence threshold
