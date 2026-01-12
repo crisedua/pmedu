@@ -177,15 +177,15 @@ export default function ActionCard({ item, type, onAction, onEdit, onDelete, onM
                 {menuOpen && (
                     <>
                         <div
-                            style={{ position: 'fixed', inset: 0, zIndex: 10 }}
+                            style={{ position: 'fixed', inset: 0, zIndex: 999 }}
                             onClick={(e) => { e.stopPropagation(); setMenuOpen(false); }}
                         />
                         <div className="dropdown-menu" style={{
                             position: 'absolute',
                             right: 0,
                             top: '100%',
-                            zIndex: 11,
-                            minWidth: '120px'
+                            zIndex: 1000,
+                            minWidth: '160px'
                         }}>
                             {/* Edit option for action/waiting types */}
                             {(isAction || isWaiting) && onEdit && (
