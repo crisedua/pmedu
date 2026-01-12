@@ -64,8 +64,18 @@ export function DataProvider({ children }) {
 
   // Only load data from Supabase AFTER user is authenticated
   useEffect(() => {
+    // #region agent log
+    console.log('[DEBUG-EFFECT] Data loading effect triggered:', {
+      hasCurrentUser: !!currentUser,
+      dataLoaded,
+      initStarted: initStarted.current,
+      willLoadData: !!(currentUser && !dataLoaded && !initStarted.current)
+    });
+    // #endregion
+    
     if (currentUser && !dataLoaded && !initStarted.current) {
       initStarted.current = true;
+      console.log('[DEBUG-EFFECT] Starting data load timer');
 
       // Add a delay for page refreshes to ensure Supabase session is ready
       const isInitialRefresh = !sessionStorage.getItem('veta-session-warmed');
@@ -77,6 +87,7 @@ export function DataProvider({ children }) {
       }
 
       const timer = setTimeout(async () => {
+        console.log('[DEBUG-EFFECT] Timer fired, loading data now');
         // Ensure Supabase session is ready before loading
         try {
           await supabase.auth.getSession();
