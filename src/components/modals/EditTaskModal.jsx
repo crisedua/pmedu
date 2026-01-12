@@ -33,7 +33,7 @@ export default function EditTaskModal({ task, onClose }) {
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal" onClick={(e) => e.stopPropagation()}>
                 <div className="modal-header">
-                    <h3 className="modal-title">Edit Task</h3>
+                    <h3 className="modal-title">Edit Action</h3>
                     <button className="btn btn-ghost btn-icon btn-sm" onClick={onClose}>
                         <X size={18} />
                     </button>
@@ -42,7 +42,7 @@ export default function EditTaskModal({ task, onClose }) {
                 <form onSubmit={handleSubmit}>
                     <div className="modal-body">
                         <div className="form-group">
-                            <label className="form-label">Task Name *</label>
+                            <label className="form-label">Action Name *</label>
                             <input
                                 type="text"
                                 className="form-input"

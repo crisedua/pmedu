@@ -112,44 +112,9 @@ export default function Layout() {
                         )}
                     </div>
 
-                    <div className="sidebar-section">
-                        <div className="sidebar-section-title">
-                            {language === 'es' ? 'Contextos' : 'Contexts'}
-                        </div>
 
-                        <button
-                            className="sidebar-link"
-                            onClick={() => setCreateProjectOpen(true)}
-                            style={{ width: '100%', textAlign: 'left', border: 'none', background: 'none' }}
-                        >
-                            <Plus size={20} />
-                            {language === 'es' ? 'Nuevo Contexto' : 'New Context'}
-                        </button>
 
-                        {projects.map(project => (
-                            <NavLink
-                                key={project.id}
-                                to={`/project/${project.id}`}
-                                className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
-                                onClick={() => setSidebarOpen(false)}
-                            >
-                                <FolderKanban size={20} />
-                                <span className="truncate" style={{ flex: 1 }}>{project.name}</span>
-                                <ChevronRight size={16} style={{ opacity: 0.5 }} />
-                            </NavLink>
-                        ))}
 
-                        {projects.length === 0 && (
-                            <p style={{
-                                padding: 'var(--space-3)',
-                                fontSize: 'var(--text-xs)',
-                                color: 'var(--text-muted)',
-                                fontStyle: 'italic'
-                            }}>
-                                No contexts yet
-                            </p>
-                        )}
-                    </div>
 
 
                 </nav>
@@ -269,72 +234,76 @@ export default function Layout() {
             </main>
 
             {/* Modals */}
-            {createProjectOpen && (
-                <CreateProjectModal
-                    onClose={() => setCreateProjectOpen(false)}
-                    onCreated={handleProjectCreated}
-                />
-            )}
+            {
+                createProjectOpen && (
+                    <CreateProjectModal
+                        onClose={() => setCreateProjectOpen(false)}
+                        onCreated={handleProjectCreated}
+                    />
+                )
+            }
 
-            {showSummaryModal && (
-                <div className="modal-overlay" onClick={() => setShowSummaryModal(false)}>
-                    <div className="modal-container" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
-                        <div className="modal-header">
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-                                <div style={{
-                                    width: '32px',
-                                    height: '32px',
-                                    borderRadius: 'var(--radius-md)',
-                                    background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    color: 'white',
-                                }}>
-                                    <Sparkles size={18} />
+            {
+                showSummaryModal && (
+                    <div className="modal-overlay" onClick={() => setShowSummaryModal(false)}>
+                        <div className="modal-container" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+                            <div className="modal-header">
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+                                    <div style={{
+                                        width: '32px',
+                                        height: '32px',
+                                        borderRadius: 'var(--radius-md)',
+                                        background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        color: 'white',
+                                    }}>
+                                        <Sparkles size={18} />
+                                    </div>
+                                    <h2 className="modal-title">Your Daily Focus</h2>
                                 </div>
-                                <h2 className="modal-title">Your Daily Focus</h2>
+                                <button className="btn btn-ghost btn-icon" onClick={() => setShowSummaryModal(false)}>
+                                    <X size={20} />
+                                </button>
                             </div>
-                            <button className="btn btn-ghost btn-icon" onClick={() => setShowSummaryModal(false)}>
-                                <X size={20} />
-                            </button>
-                        </div>
-                        <div className="modal-body">
-                            {loadingSummary ? (
-                                <div style={{ textAlign: 'center', padding: 'var(--space-8)' }}>
-                                    <div className="spinner" style={{ width: '32px', height: '32px', margin: '0 auto var(--space-4)' }} />
-                                    <p style={{ color: 'var(--text-secondary)' }}>AI is analyzing your tasks...</p>
-                                </div>
-                            ) : (
-                                <div style={{
-                                    background: 'var(--bg-tertiary)',
-                                    padding: 'var(--space-6)',
-                                    borderRadius: 'var(--radius-lg)',
-                                    fontSize: 'var(--text-md)',
-                                    lineHeight: '1.7',
-                                    color: 'var(--text-primary)',
-                                    whiteSpace: 'pre-wrap'
-                                }}>
-                                    {aiSummary}
-                                </div>
-                            )}
-                        </div>
-                        <div className="modal-footer">
-                            <button className="btn btn-ghost" onClick={() => setShowSummaryModal(false)}>
-                                Close
-                            </button>
-                            <button
-                                className="btn btn-ai"
-                                onClick={handleGetSummary}
-                                disabled={loadingSummary}
-                            >
-                                <Sparkles size={18} />
-                                Refresh Insights
-                            </button>
+                            <div className="modal-body">
+                                {loadingSummary ? (
+                                    <div style={{ textAlign: 'center', padding: 'var(--space-8)' }}>
+                                        <div className="spinner" style={{ width: '32px', height: '32px', margin: '0 auto var(--space-4)' }} />
+                                        <p style={{ color: 'var(--text-secondary)' }}>AI is analyzing your tasks...</p>
+                                    </div>
+                                ) : (
+                                    <div style={{
+                                        background: 'var(--bg-tertiary)',
+                                        padding: 'var(--space-6)',
+                                        borderRadius: 'var(--radius-lg)',
+                                        fontSize: 'var(--text-md)',
+                                        lineHeight: '1.7',
+                                        color: 'var(--text-primary)',
+                                        whiteSpace: 'pre-wrap'
+                                    }}>
+                                        {aiSummary}
+                                    </div>
+                                )}
+                            </div>
+                            <div className="modal-footer">
+                                <button className="btn btn-ghost" onClick={() => setShowSummaryModal(false)}>
+                                    Close
+                                </button>
+                                <button
+                                    className="btn btn-ai"
+                                    onClick={handleGetSummary}
+                                    disabled={loadingSummary}
+                                >
+                                    <Sparkles size={18} />
+                                    Refresh Insights
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             <GlobalVoiceCapture />
             <AIAssistantSidebar

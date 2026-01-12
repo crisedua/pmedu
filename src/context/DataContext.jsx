@@ -23,6 +23,7 @@ export function DataProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [dataLoaded, setDataLoaded] = useState(false);
   const [error, setError] = useState(null);
+  const [connectionError, setConnectionError] = useState(false);
   const [language, setLanguage] = useState(() => {
     // Initial language: Check localStorage first, then browser
     const stored = localStorage.getItem('pm-app-language');
@@ -152,6 +153,9 @@ export function DataProvider({ children }) {
 
             if (attempt >= retries) {
               console.error(`[Init] ✘ ${name} failed all ${retries} attempts.`);
+              if (['users', 'projects', 'tasks'].includes(name)) {
+                setConnectionError(true);
+              }
             } else {
               // Backoff: 1s, 2s...
               await new Promise(r => setTimeout(r, attempt * 1000));
@@ -1066,6 +1070,7 @@ export function DataProvider({ children }) {
     loading,
     dataLoaded,
     error,
+    connectionError,
 
     language,
     setLanguage,

@@ -6,7 +6,8 @@ import {
     Loader2,
     Zap,
     Clock,
-    Inbox
+    Inbox,
+    AlertCircle
 } from 'lucide-react';
 import CreateTaskModal from '../components/modals/CreateTaskModal';
 import EditTaskModal from '../components/modals/EditTaskModal';
@@ -26,7 +27,8 @@ export default function Dashboard() {
         deleteInboxItem,
         updateInboxItem,
         dataLoaded,
-        loading
+        loading,
+        connectionError
     } = useData();
     const [isProcessing, setIsProcessing] = useState(false); // Local loading for AI
     const navigate = useNavigate();
@@ -185,7 +187,16 @@ export default function Dashboard() {
     return (
         <div className="dashboard-stream">
             {/* Connectivity Status */}
-            {(isSlowConnection || isProcessing) && (
+            {connectionError && (
+                <div className="connection-banner danger" style={{ background: '#fef2f2', border: '1px solid #fee2e2', color: '#991b1b', padding: '12px', borderRadius: '8px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <AlertCircle size={18} />
+                    <div style={{ fontSize: '14px' }}>
+                        <strong>Database Unavailable:</strong> We couldn't connect to your data. Please check your internet connection or Supabase project status.
+                    </div>
+                </div>
+            )}
+
+            {(isSlowConnection || isProcessing) && !connectionError && (
                 <div className="connection-banner" style={{ background: isProcessing ? 'var(--bg-primary)' : '#fff7ed', border: isProcessing ? '1px solid var(--color-primary-200)' : '1px solid #ffedd5' }}>
                     <Loader2 size={16} className="animate-spin" style={{ color: isProcessing ? 'var(--color-primary-600)' : '#9a3412' }} />
                     <span style={{ color: isProcessing ? 'var(--text-primary)' : '#9a3412' }}>

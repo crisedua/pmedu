@@ -34,3 +34,10 @@ Shift from a rigid Project Management tool to a Voice-First Intelligent Action S
 - [x] Lightweight Project/Context Creation (Via "New Context" button & AI).
 - [x] Archive/Done View (`/archive` page + Sidebar Link).
 - [x] Edit Capability in Dashboard (`EditTaskModal` integration).
+
+## Phase 4: Frictionless Refinement [COMPLETED]
+- [x] **Simplify Terminology**: Removed "Context" and "Project" labels from main workflows.
+- [x] **Editable Inbox**: Added modal to edit raw inbox content.
+- [x] **Performance Optimization**: Reduced load timeouts from 60s to 10s.
+- [x] **Health Check**: Added "Database Unavailable" UI indicator.
+
