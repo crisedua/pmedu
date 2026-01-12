@@ -220,8 +220,31 @@ export function DataProvider({ children }) {
   };
 
   // Load functions
+  // Load functions
   const loadUsers = async () => {
     try {
+      // robust: try to get session first to ensure we aren't hanging on client
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      const url = import.meta.env.VITE_SUPABASE_URL;
+      const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      if (token && url && key) {
+        // Use Raw Fetch for maximum reliability
+        const response = await fetch(`${url}/rest/v1/pm_users?select=*&order=created_at.desc`, {
+          headers: {
+            'apikey': key,
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) throw new Error(`Fetch error: ${response.status}`);
+        const data = await response.json();
+        setUsers(data || []);
+        return;
+      }
+
+      // Fallback (or if no session yet)
       const { data, error } = await supabase
         .from('pm_users')
         .select('*')
@@ -231,7 +254,9 @@ export function DataProvider({ children }) {
       setUsers(data || []);
     } catch (err) {
       console.error('Error loading users:', err);
-      setUsers([]);
+      // Don't set empty on error immediately, as it might be a temp glitch, 
+      // but the retry logic in loadAllData handles the throw.
+      throw err;
     }
   };
 
