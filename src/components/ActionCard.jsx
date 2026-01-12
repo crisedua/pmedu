@@ -162,18 +162,20 @@ export default function ActionCard({ item, type, onAction, onEdit, onDelete, onM
             </div>
 
             {/* Actions Menu */}
-            <div className="action-trailing">
+            <div className="action-trailing" style={{ position: 'relative' }}>
                 <button
                     className="btn btn-ghost btn-icon btn-sm"
                     onClick={(e) => {
                         e.stopPropagation();
+                        console.log('Menu button clicked! Current menuOpen:', menuOpen, 'Setting to:', !menuOpen);
                         setMenuOpen(!menuOpen);
                     }}
-                    style={{ opacity: 0.5 }}
+                    style={{ opacity: 0.7 }}
                 >
                     <MoreVertical size={14} />
                 </button>
 
+                {menuOpen && console.log('Menu is OPEN - rendering dropdown')}
                 {menuOpen && (
                     <>
                         <div
