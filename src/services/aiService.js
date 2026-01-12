@@ -567,6 +567,7 @@ export async function extractTasksFromVoice(transcription, context = {}) {
 
     // Build project context for AI
     const projectContext = projects.map(p => ({ id: p.id, name: p.name })).slice(0, 20);
+    const userContext = users.map(u => ({ id: u.id, name: u.name })).slice(0, 15);
 
     const systemPrompt = `
     You are an expert task extraction assistant for a Voice-First PM system.
