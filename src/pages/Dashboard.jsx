@@ -39,7 +39,38 @@ export default function Dashboard() {
 
     const isSlowConnection = !dataLoaded && loading;
 
-    // ... (Filter Logic remains same)
+    // Filter Logic
+    const { immediateActions, waitingFor, recentCaptures } = useMemo(() => {
+        if (!currentUser) return { immediateActions: [], waitingFor: [], recentCaptures: [] };
+
+        // 1. Immediate Actions: Assigned to me, not done
+        const myTasks = tasks.filter(t =>
+            (t.assigned_to === currentUser.id || !t.assigned_to) &&
+            t.status !== 'Done'
+        ).sort((a, b) => {
+            // Sort by due date (asc), then created_at (desc)
+            if (!a.due_date && !b.due_date) return new Date(b.created_at) - new Date(a.created_at);
+            if (!a.due_date) return 1;
+            if (!b.due_date) return -1;
+            return new Date(a.due_date) - new Date(b.due_date);
+        });
+
+        // 2. Waiting For: Assigned to others, not done
+        const delegatedTasks = tasks.filter(t =>
+            t.assigned_to &&
+            t.assigned_to !== currentUser.id &&
+            t.status !== 'Done'
+        );
+
+        // 3. Inbox: Unprocessed items
+        const inboxItems = inbox.filter(i => !i.processed);
+
+        return {
+            immediateActions: myTasks,
+            waitingFor: delegatedTasks,
+            recentCaptures: inboxItems
+        };
+    }, [tasks, inbox, currentUser]);
 
     // Handlers
     const handleTaskComplete = (task) => {
