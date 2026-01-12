@@ -1,10 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { DataProvider } from './context/DataContext';
 import Layout from './components/Layout';
-import CommandCenter from './pages/CommandCenter';
 import Dashboard from './pages/Dashboard';
-import ProjectsList from './pages/ProjectsList';
-import ProjectView from './pages/ProjectView';
 import DocumentEditor from './pages/DocumentEditor';
 import UserManagement from './pages/UserManagement';
 import Inbox from './pages/Inbox';
@@ -28,13 +25,11 @@ function App() {
             </ProtectedRoute>
           }>
             <Route index element={<Dashboard />} />
-            <Route path="projects" element={<ProjectsList />} />
             <Route path="inbox" element={<Inbox />} />
             <Route path="archive" element={<Archive />} />
             <Route path="users" element={<UserManagement />} />
-            <Route path="command" element={<CommandCenter />} />
-            <Route path="project/:projectId" element={<ProjectView />} />
-            <Route path="project/:projectId/document/:docId" element={<DocumentEditor />} />
+            {/* Note: DocumentEditor is kept but technically legacy until integrated into the new stream */}
+            <Route path="document/:docId" element={<DocumentEditor />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />

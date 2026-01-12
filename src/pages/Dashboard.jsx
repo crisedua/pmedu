@@ -18,7 +18,6 @@ import { format, isToday, isPast, isFuture } from 'date-fns';
 
 export default function Dashboard() {
     const {
-        projects,
         tasks,
         inbox,
         currentUser,
@@ -112,7 +111,7 @@ export default function Dashboard() {
                     // Wait, DataContext SHOULD expose users. Let's check `useData`.
                     // It returns `currentUser` but maybe not all users.
                     // For now, let's pass empty users and let AI infer from text, or we rely on `projects` which we have.
-                    projects: projects,
+                    // projects: projects,
                     language: 'en' // Defaulting to EN, or detect from content?
                 });
 
@@ -293,7 +292,6 @@ export default function Dashboard() {
                                     onAction={handleTaskComplete}
                                     onDelete={(t) => deleteTask(t.id)}
                                     onEdit={handleEdit}
-                                    onClick={(t) => navigate(`/project/${t.project_id}`)}
                                 />
                             ))
                         )}

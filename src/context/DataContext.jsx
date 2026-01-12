@@ -172,7 +172,7 @@ export function DataProvider({ children }) {
 
             if (attempt >= retries) {
               console.error(`[Init] ✘ ${name} failed all ${retries} attempts.`);
-              if (['users', 'projects', 'tasks'].includes(name)) {
+              if (['users', 'tasks'].includes(name)) {
                 setConnectionError(true);
               }
             } else {
@@ -186,7 +186,7 @@ export function DataProvider({ children }) {
       // PHASE 1: Load critical data
       await Promise.all([
         loadWithRetry('users', loadUsers, { timeoutMs: 15000, retries: 3 }),
-        loadWithRetry('projects', loadProjects, { timeoutMs: 15000, retries: 3 }),
+        // loadWithRetry('projects', loadProjects, { timeoutMs: 15000, retries: 3 }),
         loadWithRetry('tasks', loadTasks, { timeoutMs: 15000, retries: 3 }),
       ]);
 
@@ -313,12 +313,14 @@ export function DataProvider({ children }) {
   // Real-time subscriptions
   const setupRealtimeSubscriptions = () => {
     // Subscribe to projects changes
+    /*
     const projectsSubscription = supabase
       .channel('projects_changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'pm_projects' }, (payload) => {
         handleRealtimeUpdate('projects', payload);
       })
       .subscribe();
+    */
 
     // Subscribe to tasks changes
     const tasksSubscription = supabase

@@ -3,13 +3,13 @@ import { useData } from '../../context/DataContext';
 import { X } from 'lucide-react';
 import { format } from 'date-fns';
 
-export default function CreateTaskModal({ projectId, onClose, initialData, onSuccess }) {
-    const { createTask, users, projects } = useData();
+export default function CreateTaskModal({ onClose, initialData, onSuccess }) {
+    const { createTask, users } = useData();
     const [name, setName] = useState(initialData?.name || initialData?.content || '');
     const [description, setDescription] = useState(initialData?.description || '');
     const [dueDate, setDueDate] = useState(initialData?.due_date ? format(new Date(initialData.due_date), 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'));
     const [assignedTo, setAssignedTo] = useState(initialData?.assigned_to || '');
-    const [selectedProjectId, setSelectedProjectId] = useState(projectId || initialData?.project_id || '');
+    const [selectedProjectId, setSelectedProjectId] = useState(null);
     const [actionType, setActionType] = useState(initialData?.action_type || 'todo');
     const [loading, setLoading] = useState(false);
 
@@ -24,7 +24,6 @@ export default function CreateTaskModal({ projectId, onClose, initialData, onSuc
                 description: description.trim(),
                 dueDate: new Date(dueDate).toISOString(),
                 assignedTo: assignedTo || null,
-                projectId: selectedProjectId || null,
                 status: 'To Do',
                 actionType
             });

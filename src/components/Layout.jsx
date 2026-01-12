@@ -2,33 +2,23 @@ import { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import {
-    LayoutDashboard,
-    FolderKanban,
-    Plus,
     Sparkles,
-    Settings,
-    User,
     Menu,
     X,
-    ChevronRight,
     LogOut,
     Shield,
     Users,
-    Brain,
-    Inbox,
     Activity,
     Archive
 } from 'lucide-react';
 import { getTodaySummary } from '../services/aiService';
-import CreateProjectModal from './modals/CreateProjectModal';
 import GlobalVoiceCapture from './GlobalVoiceCapture';
 import AIAssistantSidebar from './AIAssistantSidebar';
 
 export default function Layout() {
-    const { projects, tasks, currentUser, logout, language, setLanguage } = useData();
+    const { tasks, currentUser, logout, language, setLanguage } = useData();
     const navigate = useNavigate();
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [createProjectOpen, setCreateProjectOpen] = useState(false);
     const [aiSummary, setAiSummary] = useState(null);
     const [loadingSummary, setLoadingSummary] = useState(false);
     const [showSummaryModal, setShowSummaryModal] = useState(false);
@@ -40,11 +30,6 @@ export default function Layout() {
         const summary = await getTodaySummary(null, tasks, currentUser);
         setAiSummary(summary);
         setLoadingSummary(false);
-    };
-
-    const handleProjectCreated = (project) => {
-        setCreateProjectOpen(false);
-        navigate(`/project/${project.id}`);
     };
 
     return (
@@ -75,7 +60,7 @@ export default function Layout() {
                     <div className="sidebar-logo">
                         <Sparkles size={20} />
                     </div>
-                    <span className="sidebar-brand">AI Project Hub</span>
+                    <span className="sidebar-brand">Veta System</span>
                 </div>
 
                 <nav className="sidebar-nav">
@@ -88,8 +73,6 @@ export default function Layout() {
                             <Activity size={20} />
                             {language === 'es' ? 'Flujo de Acción' : 'Action Stream'}
                         </NavLink>
-
-
 
                         <NavLink
                             to="/archive"
@@ -111,27 +94,21 @@ export default function Layout() {
                             </NavLink>
                         )}
                     </div>
-
-
-
-
-
-
                 </nav>
 
                 <div className="sidebar-footer">
                     <div className="sidebar-link" style={{ cursor: 'default' }}>
                         <div className="avatar avatar-sm">
-                            {currentUser.avatar}
+                            {currentUser?.avatar || 'U'}
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-medium)' }}>
-                                {currentUser.name}
+                                {currentUser?.name}
                             </div>
                             <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>
-                                {currentUser.email}
+                                {currentUser?.email}
                             </div>
-                            {currentUser.role === 'admin' && (
+                            {currentUser?.role === 'admin' && (
                                 <div style={{
                                     display: 'inline-flex',
                                     alignItems: 'center',
@@ -151,11 +128,9 @@ export default function Layout() {
                         </div>
                     </div>
 
-                    {/* Logout Button - Standalone Row */}
                     <button
                         className="sidebar-link logout-btn"
                         onClick={() => {
-                            console.log('[Logout] Button clicked');
                             logout();
                             navigate('/login');
                         }}
@@ -177,7 +152,6 @@ export default function Layout() {
                     </button>
                 </div>
 
-                {/* Language Toggle */}
                 <div style={{ padding: '0 var(--space-4) var(--space-4)' }}>
                     <div style={{
                         display: 'flex',
@@ -226,84 +200,71 @@ export default function Layout() {
                 </div>
             </aside>
 
-            {/* Main Content */}
             <main className="app-main">
                 <div className="app-content">
                     <Outlet />
                 </div>
             </main>
 
-            {/* Modals */}
-            {
-                createProjectOpen && (
-                    <CreateProjectModal
-                        onClose={() => setCreateProjectOpen(false)}
-                        onCreated={handleProjectCreated}
-                    />
-                )
-            }
-
-            {
-                showSummaryModal && (
-                    <div className="modal-overlay" onClick={() => setShowSummaryModal(false)}>
-                        <div className="modal-container" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
-                            <div className="modal-header">
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-                                    <div style={{
-                                        width: '32px',
-                                        height: '32px',
-                                        borderRadius: 'var(--radius-md)',
-                                        background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        color: 'white',
-                                    }}>
-                                        <Sparkles size={18} />
-                                    </div>
-                                    <h2 className="modal-title">Your Daily Focus</h2>
-                                </div>
-                                <button className="btn btn-ghost btn-icon" onClick={() => setShowSummaryModal(false)}>
-                                    <X size={20} />
-                                </button>
-                            </div>
-                            <div className="modal-body">
-                                {loadingSummary ? (
-                                    <div style={{ textAlign: 'center', padding: 'var(--space-8)' }}>
-                                        <div className="spinner" style={{ width: '32px', height: '32px', margin: '0 auto var(--space-4)' }} />
-                                        <p style={{ color: 'var(--text-secondary)' }}>AI is analyzing your tasks...</p>
-                                    </div>
-                                ) : (
-                                    <div style={{
-                                        background: 'var(--bg-tertiary)',
-                                        padding: 'var(--space-6)',
-                                        borderRadius: 'var(--radius-lg)',
-                                        fontSize: 'var(--text-md)',
-                                        lineHeight: '1.7',
-                                        color: 'var(--text-primary)',
-                                        whiteSpace: 'pre-wrap'
-                                    }}>
-                                        {aiSummary}
-                                    </div>
-                                )}
-                            </div>
-                            <div className="modal-footer">
-                                <button className="btn btn-ghost" onClick={() => setShowSummaryModal(false)}>
-                                    Close
-                                </button>
-                                <button
-                                    className="btn btn-ai"
-                                    onClick={handleGetSummary}
-                                    disabled={loadingSummary}
-                                >
+            {showSummaryModal && (
+                <div className="modal-overlay" onClick={() => setShowSummaryModal(false)}>
+                    <div className="modal-container" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+                        <div className="modal-header">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+                                <div style={{
+                                    width: '32px',
+                                    height: '32px',
+                                    borderRadius: 'var(--radius-md)',
+                                    background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: 'white',
+                                }}>
                                     <Sparkles size={18} />
-                                    Refresh Insights
-                                </button>
+                                </div>
+                                <h2 className="modal-title">Your Daily Focus</h2>
                             </div>
+                            <button className="btn btn-ghost btn-icon" onClick={() => setShowSummaryModal(false)}>
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            {loadingSummary ? (
+                                <div style={{ textAlign: 'center', padding: 'var(--space-8)' }}>
+                                    <div className="spinner-border" role="status" style={{ width: '32px', height: '32px', margin: '0 auto var(--space-4)' }} />
+                                    <p style={{ color: 'var(--text-secondary)' }}>AI is analyzing your tasks...</p>
+                                </div>
+                            ) : (
+                                <div style={{
+                                    background: 'var(--bg-tertiary)',
+                                    padding: 'var(--space-6)',
+                                    borderRadius: 'var(--radius-lg)',
+                                    fontSize: 'var(--text-md)',
+                                    lineHeight: '1.7',
+                                    color: 'var(--text-primary)',
+                                    whiteSpace: 'pre-wrap'
+                                }}>
+                                    {aiSummary}
+                                </div>
+                            )}
+                        </div>
+                        <div className="modal-footer">
+                            <button className="btn btn-ghost" onClick={() => setShowSummaryModal(false)}>
+                                Close
+                            </button>
+                            <button
+                                className="btn btn-ai"
+                                onClick={handleGetSummary}
+                                disabled={loadingSummary}
+                            >
+                                <Sparkles size={18} />
+                                Refresh Insights
+                            </button>
                         </div>
                     </div>
-                )
-            }
+                </div>
+            )}
 
             <GlobalVoiceCapture />
             <AIAssistantSidebar
@@ -316,22 +277,7 @@ export default function Layout() {
             display: flex !important;
           }
         }
-
-        .sidebar-badge-ai {
-            background: var(--bg-gradient);
-            color: white;
-            font-size: 8px;
-            font-weight: 800;
-            padding: 1px 4px;
-            border-radius: 4px;
-            margin-left: auto;
-            letter-spacing: 0.5px;
-        }
-
-        .text-primary-500 {
-            color: var(--color-primary-500);
-        }
       `}</style>
-        </div >
+        </div>
     );
 }

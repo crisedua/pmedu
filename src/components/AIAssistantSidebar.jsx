@@ -15,9 +15,9 @@ import ReactMarkdown from 'react-markdown';
 import { askAiAssistant, transcribeAudio } from '../services/aiService';
 
 export default function AIAssistantSidebar({ isOpen, onClose }) {
-    const { projects, tasks, currentUser } = useData();
+    const { tasks, currentUser } = useData();
     const [messages, setMessages] = useState([
-        { role: 'assistant', content: `Hello ${currentUser.name}! I'm your AI Project Manager. How can I help you today?` }
+        { role: 'assistant', content: `Hello ${currentUser.name}! I'm your AI Assistant. How can I help you with your action stream today?` }
     ]);
     const [input, setInput] = useState('');
     const [isTyping, setIsTyping] = useState(false);
@@ -46,7 +46,7 @@ export default function AIAssistantSidebar({ isOpen, onClose }) {
         setIsTyping(true);
 
         try {
-            const response = await askAiAssistant(messageText, { projects, tasks, currentUser });
+            const response = await askAiAssistant(messageText, { tasks, currentUser });
             setMessages(prev => [...prev, { role: 'assistant', content: response }]);
         } catch (err) {
             console.error(err);
@@ -196,7 +196,7 @@ export default function AIAssistantSidebar({ isOpen, onClose }) {
                     <div className="input-row">
                         <input
                             type="text"
-                            placeholder="Ask anything about your projects..."
+                            placeholder="Ask anything about your actions..."
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}

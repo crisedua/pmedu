@@ -74,14 +74,14 @@ async function callOpenAI(messages, temperature = 0.7, jsonMode = false) {
 
 // Generate tasks using OpenAI
 export async function generateTasksFromAI(input, options = {}) {
-    const { dueDate, projectId, users = [] } = options;
+    const { dueDate, users = [] } = options;
 
     // Prepare context for the AI
-    const userContext = users.map(u => ({ id: u.id, name: u.name })).slice(0, 10); // Limit to avoid hitting token limits
+    const userContext = users.map(u => ({ id: u.id, name: u.name })).slice(0, 10);
     const today = new Date().toISOString().split('T')[0];
 
     const systemPrompt = `
-    You are an expert project manager. Break down the user's request into actionable project tasks.
+    You are an expert action coordinator. Break down the user's request into actionable tasks.
     
     Current Date: ${today}
     Context:
@@ -90,15 +90,15 @@ export async function generateTasksFromAI(input, options = {}) {
     
     Instructions:
     1. Analyze the request and break it down into logical steps/tasks.
-    2. Assign a default 'daysOffset' (number of days from now) for each task to create a timeline.
-    3. Suggest an assignee from the team members list if their name or role is implied, otherwise use null.
-    4. Return ONLY valid JSON with this structure:
+    2. Assign a default 'daysOffset' (number of days from now) for each task.
+    3. Suggest an assignee from the list if implied, otherwise null.
+    4. Return ONLY valid JSON:
     {
       "tasks": [
         {
           "name": "Task Title",
           "description": "Brief description",
-          "daysOffset": 0, // 0 for today, 1 for tomorrow, etc.
+          "daysOffset": 0,
           "assignedTo": "user_id_or_null"
         }
       ]
@@ -112,8 +112,6 @@ export async function generateTasksFromAI(input, options = {}) {
         ], 0.7, true);
 
         const result = JSON.parse(response);
-
-        // Post-process to format for our app
         const baseDate = new Date();
 
         return result.tasks.map(task => {
@@ -121,29 +119,21 @@ export async function generateTasksFromAI(input, options = {}) {
             taskDueDate.setDate(baseDate.getDate() + (task.daysOffset || 0));
 
             let assignedTo = task.assignedTo || options.assignedTo || null;
-            if (assignedTo === 'null' || assignedTo === 'undefined' || assignedTo === '') {
-                assignedTo = null;
-            }
+            if (assignedTo === 'null' || assignedTo === 'undefined' || assignedTo === '') assignedTo = null;
 
-            // Verify if the suggested ID exists in our user list to avoid foreign key violations
-            if (assignedTo && !users.some(u => u.id === assignedTo)) {
-                assignedTo = null;
-            }
+            if (assignedTo && !users.some(u => u.id === assignedTo)) assignedTo = null;
 
             return {
                 name: task.name,
-                description: task.description || `AI-generated task based on: "${input}"`,
+                description: task.description || `AI-generated task`,
                 due_date: taskDueDate.toISOString(),
                 assigned_to: assignedTo,
-                project_id: projectId,
                 created_by_ai: true,
                 status: 'To Do'
             };
         });
     } catch (error) {
         console.error('Failed to generate tasks:', error);
-        // Fallback or rethrow
-        alert('Failed to generate tasks with AI: ' + error.message);
         return [];
     }
 }
@@ -188,20 +178,11 @@ export async function generateDocumentWithAI(title, prompt, options = {}) {
 }
 
 // AI Today Summary
-export async function getTodaySummary(projectId, tasks, currentUser) {
-    // We can stick to local logic for this for speed, or use AI to make it witty.
-    // Let's keep the logic local for now unless you want a purely AI summary.
-    // However, if we want an "AI Coach" feeling, sending it to OpenAI is better.
+export async function getTodaySummary(tasks, currentUser) {
+    const myTasks = tasks.filter(t => t.assigned_to === currentUser.id);
 
-    // Preparation
-    const myTasks = projectId
-        ? tasks.filter(t => t.project_id === projectId && t.assigned_to === currentUser.id)
-        : tasks.filter(t => t.assigned_to === currentUser.id);
+    if (myTasks.length === 0) return "You have no tasks assigned in your stream.";
 
-    // If no tasks, return simple message
-    if (myTasks.length === 0) return projectId ? "You have no tasks assigned in this project." : "You have no tasks assigned in any project.";
-
-    // Prepare data for AI
     const taskData = myTasks.map(t => ({
         name: t.name,
         status: t.status,
@@ -209,42 +190,21 @@ export async function getTodaySummary(projectId, tasks, currentUser) {
     }));
 
     const systemPrompt = `
-    You are a helpful and energetic project assistant.
-    Review the user's tasks and give a brief, motivating summary of what they should focus on today.
-    Highlight overdue items first, then tasks due today.
-    Keep it concise (max 3-4 sentences) and friendly.
+    You are an executive performance assistant.
+    Review the user's tasks and give a brief, motivating summary of today's focus.
+    Highlight overdue items first.
+    Concise (max 3 sentences), executive and professional.
     `;
 
     try {
         const response = await callOpenAI([
             { role: "system", content: systemPrompt },
-            { role: "user", content: `Here are my tasks: ${JSON.stringify(taskData)}` }
+            { role: "user", content: `Tasks: ${JSON.stringify(taskData)}` }
         ]);
         return response;
     } catch (error) {
-        // Fallback to the old logic if API fails
-        return getLocalSummary(projectId, tasks, currentUser);
+        return "Focus on your pending actions for today. Clear the overdue items first.";
     }
-}
-
-// Fallback local summary (original logic)
-function getLocalSummary(projectId, tasks, currentUser) {
-    const projectTasks = tasks.filter(t => t.project_id === projectId);
-    const myTasks = projectTasks.filter(t => t.assigned_to === currentUser.id);
-    const overdue = myTasks.filter(t =>
-        t.status !== 'Done' && new Date(t.due_date) < new Date()
-    );
-    const dueToday = myTasks.filter(t => {
-        const dueDate = new Date(t.due_date).toDateString();
-        return t.status !== 'Done' && dueDate === new Date().toDateString();
-    });
-
-    let summary = '';
-    if (overdue.length > 0) summary += `⚠️ You have ${overdue.length} overdue tasks.\n`;
-    if (dueToday.length > 0) summary += `📅 ${dueToday.length} tasks due today.\n`;
-    if (!summary) summary = "✨ All caught up! No urgent tasks.";
-
-    return summary;
 }
 
 // Transcribe audio using OpenAI Whisper with auto-language detection
@@ -288,49 +248,29 @@ export async function transcribeAudio(audioBlob) {
 }
 // AI Assistant Chat with full context
 export async function askAiAssistant(userInput, context) {
-    const { projects, tasks, currentUser } = context;
-
-    // Build a compact summary of the workspace
-    const projectsSummary = projects.map(p => ({
-        name: p.name,
-        taskCount: tasks.filter(t => t.project_id === p.id).length,
-        doneTasks: tasks.filter(t => t.project_id === p.id && t.status === 'Done').length
-    }));
+    const { tasks, currentUser } = context;
 
     const pendingTasks = tasks
         .filter(t => t.status !== 'Done')
         .sort((a, b) => new Date(a.due_date) - new Date(b.due_date))
-        .slice(0, 20) // Slightly more context
+        .slice(0, 30)
         .map(t => ({
             name: t.name,
-            project: projects.find(p => p.id === t.project_id)?.name || 'General / Unassigned',
             due: t.due_date ? new Date(t.due_date).toLocaleDateString() : 'No date',
-            assignee: t.assigned_to === currentUser.id ? 'Me (the User)' : 'Another team member'
+            assignee: t.assigned_to === currentUser.id ? 'Me' : 'Team',
+            status: t.status
         }));
 
     const systemPrompt = `
-    You are professional AI Project Manager for the app "AI Project Hub".
-    You have access to the user's workspace data.
+    You are an elite AI Performance Coach for "Veta System".
+    You help manage a high-velocity Action Stream.
     
-    CurrentUser: ${currentUser.name} (${currentUser.role})
+    CurrentUser: ${currentUser.name}
     
-    Workspace Status:
-    - Projects: ${JSON.stringify(projectsSummary)}
-    - Pending Tasks (Next 15): ${JSON.stringify(pendingTasks)}
+    Stream Data:
+    ${JSON.stringify(pendingTasks)}
     
-    Formatting Instructions:
-    1. EXTREMELY IMPORTANT: Use Markdown for formatting.
-    2. Use bold titles for tasks or projects (**Title**).
-    3. Use bullet points for details.
-    4. Group information logically (e.g., by Project or by Urgency).
-    5. Use relevant emojis periodically to make the interface friendly (🚀, 📅, ⚠️, ✅).
-    6. Keep sentences concise. Use shorter, punchier paragraphs.
-    7. If listing tasks, format them like this:
-       **Task Name** 🗓️ Jan 10
-       • Project: [Project Name]
-       • Status: [Status]
-    
-    Tone: Executive, supportive, and efficient.
+    Formatting: Markdown, bold titles, professional performance-oriented tone.
     `;
 
     try {
@@ -340,105 +280,11 @@ export async function askAiAssistant(userInput, context) {
         ], 0.6);
         return response;
     } catch (error) {
-        console.error('AI Assistant Error:', error);
-        // Show specific configuration errors
-        if (error.message.includes('API Key') || error.message.includes('missing')) {
-            return `⚠️ **Configuration Error**: ${error.message}\n\nPlease check your cloud provider settings.`;
-        }
-        return "I'm sorry, I'm having trouble connecting to my central brain. Please check your connection or try again later.";
+        return "Sync error. Please try again.";
     }
 }
 
-// AI-Guided Project Setup with PMBOK & Agile knowledge
-export async function guidedProjectSetup(userInput, conversationHistory = [], currentStep = 'intro', language = 'en') {
-    const isSpanish = language.startsWith('es');
-
-    const systemPrompt = `
-    You are an expert AI Project Manager with deep knowledge of PMBOK 7th Edition, Agile (Scrum/Kanban), and Risk Management.
-    
-    **LANGUAGE INSTRUCTION**: 
-    - The user's preferred language is: ${isSpanish ? 'SPANISH (Español)' : 'ENGLISH'}.
-    - YOU MUST respond in ${isSpanish ? 'Spanish' : 'English'}.
-    - If the user switches language, switch with them.
-    
-    Your role is to guide users through setting up a new project by asking key questions CRUCIAL for success.
-    
-    **Current Step: ${currentStep}**
-    
-    Follow this conversation flow:
-    
-    1. **INTRO** (if no history): Warmly greet the user. Ask what problem/opportunity they are trying to address (PMBOK: Business Case).
-       ${isSpanish ? '(Hola, soy tu PM con IA. ¿Qué proyecto quieres crear hoy?)' : ''}
-    
-    2. **STAKEHOLDERS**: Ask who the key stakeholders are (PMBOK: Stakeholder Engagement).
-    
-    3. **SUCCESS_CRITERIA**: Ask what "done" looks like (Agile: Definition of Done).
-    
-    4. **TIMELINE**: Ask about target deadline (PMBOK: Schedule Management).
-    
-    5. **RISKS**: Ask what worries them most (PMBOK: Risk Management).
-    
-    6. **METHODOLOGY**: Recommend Agile, Waterfall, or Hybrid.
-    
-    7. **SUMMARY**: Generate a structured project summary (JSON).
-    
-    **Formatting Guidelines:**
-    - Use Markdown.
-    - Keep messages conversational but professional.
-    - One question at a time.
-    - Use emojis sparingly.
-    
-    **JSON Summary Format (only for final step):**
-    \`\`\`json
-    {
-        "projectName": "...",
-        "description": "...",
-        "problemStatement": "...",
-        "successCriteria": ["...", "..."],
-        "stakeholders": ["...", "..."],
-        "timeline": "...",
-        "risks": ["...", "...", "..."],
-        "methodology": "Agile|Waterfall|Hybrid",
-        "suggestedTasks": [
-            {"name": "...", "description": "..."},
-            ...
-        ]
-    }
-    \`\`\`
-    `;
-
-    const messages = [
-        { role: "system", content: systemPrompt },
-        ...conversationHistory,
-        { role: "user", content: userInput }
-    ];
-
-    try {
-        const response = await callOpenAI(messages, 0.7, false);
-        return response;
-    } catch (error) {
-        console.error('Guided Setup Error:', error);
-        if (error.message.includes('API Key') || error.message.includes('missing')) {
-            throw error;
-        }
-        return "I'm having trouble connecting right now. Please try again in a moment.";
-    }
-}
-
-// Parse the AI's summary response to extract project data
-export function parseProjectSummary(aiResponse) {
-    try {
-        // Extract JSON from markdown code blocks
-        const jsonMatch = aiResponse.match(/```json\s*([\s\S]*?)\s*```/);
-        if (jsonMatch && jsonMatch[1]) {
-            return JSON.parse(jsonMatch[1]);
-        }
-        return null;
-    } catch (error) {
-        console.error('Error parsing project summary:', error);
-        return null;
-    }
-}
+// Guided Setup removed - replaced by direct action capture
 
 // ============================================
 // VOICE-FIRST PM COMMAND CENTER FUNCTIONS
@@ -697,34 +543,28 @@ export async function extractTasksFromVoice(transcription, context = {}) {
 
 /**
  * Analyze a single inbox item to suggest smart processing fields.
- * Wraps extractTasksFromVoice but returns a single structured suggestion.
  * @param {string} text - The content to analyze
- * @param {Object} context - Full user/project context
- * @returns {Object} - { actionType, assigned_to, project_id, due_date, name }
+ * @param {Object} context - Full user context
+ * @returns {Object} - { actionType, assigned_to, due_date, name }
  */
 export async function analyzeInboxAction(text, context) {
-    // Reuse the robust extraction logic
     const result = await extractTasksFromVoice(text, context);
 
     if (result.tasks && result.tasks.length > 0) {
-        const task = result.tasks[0]; // Take the first/primary task detected
+        const task = result.tasks[0];
 
-        // Map extraction result to our internal fields
         return {
             name: task.name,
             action_type: task.actionType || 'todo',
             assigned_to: task.assignedTo,
-            project_id: task.projectId,
             due_date: task.dueDate
         };
     }
 
-    // Fallback if no specific task structure detected
     return {
         name: text,
         action_type: 'todo',
         assigned_to: null,
-        project_id: null,
         due_date: null
     };
 }

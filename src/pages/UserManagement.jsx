@@ -1,68 +1,37 @@
 import { useState } from 'react';
 import { useData } from '../context/DataContext';
-import { Shield, User, Mail, FolderKanban, UserPlus, UserMinus, Plus, Trash2 } from 'lucide-react';
-import { format } from 'date-fns';
+import { Shield, User, Mail, Activity, ShieldAlert } from 'lucide-react';
 
 export default function UserManagement() {
-    const { users, projects, updateProject, currentUser } = useData();
+    const { users, tasks, currentUser } = useData();
     const [selectedUser, setSelectedUser] = useState(null);
 
     // Check if current user is admin
     if (currentUser?.role !== 'admin') {
         return (
             <div className="empty-state">
+                <ShieldAlert size={48} className="text-error mb-4" />
                 <h2>Access Denied</h2>
                 <p>Only administrators can access user management.</p>
             </div>
         );
     }
 
-    // Get projects for a specific user
-    const getUserProjects = (userId) => {
-        return projects.filter(p => p.members?.includes(userId) || p.owner_id === userId);
-    };
-
-    // Add user to project
-    const addUserToProject = (userId, projectId) => {
-        const project = projects.find(p => p.id === projectId);
-        if (!project) return;
-
-        const currentMembers = project.members || [];
-        if (!currentMembers.includes(userId)) {
-            updateProject(projectId, { members: [...currentMembers, userId] });
-        }
-    };
-
-    // Remove user from project
-    const removeUserFromProject = (userId, projectId) => {
-        const project = projects.find(p => p.id === projectId);
-        if (!project) return;
-
-        // Don't allow removing the owner
-        if (project.owner_id === userId) {
-            alert('Cannot remove project owner from their project');
-            return;
-        }
-
-        const updatedMembers = (project.members || []).filter(id => id !== userId);
-        updateProject(projectId, { members: updatedMembers });
-    };
-
-    // Get projects user is NOT in
-    const getAvailableProjects = (userId) => {
-        return projects.filter(p => {
-            const members = p.members || [];
-            return !members.includes(userId) && p.owner_id !== userId;
-        });
+    // Get stats for a specific user
+    const getUserStats = (userId) => {
+        const userTasks = tasks.filter(t => t.assigned_to === userId);
+        const pending = userTasks.filter(t => t.status !== 'Done').length;
+        const completed = userTasks.filter(t => t.status === 'Done').length;
+        return { pending, completed };
     };
 
     return (
-        <div>
+        <div className="page-container fade-in">
             {/* Page Header */}
             <div className="page-header">
                 <div>
                     <h1 className="page-title">User Management</h1>
-                    <p className="page-subtitle">Manage users and their project assignments</p>
+                    <p className="page-subtitle">Manage system users and view their action status</p>
                 </div>
             </div>
 
@@ -77,8 +46,8 @@ export default function UserManagement() {
                     <div className="stat-label">Admins</div>
                 </div>
                 <div className="stat-card">
-                    <div className="stat-value">{projects.length}</div>
-                    <div className="stat-label">Total Projects</div>
+                    <div className="stat-value">{tasks.filter(t => t.status !== 'Done').length}</div>
+                    <div className="stat-label">Open Actions</div>
                 </div>
             </div>
 
@@ -88,10 +57,9 @@ export default function UserManagement() {
                     <h3 className="card-title">All Users</h3>
                 </div>
                 <div className="card-body" style={{ padding: 0 }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
                         {users.map(user => {
-                            const userProjects = getUserProjects(user.id);
-                            const availableProjects = getAvailableProjects(user.id);
+                            const { pending, completed } = getUserStats(user.id);
                             const isExpanded = selectedUser === user.id;
                             const isAdmin = user.role === 'admin';
 
@@ -101,6 +69,8 @@ export default function UserManagement() {
                                     style={{
                                         borderBottom: '1px solid var(--border-light)',
                                         padding: 'var(--space-4) var(--space-6)',
+                                        background: isExpanded ? 'var(--bg-secondary)' : 'transparent',
+                                        transition: 'background 0.2s'
                                     }}
                                 >
                                     {/* User Header */}
@@ -114,7 +84,9 @@ export default function UserManagement() {
                                         onClick={() => setSelectedUser(isExpanded ? null : user.id)}
                                     >
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-                                            <div className="avatar">{user.avatar}</div>
+                                            <div className="avatar">
+                                                {user.avatar || user.name.charAt(0)}
+                                            </div>
                                             <div>
                                                 <div style={{
                                                     fontWeight: 'var(--font-semibold)',
@@ -126,8 +98,7 @@ export default function UserManagement() {
                                                     {isAdmin && (
                                                         <span className="badge badge-warning" style={{
                                                             fontSize: 'var(--text-xs)',
-                                                            background: 'rgba(245, 158, 11, 0.1)',
-                                                            color: 'var(--color-accent-amber)',
+                                                            padding: '2px 8px'
                                                         }}>
                                                             <Shield size={10} />
                                                             Admin
@@ -147,11 +118,18 @@ export default function UserManagement() {
                                             </div>
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
-                                            <div className="badge badge-neutral">
-                                                {userProjects.length} {userProjects.length === 1 ? 'project' : 'projects'}
+                                            <div className="flex gap-4">
+                                                <div className="text-center">
+                                                    <div style={{ fontSize: '12px', fontWeight: 'bold' }}>{pending}</div>
+                                                    <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Open</div>
+                                                </div>
+                                                <div className="text-center">
+                                                    <div style={{ fontSize: '12px', fontWeight: 'bold' }}>{completed}</div>
+                                                    <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Done</div>
+                                                </div>
                                             </div>
                                             <button className="btn btn-ghost btn-sm">
-                                                {isExpanded ? 'Hide' : 'Manage'}
+                                                {isExpanded ? 'Hide' : 'Details'}
                                             </button>
                                         </div>
                                     </div>
@@ -160,113 +138,24 @@ export default function UserManagement() {
                                     {isExpanded && (
                                         <div style={{
                                             marginTop: 'var(--space-4)',
-                                            paddingTop: 'var(--space-4)',
-                                            borderTop: '1px solid var(--border-light)',
+                                            padding: 'var(--space-4)',
+                                            background: 'var(--bg-primary)',
+                                            borderRadius: 'var(--radius-lg)',
+                                            border: '1px solid var(--border-light)',
+                                            animation: 'fadeIn 0.2s ease'
                                         }}>
-                                            {/* Current Projects */}
-                                            <div style={{ marginBottom: 'var(--space-4)' }}>
-                                                <h4 style={{
-                                                    fontSize: 'var(--text-sm)',
-                                                    fontWeight: 'var(--font-semibold)',
-                                                    marginBottom: 'var(--space-2)',
-                                                }}>
-                                                    Assigned Projects ({userProjects.length})
-                                                </h4>
-                                                {userProjects.length === 0 ? (
-                                                    <div style={{
-                                                        padding: 'var(--space-3)',
-                                                        background: 'var(--bg-tertiary)',
-                                                        borderRadius: 'var(--radius-md)',
-                                                        fontSize: 'var(--text-sm)',
-                                                        color: 'var(--text-muted)',
-                                                        textAlign: 'center',
-                                                    }}>
-                                                        Not assigned to any projects
-                                                    </div>
-                                                ) : (
-                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-                                                        {userProjects.map(project => {
-                                                            const isOwner = project.owner_id === user.id;
-                                                            return (
-                                                                <div
-                                                                    key={project.id}
-                                                                    style={{
-                                                                        display: 'flex',
-                                                                        alignItems: 'center',
-                                                                        justifyContent: 'space-between',
-                                                                        padding: 'var(--space-2) var(--space-3)',
-                                                                        background: 'var(--bg-secondary)',
-                                                                        borderRadius: 'var(--radius-md)',
-                                                                        border: '1px solid var(--border-light)',
-                                                                    }}
-                                                                >
-                                                                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-                                                                        <FolderKanban size={16} style={{ color: 'var(--color-primary-600)' }} />
-                                                                        <span style={{ fontSize: 'var(--text-sm)' }}>{project.name}</span>
-                                                                        {isOwner && (
-                                                                            <span className="badge badge-primary" style={{ fontSize: '10px' }}>
-                                                                                Owner
-                                                                            </span>
-                                                                        )}
-                                                                    </div>
-                                                                    {!isOwner && (
-                                                                        <button
-                                                                            className="btn btn-ghost btn-icon btn-sm"
-                                                                            onClick={() => removeUserFromProject(user.id, project.id)}
-                                                                            title="Remove from project"
-                                                                        >
-                                                                            <UserMinus size={14} />
-                                                                        </button>
-                                                                    )}
-                                                                </div>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            {/* Available Projects to Add */}
-                                            {availableProjects.length > 0 && (
+                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)' }}>
                                                 <div>
-                                                    <h4 style={{
-                                                        fontSize: 'var(--text-sm)',
-                                                        fontWeight: 'var(--font-semibold)',
-                                                        marginBottom: 'var(--space-2)',
-                                                    }}>
-                                                        Add to Project
-                                                    </h4>
-                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-                                                        {availableProjects.map(project => (
-                                                            <div
-                                                                key={project.id}
-                                                                style={{
-                                                                    display: 'flex',
-                                                                    alignItems: 'center',
-                                                                    justifyContent: 'space-between',
-                                                                    padding: 'var(--space-2) var(--space-3)',
-                                                                    background: 'var(--bg-secondary)',
-                                                                    borderRadius: 'var(--radius-md)',
-                                                                    border: '1px solid var(--border-light)',
-                                                                }}
-                                                            >
-                                                                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-                                                                    <FolderKanban size={16} style={{ color: 'var(--text-muted)' }} />
-                                                                    <span style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-                                                                        {project.name}
-                                                                    </span>
-                                                                </div>
-                                                                <button
-                                                                    className="btn btn-primary btn-sm"
-                                                                    onClick={() => addUserToProject(user.id, project.id)}
-                                                                >
-                                                                    <UserPlus size={14} />
-                                                                    Add
-                                                                </button>
-                                                            </div>
-                                                        ))}
-                                                    </div>
+                                                    <h4 style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px' }}>User Details</h4>
+                                                    <p className="text-sm"><strong>Role:</strong> {user.role}</p>
+                                                    <p className="text-sm"><strong>Status:</strong> Active</p>
                                                 </div>
-                                            )}
+                                                <div>
+                                                    <h4 style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px' }}>Action Performance</h4>
+                                                    <p className="text-sm"><strong>Total Actions:</strong> {pending + completed}</p>
+                                                    <p className="text-sm"><strong>Completion Rate:</strong> {pending + completed > 0 ? Math.round((completed / (pending + completed)) * 100) : 0}%</p>
+                                                </div>
+                                            </div>
                                         </div>
                                     )}
                                 </div>
