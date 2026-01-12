@@ -42,6 +42,7 @@ export default function GlobalVoiceCapture() {
         saveInbox: language === 'es' ? 'Guardar en Inbox' : 'Save to Inbox',
         confirmCreate: language === 'es' ? 'Confirmar y Crear' : 'Confirm & Create',
         success: language === 'es' ? '¡Capturado Exitosamente!' : 'Captured Successfully!',
+        error: language === 'es' ? 'Error al guardar. Revisa tu conexión.' : 'Save failed. Check your connection.',
         voiceCommand: language === 'es' ? 'Nota de Voz' : 'Voice Note'
     };
 
@@ -49,9 +50,9 @@ export default function GlobalVoiceCapture() {
     const audioChunks = useRef([]);
     const timerInterval = useRef(null);
 
-    // Auto-close success message
+    // Auto-close success/error message
     useEffect(() => {
-        if (status === 'success') {
+        if (status === 'success' || status === 'error') {
             const timer = setTimeout(() => {
                 setStatus('');
                 setExtractedTasks([]);
@@ -152,13 +153,13 @@ export default function GlobalVoiceCapture() {
                     setStatus('review');
                 } else {
                     // Extraction found no tasks → save to inbox
-                    await createInboxItem(result.text, result.language);
-                    setStatus('success');
+                    const saved = await createInboxItem(result.text, result.language);
+                    setStatus(saved ? 'success' : 'error');
                 }
             } else if (classification.suggestedAction === 'save_to_inbox') {
                 // Content is note/idea/question → save directly to inbox
-                await createInboxItem(result.text, result.language);
-                setStatus('success');
+                const saved = await createInboxItem(result.text, result.language);
+                setStatus(saved ? 'success' : 'error');
             } else {
                 // Content is unclear → ask for clarification
                 setNeedsClarification(true);
@@ -166,8 +167,8 @@ export default function GlobalVoiceCapture() {
                     ? '¿Podrías aclarar qué quieres registrar?'
                     : 'Could you clarify what you want to record?'));
                 // Still save to inbox for now
-                await createInboxItem(result.text, result.language);
-                setStatus('success');
+                const saved = await createInboxItem(result.text, result.language);
+                setStatus(saved ? 'success' : 'error');
             }
 
         } catch (err) {
@@ -308,8 +309,16 @@ export default function GlobalVoiceCapture() {
                 </div>
             )}
 
+            {/* 4b. Error State */}
+            {status === 'error' && (
+                <div className="status-pill error">
+                    <X size={16} />
+                    <span>{t.error}</span>
+                </div>
+            )}
+
             {/* 5. Floating Action Button (Idle) */}
-            {!isRecording && !isLoading && status !== 'review' && status !== 'success' && (
+            {!isRecording && !isLoading && status !== 'review' && status !== 'success' && status !== 'error' && (
                 <button className="voice-fab" onClick={startRecording} title={t.voiceCommand}>
                     <Mic size={24} />
                     <div className="fab-glow"></div>
@@ -461,6 +470,7 @@ export default function GlobalVoiceCapture() {
                 }
 
                 .status-pill.success { background: var(--color-success); color: white; border: none; }
+                .status-pill.error { background: var(--color-error); color: white; border: none; }
                 .status-pill.processing { color: var(--text-primary); }
 
                 /* Review Card */
