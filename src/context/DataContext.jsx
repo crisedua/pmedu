@@ -756,6 +756,12 @@ export function DataProvider({ children }) {
   // Inbox CRUD
   const createInboxItem = async (content, language = null) => {
     try {
+      // Guard against missing user
+      if (!currentUser?.id) {
+        console.warn('Cannot create inbox item: No current user');
+        return null;
+      }
+
       const newItem = {
         content,
         language,
@@ -763,11 +769,18 @@ export function DataProvider({ children }) {
         processed: false
       };
 
-      const { data, error } = await supabase
+      // Add 10-second timeout to prevent hanging
+      const insertPromise = supabase
         .from('pm_inbox')
         .insert([newItem])
         .select()
         .single();
+
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Inbox save timeout')), 10000)
+      );
+
+      const { data, error } = await Promise.race([insertPromise, timeoutPromise]);
 
       if (error) throw error;
 
@@ -775,7 +788,8 @@ export function DataProvider({ children }) {
       return data;
     } catch (err) {
       console.error('Error creating inbox item:', err);
-      throw err;
+      // Don't throw - return null to allow graceful degradation
+      return null;
     }
   };
 
