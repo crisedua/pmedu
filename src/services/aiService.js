@@ -445,6 +445,103 @@ export function parseProjectSummary(aiResponse) {
 // ============================================
 
 /**
+ * Classify voice content to determine its type and suggested action.
+ * This runs before task extraction to intelligently route content.
+ * @param {string} transcription - The voice transcription text
+ * @param {Object} context - Context with language preference
+ * @returns {Object} - { contentType, confidence, intent, suggestedAction, summary }
+ */
+export async function classifyVoiceContent(transcription, context = {}) {
+    const { language = 'en' } = context;
+    const isSpanish = language.startsWith('es');
+
+    const systemPrompt = `
+    You are a content classifier for voice recordings in a PM app.
+    Analyze this transcription and classify it into one of the following types:
+    
+    CONTENT TYPES:
+    - task: Contains actionable commitment with clear action (e.g., "Juan needs to finish the report by Friday")
+    - note: General information, observation, or status update (e.g., "The client liked the new design")
+    - question: Asking for information (e.g., "What's the status of the API integration?")
+    - idea: Suggestion or brainstorm (e.g., "We could add a dark mode feature")
+    - meeting_summary: Summary or recap of a discussion
+    - unclear: Cannot determine type confidently
+    
+    SUGGESTED ACTIONS:
+    - extract_tasks: Content contains clear tasks → run task extraction
+    - save_to_inbox: Content is informational → save directly to inbox
+    - ask_clarification: Content is unclear → ask user for more info
+    
+    LANGUAGE: Respond in ${isSpanish ? 'Spanish' : 'English'} for intent/summary fields.
+    
+    Return ONLY valid JSON:
+    {
+        "contentType": "task|note|question|idea|meeting_summary|unclear",
+        "confidence": 0.95,
+        "intent": "Brief description of what user wants to accomplish",
+        "suggestedAction": "extract_tasks|save_to_inbox|ask_clarification",
+        "summary": "One-sentence summary of the content"
+    }
+    
+    EXAMPLES:
+    
+    Input: "Juan debe terminar el reporte para el viernes"
+    Output: {
+        "contentType": "task",
+        "confidence": 0.95,
+        "intent": "Crear tarea para Juan",
+        "suggestedAction": "extract_tasks",
+        "summary": "Juan debe terminar el reporte para el viernes"
+    }
+    
+    Input: "El cliente aprobó el diseño de la landing page"
+    Output: {
+        "contentType": "note",
+        "confidence": 0.9,
+        "intent": "Registrar aprobación del cliente",
+        "suggestedAction": "save_to_inbox",
+        "summary": "Cliente aprobó diseño de landing page"
+    }
+    
+    Input: "mm, no sé, algo sobre"
+    Output: {
+        "contentType": "unclear",
+        "confidence": 0.3,
+        "intent": "Contenido poco claro",
+        "suggestedAction": "ask_clarification",
+        "summary": "Grabación poco clara"
+    }
+    `;
+
+    try {
+        const response = await callOpenAI([
+            { role: "system", content: systemPrompt },
+            { role: "user", content: `Transcription: "${transcription}"` }
+        ], 0.2, true); // Low temperature for consistent classification
+
+        const result = JSON.parse(response);
+
+        // Validate confidence threshold
+        if (result.confidence < 0.5) {
+            result.suggestedAction = 'ask_clarification';
+        }
+
+        return result;
+    } catch (error) {
+        console.error('Content classification error:', error);
+        // Fallback: assume it's a task and let task extraction handle it
+        return {
+            contentType: 'unclear',
+            confidence: 0.3,
+            intent: isSpanish ? 'Error al clasificar' : 'Classification error',
+            suggestedAction: 'save_to_inbox', // Safe fallback
+            summary: transcription.substring(0, 100),
+            error: error.message
+        };
+    }
+}
+
+/**
  * Extract tasks from voice transcription.
  * Identifies task descriptions, owners, and due dates from natural speech.
  * @param {string} transcription - The voice transcription text

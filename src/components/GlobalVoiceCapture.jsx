@@ -12,7 +12,7 @@ import {
     ArrowRight,
     Loader2
 } from 'lucide-react';
-import { transcribeAudio, extractTasksFromVoice, generateFollowUpQuestion } from '../services/aiService';
+import { transcribeAudio, extractTasksFromVoice, classifyVoiceContent, generateFollowUpQuestion } from '../services/aiService';
 
 export default function GlobalVoiceCapture() {
     const { createInboxItem, users, projects, language, createMultipleTasks } = useData();
@@ -32,6 +32,7 @@ export default function GlobalVoiceCapture() {
         listening: language === 'es' ? 'Escuchando...' : 'Listening...',
         stopProcess: language === 'es' ? 'Detener y Procesar' : 'Stop & Process',
         transcribing: language === 'es' ? 'Transcribiendo...' : 'Transcribing...',
+        analyzing: language === 'es' ? 'Analizando contenido...' : 'Analyzing content...',
         extracting: language === 'es' ? 'Extrayendo Tareas...' : 'Extracting Tasks...',
         captured: language === 'es' ? 'Capturadas' : 'Captured',
         tasks: language === 'es' ? 'Tarea(s)' : 'Task(s)',
@@ -109,23 +110,44 @@ export default function GlobalVoiceCapture() {
 
             setTranscription(result.text);
 
-            // 2. Analyze & Extract Tasks
+            // 2. CLASSIFY CONTENT (NEW!)
             setProcessingStage('analyzing');
-            const extraction = await extractTasksFromVoice(result.text, { users, projects, language });
+            const classification = await classifyVoiceContent(result.text, { language });
 
-            if (extraction.tasks.length > 0) {
-                setExtractedTasks(extraction.tasks);
+            console.log('[Voice Capture] Classification:', classification);
 
-                // If AI flags need for follow up, set it
-                if (extraction.needsFollowUp) {
-                    setNeedsClarification(true);
-                    setFollowUpQuestion(extraction.followUpQuestion);
+            // 3. Route based on classification
+            if (classification.suggestedAction === 'extract_tasks') {
+                // Content is task-related → extract tasks
+                setProcessingStage('extracting');
+                const extraction = await extractTasksFromVoice(result.text, { users, projects, language });
+
+                if (extraction.tasks.length > 0) {
+                    setExtractedTasks(extraction.tasks);
+
+                    // If AI flags need for follow up, set it
+                    if (extraction.needsFollowUp) {
+                        setNeedsClarification(true);
+                        setFollowUpQuestion(extraction.followUpQuestion);
+                    }
+
+                    setStatus('review');
+                } else {
+                    // Extraction found no tasks → save to inbox
+                    await createInboxItem(result.text, result.language);
+                    setStatus('success');
                 }
-
-                setStatus('review');
+            } else if (classification.suggestedAction === 'save_to_inbox') {
+                // Content is note/idea/question → save directly to inbox
+                await createInboxItem(result.text, result.language);
+                setStatus('success');
             } else {
-                // Determine if it was just a note or failed extraction
-                // For MVP, just save to inbox if no tasks found
+                // Content is unclear → ask for clarification
+                setNeedsClarification(true);
+                setFollowUpQuestion(classification.intent || (language === 'es'
+                    ? '¿Podrías aclarar qué quieres registrar?'
+                    : 'Could you clarify what you want to record?'));
+                // Still save to inbox for now
                 await createInboxItem(result.text, result.language);
                 setStatus('success');
             }
@@ -192,7 +214,9 @@ export default function GlobalVoiceCapture() {
                 <div className="status-pill processing">
                     <Loader2 className="animate-spin" size={18} />
                     <span>
-                        {processingStage === 'transcribing' ? t.transcribing : t.extracting}
+                        {processingStage === 'transcribing' && t.transcribing}
+                        {processingStage === 'analyzing' && t.analyzing}
+                        {processingStage === 'extracting' && t.extracting}
                     </span>
                 </div>
             )}
