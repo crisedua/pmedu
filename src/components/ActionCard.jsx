@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
     CheckCircle2,
     Circle,
@@ -23,6 +23,17 @@ export default function ActionCard({ item, type, onAction, onEdit, onDelete, onM
     const { getUser, getProject, users, updateTask } = useData();
     const [menuOpen, setMenuOpen] = useState(false);
     const [showAssignMenu, setShowAssignMenu] = useState(false);
+    const menuButtonRef = useRef(null);
+
+    // Calculate dropdown position based on button location
+    const getDropdownPosition = () => {
+        if (!menuButtonRef.current) return { top: 0, right: 0 };
+        const rect = menuButtonRef.current.getBoundingClientRect();
+        return {
+            top: rect.bottom + 4,
+            right: window.innerWidth - rect.right
+        };
+    };
 
     // Determine visual style based on type
     const isInbox = type === 'inbox';
@@ -164,6 +175,7 @@ export default function ActionCard({ item, type, onAction, onEdit, onDelete, onM
             {/* Actions Menu */}
             <div className="action-trailing" style={{ position: 'relative' }}>
                 <button
+                    ref={menuButtonRef}
                     className="btn btn-ghost btn-icon btn-sm"
                     onClick={(e) => {
                         e.stopPropagation();
@@ -179,19 +191,19 @@ export default function ActionCard({ item, type, onAction, onEdit, onDelete, onM
                 {menuOpen && (
                     <>
                         <div
-                            style={{ position: 'fixed', inset: 0, zIndex: 999, background: 'transparent' }}
+                            style={{ position: 'fixed', inset: 0, zIndex: 9998, background: 'transparent' }}
                             onClick={(e) => { e.stopPropagation(); setMenuOpen(false); }}
                         />
                         <div className="dropdown-menu" style={{
-                            position: 'absolute',
-                            right: 0,
-                            top: '100%',
-                            zIndex: 1000,
-                            minWidth: '160px',
+                            position: 'fixed',
+                            top: getDropdownPosition().top,
+                            right: getDropdownPosition().right,
+                            zIndex: 9999,
+                            minWidth: '180px',
                             background: '#ffffff',
                             border: '1px solid #e4e4e7',
                             borderRadius: '8px',
-                            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)',
+                            boxShadow: '0 10px 25px -3px rgba(0, 0, 0, 0.15), 0 4px 6px -4px rgba(0, 0, 0, 0.1)',
                             padding: '4px 0'
                         }}>
                             {/* Edit option for action/waiting types */}
