@@ -370,6 +370,12 @@ export function DataProvider({ children }) {
       // #region agent log
       console.log('[DEBUG-D] loadTasks:error - loadTasks failed:', { error: err.message });
       // #endregion
+      console.error('Error loading tasks (diagnostic):', {
+        message: err.message,
+        stack: err.stack,
+        url: import.meta.env.VITE_SUPABASE_URL,
+        hasKey: !!import.meta.env.VITE_SUPABASE_ANON_KEY
+      });
       console.error('Error loading tasks:', err);
       setTasks([]);
     }
@@ -396,6 +402,12 @@ export function DataProvider({ children }) {
       // #region agent log
       console.log('[DEBUG-D] loadDocuments:error - loadDocuments failed:', {error:err.message});
       // #endregion
+      console.error('Error loading documents (diagnostic):', {
+        message: err.message,
+        stack: err.stack,
+        url: import.meta.env.VITE_SUPABASE_URL,
+        hasKey: !!import.meta.env.VITE_SUPABASE_ANON_KEY
+      });
       console.error('Error loading documents:', err);
       setDocuments([]);
     }
@@ -1030,6 +1042,12 @@ export function DataProvider({ children }) {
       setInbox(prev => prev.map(item => item.id === tempId ? data : item));
       return data;
     } catch (err) {
+      console.error('Error creating inbox item (diagnostic):', {
+        message: err.message,
+        stack: err.stack,
+        url: import.meta.env.VITE_SUPABASE_URL,
+        hasKey: !!import.meta.env.VITE_SUPABASE_ANON_KEY
+      });
       console.error('Error creating inbox item:', err);
       // Mark as error in UI
       setInbox(prev => prev.map(item => item.id === tempId ? { ...item, error: true, errorMessage: err.message } : item));
