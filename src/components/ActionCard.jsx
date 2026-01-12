@@ -1,4 +1,5 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
     CheckCircle2,
     Circle,
@@ -23,17 +24,20 @@ export default function ActionCard({ item, type, onAction, onEdit, onDelete, onM
     const { getUser, getProject, users, updateTask } = useData();
     const [menuOpen, setMenuOpen] = useState(false);
     const [showAssignMenu, setShowAssignMenu] = useState(false);
+    const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
     const menuButtonRef = useRef(null);
 
-    // Calculate dropdown position based on button location
-    const getDropdownPosition = () => {
-        if (!menuButtonRef.current) return { top: 0, right: 0 };
-        const rect = menuButtonRef.current.getBoundingClientRect();
-        return {
-            top: rect.bottom + 4,
-            right: window.innerWidth - rect.right
-        };
-    };
+    // Update menu position when it opens
+    useEffect(() => {
+        if (menuOpen && menuButtonRef.current) {
+            const rect = menuButtonRef.current.getBoundingClientRect();
+            setMenuPosition({
+                top: rect.bottom + 4,
+                right: window.innerWidth - rect.right
+            });
+        }
+    }, [menuOpen]);
+
 
     // Determine visual style based on type
     const isInbox = type === 'inbox';
@@ -187,8 +191,8 @@ export default function ActionCard({ item, type, onAction, onEdit, onDelete, onM
                     <MoreVertical size={14} />
                 </button>
 
-                {menuOpen && console.log('Menu is OPEN - rendering dropdown')}
-                {menuOpen && (
+                {menuOpen && console.log('Menu is OPEN - rendering dropdown via portal')}
+                {menuOpen && createPortal(
                     <>
                         <div
                             style={{ position: 'fixed', inset: 0, zIndex: 9998, background: 'transparent' }}
@@ -196,14 +200,14 @@ export default function ActionCard({ item, type, onAction, onEdit, onDelete, onM
                         />
                         <div className="dropdown-menu" style={{
                             position: 'fixed',
-                            top: getDropdownPosition().top,
-                            right: getDropdownPosition().right,
+                            top: menuPosition.top,
+                            right: menuPosition.right,
                             zIndex: 9999,
                             minWidth: '180px',
                             background: '#ffffff',
-                            border: '1px solid #e4e4e7',
+                            border: '1px solid #d4d4d8',
                             borderRadius: '8px',
-                            boxShadow: '0 10px 25px -3px rgba(0, 0, 0, 0.15), 0 4px 6px -4px rgba(0, 0, 0, 0.1)',
+                            boxShadow: '0 10px 25px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -4px rgba(0, 0, 0, 0.15)',
                             padding: '4px 0'
                         }}>
                             {/* Edit option for action/waiting types */}
@@ -372,7 +376,8 @@ export default function ActionCard({ item, type, onAction, onEdit, onDelete, onM
                                 </>
                             )}
                         </div>
-                    </>
+                    </>,
+                    document.body
                 )}
             </div>
 
