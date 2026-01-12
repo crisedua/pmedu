@@ -40,6 +40,10 @@ export function DataProvider({ children }) {
   // Check for saved user session on mount (instant, no API calls)
   useEffect(() => {
     const initAuth = async () => {
+      // Reset data loading state on mount/refresh
+      setDataLoaded(false);
+      initStarted.current = false;
+      
       const savedUser = localStorage.getItem('pm-app-user');
       if (savedUser) {
         setCurrentUser(JSON.parse(savedUser));
