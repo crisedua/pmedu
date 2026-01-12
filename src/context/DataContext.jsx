@@ -125,44 +125,58 @@ export function DataProvider({ children }) {
     try {
       console.log('[Init] User authenticated, loading data...');
 
-      // Create a promise that rejects after 60 seconds to prevent infinite loading
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Data loading timed out')), 60000);
-      });
-
-      // Helper to log each load
-      const loadAndLog = async (name, fn) => {
+      // Helper to log each load with individual timeout
+      const loadWithTimeout = async (name, fn, timeoutMs = 15000) => {
         console.log(`[Init] Loading ${name}...`);
         const start = Date.now();
-        await fn();
-        console.log(`[Init] ✓ ${name} loaded in ${Date.now() - start}ms`);
+
+        try {
+          await Promise.race([
+            fn(),
+            new Promise((_, reject) =>
+              setTimeout(() => reject(new Error(`${name} loading timed out`)), timeoutMs)
+            )
+          ]);
+          console.log(`[Init] ✓ ${name} loaded in ${Date.now() - start}ms`);
+        } catch (err) {
+          console.warn(`[Init] ⚠ ${name} failed to load:`, err.message);
+          // Continue despite individual failures
+        }
       };
 
-      // Load all data from Supabase (race against timeout)
-      await Promise.race([
-        Promise.all([
-          loadAndLog('users', loadUsers),
-          loadAndLog('projects', loadProjects),
-          loadAndLog('tasks', loadTasks),
-          loadAndLog('documents', loadDocuments),
-          loadAndLog('inbox', loadInbox),
-          loadAndLog('files', loadFiles),
-        ]),
-        timeoutPromise
+      // PHASE 1: Load critical data (users, projects, tasks)
+      // These are essential for the dashboard/project pages to work
+      console.log('[Init] Phase 1: Loading critical data...');
+      await Promise.all([
+        loadWithTimeout('users', loadUsers, 20000),
+        loadWithTimeout('projects', loadProjects, 20000),
+        loadWithTimeout('tasks', loadTasks, 20000),
       ]);
+
+      // Mark as loaded after critical data - app is now usable
+      setDataLoaded(true);
+      console.log('[Init] ✓ Critical data loaded - app ready');
+
+      // PHASE 2: Load secondary data in background
+      // These are nice-to-have but not essential for initial render
+      console.log('[Init] Phase 2: Loading secondary data in background...');
+      Promise.all([
+        loadWithTimeout('documents', loadDocuments, 15000),
+        loadWithTimeout('inbox', loadInbox, 15000),
+        loadWithTimeout('files', loadFiles, 15000),
+      ]).then(() => {
+        console.log('[Init] ✓ All secondary data loaded');
+      }).catch((err) => {
+        console.warn('[Init] Some secondary data failed to load:', err);
+      });
 
       // Subscribe to real-time changes
       setupRealtimeSubscriptions();
-      setDataLoaded(true);
-      console.log('[Init] ✓ All data loaded successfully');
+
     } catch (err) {
-      console.error('Error loading data:', err);
-      if (err.message !== 'Data loading timed out') {
-        setError(err.message);
-      } else {
-        console.warn('Data loading timed out - proceeding with partial data.');
-      }
-      setDataLoaded(true); // Mark as done even on timeout to prevent retries
+      console.error('[Init] Critical error loading data:', err);
+      setError(err.message);
+      setDataLoaded(true); // Mark as done to prevent infinite loading
     }
   };
 
