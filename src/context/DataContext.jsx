@@ -63,15 +63,22 @@ export function DataProvider({ children }) {
     if (currentUser && !dataLoaded && !initStarted.current) {
       initStarted.current = true;
 
-      // Add a small delay for page refreshes to ensure connection is stable
+      // Add a delay for page refreshes to ensure Supabase session is ready
       const isInitialRefresh = !sessionStorage.getItem('veta-session-warmed');
-      const delay = isInitialRefresh ? 500 : 0;
+      // Increase delay to give Supabase more time to restore session
+      const delay = isInitialRefresh ? 1500 : 300;
 
       if (isInitialRefresh) {
         sessionStorage.setItem('veta-session-warmed', 'true');
       }
 
-      const timer = setTimeout(() => {
+      const timer = setTimeout(async () => {
+        // Ensure Supabase session is ready before loading
+        try {
+          await supabase.auth.getSession();
+        } catch (err) {
+          console.warn('Session check failed, proceeding anyway:', err);
+        }
         loadAllData();
       }, delay);
 
