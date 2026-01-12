@@ -14,6 +14,7 @@ import CreateProjectModal from '../components/modals/CreateProjectModal';
 import CreateTaskModal from '../components/modals/CreateTaskModal';
 import EditTaskModal from '../components/modals/EditTaskModal';
 import ActionCard from '../components/ActionCard';
+import AIAssistantSidebar from '../components/AIAssistantSidebar';
 import { format, isToday, isPast, isFuture } from 'date-fns';
 
 export default function Dashboard() {
@@ -32,6 +33,7 @@ export default function Dashboard() {
     const [isProcessing, setIsProcessing] = useState(false); // Local loading for AI
     const navigate = useNavigate();
     const [createProjectOpen, setCreateProjectOpen] = useState(false);
+    const [aiSidebarOpen, setAiSidebarOpen] = useState(false);
     const [editingTask, setEditingTask] = useState(null);
     const [processInboxItem, setProcessInboxItem] = useState(null);
     const [draggedItem, setDraggedItem] = useState(null);
@@ -206,6 +208,10 @@ export default function Dashboard() {
                     </p>
                 </div>
                 <div className="flex gap-3">
+                    <button className="btn btn-primary" onClick={() => setAiSidebarOpen(true)}>
+                        <Sparkles size={18} />
+                        <span className="hidden md:inline ml-2">AI Assistant</span>
+                    </button>
                     <button className="btn btn-ghost" onClick={() => navigate('/projects')}>
                         <FolderKanban size={18} />
                         <span className="hidden md:inline ml-2">Contexts</span>
@@ -345,6 +351,12 @@ export default function Dashboard() {
                     onSuccess={handleProcessComplete}
                 />
             )}
+
+            {/* AI Sidebar */}
+            <AIAssistantSidebar
+                isOpen={aiSidebarOpen}
+                onClose={() => setAiSidebarOpen(false)}
+            />
 
             <style>{`
                 .dashboard-stream {

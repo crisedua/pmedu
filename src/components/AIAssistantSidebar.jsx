@@ -133,6 +133,24 @@ export default function AIAssistantSidebar({ isOpen, onClose }) {
                             </div>
                         </div>
                     ))}
+                    {/* Suggestions (only input area empty or just started) */}
+                    {messages.length <= 1 && (
+                        <div className="suggestions-grid">
+                            <button onClick={() => handleSendMessage('Analyze my pending tasks')}>
+                                📊 Analyze my tasks
+                            </button>
+                            <button onClick={() => handleSendMessage('What is assigned to others?')}>
+                                👥 Waiting for...
+                            </button>
+                            <button onClick={() => handleSendMessage('What is overdue?')}>
+                                ⏰ Overdue items
+                            </button>
+                            <button onClick={() => handleSendMessage('Suggest priorities for today')}>
+                                🎯 Priorities
+                            </button>
+                        </div>
+                    )}
+
                     {isTyping && (
                         <div className="message-wrapper assistant">
                             <div className="message-avatar">
@@ -147,6 +165,32 @@ export default function AIAssistantSidebar({ isOpen, onClose }) {
                     )}
                     <div ref={messagesEndRef} />
                 </div>
+
+                <style jsx>{`
+                    .suggestions-grid {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 8px;
+                        margin-top: auto;
+                        padding-bottom: 10px;
+                    }
+                    .suggestions-grid button {
+                        padding: 10px;
+                        background: white;
+                        border: 1px solid var(--border-medium);
+                        border-radius: var(--radius-lg);
+                        text-align: left;
+                        font-size: 12px;
+                        color: var(--text-secondary);
+                        cursor: pointer;
+                        transition: all 0.2s;
+                    }
+                    .suggestions-grid button:hover {
+                        border-color: var(--color-primary);
+                        color: var(--color-primary);
+                        background: var(--bg-primary);
+                    }
+                `}</style>
 
                 <div className="ai-input-area">
                     <div className="input-row">

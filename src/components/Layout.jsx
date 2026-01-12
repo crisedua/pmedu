@@ -96,14 +96,7 @@ export default function Layout() {
                             <LayoutDashboard size={20} />
                             {language === 'es' ? 'Contextos' : 'Contexts'}
                         </NavLink>
-                        <NavLink
-                            to="/command"
-                            className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
-                            onClick={() => setSidebarOpen(false)}
-                        >
-                            <Brain size={20} />
-                            {language === 'es' ? 'Cerebro de Voz' : 'Voice Brain'}
-                        </NavLink>
+
                         <NavLink
                             to="/inbox"
                             className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}

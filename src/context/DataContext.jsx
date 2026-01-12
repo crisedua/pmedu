@@ -855,34 +855,32 @@ export function DataProvider({ children }) {
     // Update local state immediately
     setInbox(prev => [optimisticItem, ...prev]);
 
-    // 2. Background Save
-    (async () => {
-      try {
-        const newItem = {
-          content,
-          language,
-          user_id: currentUser.id,
-          processed: false
-        };
+    // 2. Real Save (Await to ensure persistence)
+    try {
+      const newItem = {
+        content,
+        language,
+        user_id: currentUser.id,
+        processed: false
+      };
 
-        const { data, error } = await supabase
-          .from('pm_inbox')
-          .insert([newItem])
-          .select()
-          .single();
+      const { data, error } = await supabase
+        .from('pm_inbox')
+        .insert([newItem])
+        .select()
+        .single();
 
-        if (error) throw error;
+      if (error) throw error;
 
-        // Replace temp item with real data
-        setInbox(prev => prev.map(item => item.id === tempId ? data : item));
-      } catch (err) {
-        console.error('Error creating inbox item (background):', err);
-        // Mark as error in UI
-        setInbox(prev => prev.map(item => item.id === tempId ? { ...item, error: true } : item));
-      }
-    })();
-
-    return optimisticItem;
+      // Replace temp item with real data
+      setInbox(prev => prev.map(item => item.id === tempId ? data : item));
+      return data;
+    } catch (err) {
+      console.error('Error creating inbox item:', err);
+      // Mark as error in UI
+      setInbox(prev => prev.map(item => item.id === tempId ? { ...item, error: true } : item));
+      throw err;
+    }
   };
 
   const updateInboxItem = async (itemId, updates) => {
