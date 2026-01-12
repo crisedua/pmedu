@@ -63,416 +63,415 @@ export default function GlobalVoiceCapture() {
         newProject: language === 'es' ? 'Nuevo Proyecto' : 'New Project',
         aiAnswer: language === 'es' ? 'Respuesta IA:' : 'AI Answer:',
         saveHistory: language === 'es' ? 'Guardar en Historial' : 'Save to History'
-    }
-};
+    };
 
-const mediaRecorder = useRef(null);
-const audioChunks = useRef([]);
-const timerInterval = useRef(null);
+    const mediaRecorder = useRef(null);
+    const audioChunks = useRef([]);
+    const timerInterval = useRef(null);
 
-// Auto-close success/error message
-useEffect(() => {
-    if (status === 'success' || status === 'error') {
-        const timer = setTimeout(() => {
-            setStatus('');
-            setExtractedTasks([]);
-            setTranscription('');
-        }, 4000);
-        return () => clearTimeout(timer);
-    }
-}, [status]);
+    // Auto-close success/error message
+    useEffect(() => {
+        if (status === 'success' || status === 'error') {
+            const timer = setTimeout(() => {
+                setStatus('');
+                setExtractedTasks([]);
+                setTranscription('');
+            }, 4000);
+            return () => clearTimeout(timer);
+        }
+    }, [status]);
 
-const startRecording = async () => {
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorder.current = new MediaRecorder(stream);
-        audioChunks.current = [];
+    const startRecording = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder.current = new MediaRecorder(stream);
+            audioChunks.current = [];
 
-        mediaRecorder.current.ondataavailable = (event) => {
-            audioChunks.current.push(event.data);
-        };
+            mediaRecorder.current.ondataavailable = (event) => {
+                audioChunks.current.push(event.data);
+            };
 
-        mediaRecorder.current.onstop = async () => {
-            const audioBlob = new Blob(audioChunks.current, { type: 'audio/webm' });
-            handleProcessing(audioBlob);
-            stream.getTracks().forEach(track => track.stop());
-        };
+            mediaRecorder.current.onstop = async () => {
+                const audioBlob = new Blob(audioChunks.current, { type: 'audio/webm' });
+                handleProcessing(audioBlob);
+                stream.getTracks().forEach(track => track.stop());
+            };
 
-        mediaRecorder.current.start();
-        setIsRecording(true);
-        setStatus('recording');
-        setRecordingTime(0);
-        timerInterval.current = setInterval(() => {
-            setRecordingTime(prev => prev + 1);
-        }, 1000);
-    } catch (err) {
-        console.error('Mic error:', err);
-        alert('Could not access microphone.');
-    }
-};
+            mediaRecorder.current.start();
+            setIsRecording(true);
+            setStatus('recording');
+            setRecordingTime(0);
+            timerInterval.current = setInterval(() => {
+                setRecordingTime(prev => prev + 1);
+            }, 1000);
+        } catch (err) {
+            console.error('Mic error:', err);
+            alert('Could not access microphone.');
+        }
+    };
 
-const stopRecording = () => {
-    if (mediaRecorder.current && isRecording) {
-        mediaRecorder.current.stop();
-        setIsRecording(false);
-        setStatus(''); // Close the recording overlay immediately
-        if (timerInterval.current) clearInterval(timerInterval.current);
-    }
-};
+    const stopRecording = () => {
+        if (mediaRecorder.current && isRecording) {
+            mediaRecorder.current.stop();
+            setIsRecording(false);
+            setStatus(''); // Close the recording overlay immediately
+            if (timerInterval.current) clearInterval(timerInterval.current);
+        }
+    };
 
-const handleProcessing = async (blob) => {
-    setIsLoading(true);
-    setProcessingStage('transcribing');
-
-    try {
-        // 1. Transcribe
-        const result = await transcribeAudio(blob);
-        if (!result || !result.text) throw new Error("No transcription");
-
-        setTranscription(result.text);
-
-        // 2. CLASSIFY CONTENT with timeout protection
-        setProcessingStage('analyzing');
-        let classification;
+    const handleProcessing = async (blob) => {
+        setIsLoading(true);
+        setProcessingStage('transcribing');
 
         try {
-            // Add 10-second timeout to classification
-            const classificationPromise = classifyVoiceContent(result.text, { language });
-            const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('Classification timeout')), 10000)
-            );
+            // 1. Transcribe
+            const result = await transcribeAudio(blob);
+            if (!result || !result.text) throw new Error("No transcription");
 
-            classification = await Promise.race([classificationPromise, timeoutPromise]);
-            console.log('[Voice Capture] Classification:', classification);
-        } catch (classErr) {
-            console.warn('[Voice Capture] Classification failed, using fallback:', classErr);
-            // Fallback: treat as note
-            classification = {
-                contentType: 'note',
-                confidence: 0.5,
-                suggestedAction: 'save_to_inbox',
-                summary: result.text.substring(0, 100)
-            };
-        }
+            setTranscription(result.text);
 
-        // 3. Store classification and show PREVIEW (NEW!)
-        if (classification.contentType === 'question') {
-            // Fetch answer immediately
+            // 2. CLASSIFY CONTENT with timeout protection
+            setProcessingStage('analyzing');
+            let classification;
+
             try {
-                const answer = await askAccountabilityQuery(result.text, { tasks, users, projects, language });
-                classification.aiAnswer = answer;
-            } catch (qaErr) {
-                console.error('QA Error:', qaErr);
+                // Add 10-second timeout to classification
+                const classificationPromise = classifyVoiceContent(result.text, { language });
+                const timeoutPromise = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('Classification timeout')), 10000)
+                );
+
+                classification = await Promise.race([classificationPromise, timeoutPromise]);
+                console.log('[Voice Capture] Classification:', classification);
+            } catch (classErr) {
+                console.warn('[Voice Capture] Classification failed, using fallback:', classErr);
+                // Fallback: treat as note
+                classification = {
+                    contentType: 'note',
+                    confidence: 0.5,
+                    suggestedAction: 'save_to_inbox',
+                    summary: result.text.substring(0, 100)
+                };
             }
-        }
 
-        setClassificationResult(classification);
-        setStatus('preview');
-
-    } catch (err) {
-        console.error('Processing error:', err);
-        setStatus('error');
-    } finally {
-        setIsLoading(false);
-        setProcessingStage('');
-    }
-};
-
-// Handle user confirmation from preview
-const handlePreviewConfirm = async () => {
-    if (!classificationResult) return;
-
-    setIsLoading(true);
-
-    try {
-        if (classificationResult.contentType === 'question') {
-            // Save to inbox as history
-            await createInboxItem(transcription, language);
-            setStatus('success');
-            return;
-        }
-
-        if (classificationResult.suggestedAction === 'extract_tasks') {
-            // User wants to extract tasks
-            setProcessingStage('extracting');
-            const extraction = await extractTasksFromVoice(transcription, { users, projects, language });
-
-            if (extraction.tasks.length > 0) {
-                setExtractedTasks(extraction.tasks);
-                if (extraction.needsFollowUp) {
-                    setNeedsClarification(true);
-                    setFollowUpQuestion(extraction.followUpQuestion);
+            // 3. Store classification and show PREVIEW (NEW!)
+            if (classification.contentType === 'question') {
+                // Fetch answer immediately
+                try {
+                    const answer = await askAccountabilityQuery(result.text, { tasks, users, projects, language });
+                    classification.aiAnswer = answer;
+                } catch (qaErr) {
+                    console.error('QA Error:', qaErr);
                 }
-                setStatus('review');
+            }
+
+            setClassificationResult(classification);
+            setStatus('preview');
+
+        } catch (err) {
+            console.error('Processing error:', err);
+            setStatus('error');
+        } finally {
+            setIsLoading(false);
+            setProcessingStage('');
+        }
+    };
+
+    // Handle user confirmation from preview
+    const handlePreviewConfirm = async () => {
+        if (!classificationResult) return;
+
+        setIsLoading(true);
+
+        try {
+            if (classificationResult.contentType === 'question') {
+                // Save to inbox as history
+                await createInboxItem(transcription, language);
+                setStatus('success');
+                return;
+            }
+
+            if (classificationResult.suggestedAction === 'extract_tasks') {
+                // User wants to extract tasks
+                setProcessingStage('extracting');
+                const extraction = await extractTasksFromVoice(transcription, { users, projects, language });
+
+                if (extraction.tasks.length > 0) {
+                    setExtractedTasks(extraction.tasks);
+                    if (extraction.needsFollowUp) {
+                        setNeedsClarification(true);
+                        setFollowUpQuestion(extraction.followUpQuestion);
+                    }
+                    setStatus('review');
+                } else {
+                    // No tasks found, save to inbox
+                    const saved = await createInboxItem(transcription, language);
+                    setStatus(saved ? 'success' : 'error');
+                }
             } else {
-                // No tasks found, save to inbox
+                // Save to inbox directly
                 const saved = await createInboxItem(transcription, language);
                 setStatus(saved ? 'success' : 'error');
             }
-        } else {
-            // Save to inbox directly
-            const saved = await createInboxItem(transcription, language);
-            setStatus(saved ? 'success' : 'error');
+        } catch (err) {
+            console.error('Confirm error:', err);
+            setStatus('error');
+        } finally {
+            setIsLoading(false);
+            setProcessingStage('');
         }
-    } catch (err) {
-        console.error('Confirm error:', err);
-        setStatus('error');
-    } finally {
-        setIsLoading(false);
-        setProcessingStage('');
-    }
-};
+    };
 
-const handleConfirmTasks = async () => {
-    try {
-        setIsLoading(true);
+    const handleConfirmTasks = async () => {
+        try {
+            setIsLoading(true);
 
-        // Check for new projects to create
-        const projectMap = {}; // name -> id
-        const tasksWithProjects = [];
+            // Check for new projects to create
+            const projectMap = {}; // name -> id
+            const tasksWithProjects = [];
 
-        for (const task of extractedTasks) {
-            let finalProjectId = task.projectId;
+            for (const task of extractedTasks) {
+                let finalProjectId = task.projectId;
 
-            // If no ID but has suggested name, create project
-            if (!finalProjectId && task.suggestedProjectName) {
-                const pname = task.suggestedProjectName;
+                // If no ID but has suggested name, create project
+                if (!finalProjectId && task.suggestedProjectName) {
+                    const pname = task.suggestedProjectName;
 
-                if (projectMap[pname]) {
-                    finalProjectId = projectMap[pname];
-                } else {
-                    // Create new project
-                    try {
-                        const newProject = await createProject({
-                            name: pname,
-                            status: 'Active',
-                            color: '#6366f1' // Default Indigo
-                        });
+                    if (projectMap[pname]) {
+                        finalProjectId = projectMap[pname];
+                    } else {
+                        // Create new project
+                        try {
+                            const newProject = await createProject({
+                                name: pname,
+                                status: 'Active',
+                                color: '#6366f1' // Default Indigo
+                            });
 
-                        if (newProject && newProject.id) {
-                            finalProjectId = newProject.id;
-                            projectMap[pname] = finalProjectId;
+                            if (newProject && newProject.id) {
+                                finalProjectId = newProject.id;
+                                projectMap[pname] = finalProjectId;
+                            }
+                        } catch (pErr) {
+                            console.error('Failed to create project:', pErr);
                         }
-                    } catch (pErr) {
-                        console.error('Failed to create project:', pErr);
                     }
                 }
+
+                tasksWithProjects.push({
+                    ...task,
+                    projectId: finalProjectId || null,
+                    source: 'voice',
+                    created_by_ai: true
+                });
             }
 
-            tasksWithProjects.push({
-                ...task,
-                projectId: finalProjectId || null,
-                source: 'voice',
-                created_by_ai: true
-            });
+            // Create tasks
+            await createMultipleTasks(tasksWithProjects);
+
+            // Save history log to inbox
+            await createInboxItem(transcription, language);
+
+            setStatus('success');
+        } catch (err) {
+            console.error('Error creating tasks:', err);
+            setStatus('error');
+        } finally {
+            setIsLoading(false);
         }
+    };
 
-        // Create tasks
-        await createMultipleTasks(tasksWithProjects);
+    const handleDiscard = () => {
+        setStatus('');
+        setExtractedTasks([]);
+        setTranscription('');
+        setClassificationResult(null);
+    };
 
-        // Save history log to inbox
-        await createInboxItem(transcription, language);
+    const formatTime = (seconds) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    };
 
-        setStatus('success');
-    } catch (err) {
-        console.error('Error creating tasks:', err);
-        setStatus('error');
-    } finally {
-        setIsLoading(false);
-    }
-};
-
-const handleDiscard = () => {
-    setStatus('');
-    setExtractedTasks([]);
-    setTranscription('');
-    setClassificationResult(null);
-};
-
-const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-};
-
-return (
-    <div className={`global-voice-capture ${status}`}>
-        {/* 1. Recording Overlay */}
-        {status === 'recording' && (
-            <div className="capture-overlay">
-                <div className="capture-content">
-                    <div className="capture-waves">
-                        {[1, 2, 3, 4, 5].map(i => <div key={i} className="wave-bar"></div>)}
-                    </div>
-                    <div className="capture-timer">{formatTime(recordingTime)}</div>
-                    <div className="capture-label">{t.listening}</div>
-                    <button className="stop-action" onClick={stopRecording}>
-                        <Square size={20} fill="currentColor" />
-                        {t.stopProcess}
-                    </button>
-                </div>
-            </div>
-        )}
-
-        {/* 2. Loading State */}
-        {isLoading && (
-            <div className="status-pill processing">
-                <Loader2 className="animate-spin" size={18} />
-                <span>
-                    {processingStage === 'transcribing' && t.transcribing}
-                    {processingStage === 'analyzing' && t.analyzing}
-                    {processingStage === 'extracting' && t.extracting}
-                </span>
-            </div>
-        )}
-
-        {/* 2b. PREVIEW CARD - Shows AI understanding before saving */}
-        {status === 'preview' && !isLoading && classificationResult && (
-            <div className="preview-card">
-                <div className="preview-header">
-                    <Sparkles size={16} className="text-secondary" />
-                    <span className="text-sm font-medium">{t.aiUnderstood}</span>
-                    <span className="content-type-badge">
-                        {t.contentTypes[classificationResult.contentType] || classificationResult.contentType}
-                    </span>
-                    <button className="close-btn" onClick={handleDiscard}><X size={14} /></button>
-                </div>
-
-                <div className="transcription-box">
-                    <div className="transcription-label">{t.youSaid}</div>
-                    <p className="transcription-text">"{transcription}"</p>
-                </div>
-
-                {classificationResult.summary && !classificationResult.aiAnswer && (
-                    <div className="ai-summary">
-                        <strong>{t.summary}</strong> {classificationResult.summary}
-                    </div>
-                )}
-
-                {classificationResult.aiAnswer && (
-                    <div className="ai-summary">
-                        <strong>{t.aiAnswer}</strong>
-                        <div className="mt-1 text-xs">{classificationResult.aiAnswer}</div>
-                    </div>
-                )}
-
-                <div className="preview-actions">
-                    <button className="btn-secondary-sm" onClick={handleDiscard}>
-                        {t.discard}
-                    </button>
-                    <button className="btn-primary-sm" onClick={handlePreviewConfirm}>
-                        {classificationResult.contentType === 'question'
-                            ? t.saveHistory
-                            : (classificationResult.suggestedAction === 'extract_tasks'
-                                ? t.extractTasks
-                                : t.saveInbox)}
-                        <ArrowRight size={14} />
-                    </button>
-                </div>
-            </div>
-        )}
-
-        {/* 3. Task Review Modal (Mini) */}
-        {status === 'review' && !isLoading && (
-            <div className="review-card">
-                <div className="review-header">
-                    <Sparkles size={16} className="text-secondary" />
-                    <span className="text-sm font-medium">{t.captured} {extractedTasks.length} {t.tasks}</span>
-                    <button className="close-btn" onClick={handleDiscard}><X size={14} /></button>
-                </div>
-
-                <div className="tasks-preview">
-                    {extractedTasks.map((task, idx) => (
-                        <div key={idx} className="task-preview-item">
-                            <div className="task-preview-title">{task.name}</div>
-                            <div className="task-preview-meta">
-                                {task.assignedTo ? (
-                                    <span className="meta-tag">
-                                        <User size={12} /> {users.find(u => u.id === task.assignedTo)?.name || t.unknown}
-                                    </span>
-                                ) : (
-                                    <span className="meta-tag warning">
-                                        <User size={12} /> {t.unassigned}
-                                    </span>
-                                )}
-                                {task.dueDate ? (
-                                    <span className="meta-tag">
-                                        <Calendar size={12} /> {new Date(task.dueDate).toLocaleDateString()}
-                                    </span>
-                                ) : (
-                                    <span className="meta-tag warning">
-                                        <Calendar size={12} /> {t.noDate}
-                                    </span>
-                                )}
-                                <span className={`meta-tag ${!task.projectId && !task.suggestedProjectName ? 'warning' : ''}`}
-                                    title={task.suggestedProjectName ? t.newProject : t.project}>
-                                    <Square size={12} />
-                                    {task.projectId
-                                        ? (projects.find(p => p.id === task.projectId)?.name || t.unknown)
-                                        : (task.suggestedProjectName
-                                            ? `${task.suggestedProjectName} (${t.newProject})`
-                                            : t.unassigned)}
-                                </span>
-                            </div>
+    return (
+        <div className={`global-voice-capture ${status}`}>
+            {/* 1. Recording Overlay */}
+            {status === 'recording' && (
+                <div className="capture-overlay">
+                    <div className="capture-content">
+                        <div className="capture-waves">
+                            {[1, 2, 3, 4, 5].map(i => <div key={i} className="wave-bar"></div>)}
                         </div>
-                    ))}
-                </div>
-
-                {needsClarification && followUpQuestion && (
-                    <div className="clarification-box">
-                        <MessageSquare size={14} />
-                        {followUpQuestion}
-                        {/* Future: Add input for clarification */}
+                        <div className="capture-timer">{formatTime(recordingTime)}</div>
+                        <div className="capture-label">{t.listening}</div>
+                        <button className="stop-action" onClick={stopRecording}>
+                            <Square size={20} fill="currentColor" />
+                            {t.stopProcess}
+                        </button>
                     </div>
-                )}
+                </div>
+            )}
 
-                <div className="review-actions">
-                    <button className="btn-secondary-sm" onClick={() => {
-                        // Save to inbox instead
-                        createInboxItem(transcription, language);
-                        setStatus('success');
-                    }}>
-                        {t.saveInbox}
+            {/* 2. Loading State */}
+            {isLoading && (
+                <div className="status-pill processing">
+                    <Loader2 className="animate-spin" size={18} />
+                    <span>
+                        {processingStage === 'transcribing' && t.transcribing}
+                        {processingStage === 'analyzing' && t.analyzing}
+                        {processingStage === 'extracting' && t.extracting}
+                    </span>
+                </div>
+            )}
+
+            {/* 2b. PREVIEW CARD - Shows AI understanding before saving */}
+            {status === 'preview' && !isLoading && classificationResult && (
+                <div className="preview-card">
+                    <div className="preview-header">
+                        <Sparkles size={16} className="text-secondary" />
+                        <span className="text-sm font-medium">{t.aiUnderstood}</span>
+                        <span className="content-type-badge">
+                            {t.contentTypes[classificationResult.contentType] || classificationResult.contentType}
+                        </span>
+                        <button className="close-btn" onClick={handleDiscard}><X size={14} /></button>
+                    </div>
+
+                    <div className="transcription-box">
+                        <div className="transcription-label">{t.youSaid}</div>
+                        <p className="transcription-text">"{transcription}"</p>
+                    </div>
+
+                    {classificationResult.summary && !classificationResult.aiAnswer && (
+                        <div className="ai-summary">
+                            <strong>{t.summary}</strong> {classificationResult.summary}
+                        </div>
+                    )}
+
+                    {classificationResult.aiAnswer && (
+                        <div className="ai-summary">
+                            <strong>{t.aiAnswer}</strong>
+                            <div className="mt-1 text-xs">{classificationResult.aiAnswer}</div>
+                        </div>
+                    )}
+
+                    <div className="preview-actions">
+                        <button className="btn-secondary-sm" onClick={handleDiscard}>
+                            {t.discard}
+                        </button>
+                        <button className="btn-primary-sm" onClick={handlePreviewConfirm}>
+                            {classificationResult.contentType === 'question'
+                                ? t.saveHistory
+                                : (classificationResult.suggestedAction === 'extract_tasks'
+                                    ? t.extractTasks
+                                    : t.saveInbox)}
+                            <ArrowRight size={14} />
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* 3. Task Review Modal (Mini) */}
+            {status === 'review' && !isLoading && (
+                <div className="review-card">
+                    <div className="review-header">
+                        <Sparkles size={16} className="text-secondary" />
+                        <span className="text-sm font-medium">{t.captured} {extractedTasks.length} {t.tasks}</span>
+                        <button className="close-btn" onClick={handleDiscard}><X size={14} /></button>
+                    </div>
+
+                    <div className="tasks-preview">
+                        {extractedTasks.map((task, idx) => (
+                            <div key={idx} className="task-preview-item">
+                                <div className="task-preview-title">{task.name}</div>
+                                <div className="task-preview-meta">
+                                    {task.assignedTo ? (
+                                        <span className="meta-tag">
+                                            <User size={12} /> {users.find(u => u.id === task.assignedTo)?.name || t.unknown}
+                                        </span>
+                                    ) : (
+                                        <span className="meta-tag warning">
+                                            <User size={12} /> {t.unassigned}
+                                        </span>
+                                    )}
+                                    {task.dueDate ? (
+                                        <span className="meta-tag">
+                                            <Calendar size={12} /> {new Date(task.dueDate).toLocaleDateString()}
+                                        </span>
+                                    ) : (
+                                        <span className="meta-tag warning">
+                                            <Calendar size={12} /> {t.noDate}
+                                        </span>
+                                    )}
+                                    <span className={`meta-tag ${!task.projectId && !task.suggestedProjectName ? 'warning' : ''}`}
+                                        title={task.suggestedProjectName ? t.newProject : t.project}>
+                                        <Square size={12} />
+                                        {task.projectId
+                                            ? (projects.find(p => p.id === task.projectId)?.name || t.unknown)
+                                            : (task.suggestedProjectName
+                                                ? `${task.suggestedProjectName} (${t.newProject})`
+                                                : t.unassigned)}
+                                    </span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {needsClarification && followUpQuestion && (
+                        <div className="clarification-box">
+                            <MessageSquare size={14} />
+                            {followUpQuestion}
+                            {/* Future: Add input for clarification */}
+                        </div>
+                    )}
+
+                    <div className="review-actions">
+                        <button className="btn-secondary-sm" onClick={() => {
+                            // Save to inbox instead
+                            createInboxItem(transcription, language);
+                            setStatus('success');
+                        }}>
+                            {t.saveInbox}
+                        </button>
+                        <button className="btn-primary-sm" onClick={handleConfirmTasks}>
+                            {t.confirmCreate}
+                            <ArrowRight size={14} />
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* 4. Success State */}
+            {
+                status === 'success' && (
+                    <div className="status-pill success">
+                        <CheckCircle2 size={16} />
+                        <span>{t.success}</span>
+                    </div>
+                )
+            }
+
+            {/* 4b. Error State */}
+            {
+                status === 'error' && (
+                    <div className="status-pill error">
+                        <X size={16} />
+                        <span>{t.error}</span>
+                    </div>
+                )
+            }
+
+            {/* 5. Floating Action Button (Idle) */}
+            {
+                !isRecording && !isLoading && status !== 'review' && status !== 'preview' && status !== 'success' && status !== 'error' && (
+                    <button className="voice-fab" onClick={startRecording} title={t.voiceCommand}>
+                        <Mic size={24} />
+                        <div className="fab-glow"></div>
                     </button>
-                    <button className="btn-primary-sm" onClick={handleConfirmTasks}>
-                        {t.confirmCreate}
-                        <ArrowRight size={14} />
-                    </button>
-                </div>
-            </div>
-        )}
+                )
+            }
 
-        {/* 4. Success State */}
-        {
-            status === 'success' && (
-                <div className="status-pill success">
-                    <CheckCircle2 size={16} />
-                    <span>{t.success}</span>
-                </div>
-            )
-        }
-
-        {/* 4b. Error State */}
-        {
-            status === 'error' && (
-                <div className="status-pill error">
-                    <X size={16} />
-                    <span>{t.error}</span>
-                </div>
-            )
-        }
-
-        {/* 5. Floating Action Button (Idle) */}
-        {
-            !isRecording && !isLoading && status !== 'review' && status !== 'preview' && status !== 'success' && status !== 'error' && (
-                <button className="voice-fab" onClick={startRecording} title={t.voiceCommand}>
-                    <Mic size={24} />
-                    <div className="fab-glow"></div>
-                </button>
-            )
-        }
-
-        <style>{`
+            <style>{`
                 .global-voice-capture {
                     position: fixed;
                     right: 2rem;
@@ -867,6 +866,6 @@ return (
                     }
                 }
             `}</style>
-    </div >
-);
+        </div >
+    );
 }
