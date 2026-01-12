@@ -90,11 +90,15 @@ export function DataProvider({ children }) {
         console.log('[DEBUG-EFFECT] Timer fired, loading data now');
         // Ensure Supabase session is ready before loading
         try {
-          await supabase.auth.getSession();
+          console.log('[DEBUG-EFFECT] Getting Supabase session...');
+          const result = await supabase.auth.getSession();
+          console.log('[DEBUG-EFFECT] Got session:', { hasSession: !!result?.data?.session });
         } catch (err) {
           console.warn('Session check failed, proceeding anyway:', err);
         }
+        console.log('[DEBUG-EFFECT] About to call loadAllData()');
         loadAllData();
+        console.log('[DEBUG-EFFECT] loadAllData() called');
       }, delay);
 
       return () => clearTimeout(timer);
@@ -171,6 +175,7 @@ export function DataProvider({ children }) {
   }, []);
 
   const loadAllData = async () => {
+    console.log('[DEBUG-LOADALL] loadAllData called - START');
     try {
       console.log('[Init] User authenticated, loading data...');
 
