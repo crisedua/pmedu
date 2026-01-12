@@ -55,10 +55,12 @@ export default function GlobalVoiceCapture() {
             task: language === 'es' ? 'Tarea' : 'Task',
             note: language === 'es' ? 'Nota' : 'Note',
             idea: language === 'es' ? 'Idea' : 'Idea',
+            project: language === 'es' ? 'Proyecto' : 'Project',
             question: language === 'es' ? 'Pregunta' : 'Question',
             meeting_summary: language === 'es' ? 'Resumen' : 'Summary',
             unclear: language === 'es' ? 'No claro' : 'Unclear'
         },
+        createProject: language === 'es' ? 'Crear Proyecto' : 'Create Project',
         project: language === 'es' ? 'Proyecto' : 'Project',
         newProject: language === 'es' ? 'Nuevo Proyecto' : 'New Project',
         aiAnswer: language === 'es' ? 'Respuesta IA:' : 'AI Answer:',
@@ -362,9 +364,11 @@ export default function GlobalVoiceCapture() {
                         <button className="btn-primary-sm" onClick={handlePreviewConfirm}>
                             {classificationResult.contentType === 'question'
                                 ? t.saveHistory
-                                : (classificationResult.suggestedAction === 'extract_tasks'
-                                    ? t.extractTasks
-                                    : t.saveInbox)}
+                                : (classificationResult.contentType === 'project'
+                                    ? t.createProject
+                                    : (classificationResult.suggestedAction === 'extract_tasks'
+                                        ? t.extractTasks
+                                        : t.saveInbox))}
                             <ArrowRight size={14} />
                         </button>
                     </div>

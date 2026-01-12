@@ -460,6 +460,7 @@ export async function classifyVoiceContent(transcription, context = {}) {
     Analyze this transcription and classify it into one of the following types:
     
     CONTENT TYPES:
+    - project: Exclusively used to create a new project (e.g., "Create a new project for the branding campaign")
     - task: Contains actionable commitment with clear action (e.g., "Juan needs to finish the report by Friday")
     - note: General information, observation, or status update (e.g., "The client liked the new design")
     - question: Asking for information (e.g., "What's the status of the API integration?")
@@ -468,7 +469,7 @@ export async function classifyVoiceContent(transcription, context = {}) {
     - unclear: Cannot determine type confidently
     
     SUGGESTED ACTIONS:
-    - extract_tasks: Content contains clear tasks → run task extraction
+    - extract_tasks: Content contains clear tasks OR is a project creation intent (so we can extract the project name) → run task extraction
     - save_to_inbox: Content is informational → save directly to inbox
     - ask_clarification: Content is unclear → ask user for more info
     
@@ -476,7 +477,7 @@ export async function classifyVoiceContent(transcription, context = {}) {
     
     Return ONLY valid JSON:
     {
-        "contentType": "task|note|question|idea|meeting_summary|unclear",
+        "contentType": "project|task|note|question|idea|meeting_summary|unclear",
         "confidence": 0.95,
         "intent": "Brief description of what user wants to accomplish",
         "suggestedAction": "extract_tasks|save_to_inbox|ask_clarification",
