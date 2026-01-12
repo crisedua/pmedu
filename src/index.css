@@ -1874,6 +1874,27 @@ a:hover {
   text-overflow: ellipsis;
 }
 
+/* Action Card Components */
+.action-leading {
+  flex-shrink: 0;
+}
+
+.action-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.action-trailing {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.avatar-xs {
+  width: 20px;
+  height: 20px;
+  font-size: 10px;
+}
+
 /* Dropdown Menu */
 .dropdown-menu {
   background: var(--bg-primary);
