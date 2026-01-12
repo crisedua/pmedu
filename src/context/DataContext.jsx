@@ -693,7 +693,7 @@ export function DataProvider({ children }) {
           .insert(newTasks)
           .select(),
         new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Task creation timed out. Please try again.')), 30000)
+          setTimeout(() => reject(new Error('Task creation timed out. Please try again.')), 60000)
         )
       ]);
 

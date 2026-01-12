@@ -28,6 +28,7 @@ export default function GlobalVoiceCapture() {
     const [classificationResult, setClassificationResult] = useState(null);
     const [followUpQuestion, setFollowUpQuestion] = useState(null);
     const [needsClarification, setNeedsClarification] = useState(false);
+    const [statusMessage, setStatusMessage] = useState('');
 
     const t = {
         listening: language === 'es' ? 'Escuchando...' : 'Listening...',
@@ -392,6 +393,7 @@ export default function GlobalVoiceCapture() {
             }
 
             // Create tasks
+            setStatusMessage(language === 'es' ? 'Guardando tareas...' : 'Saving tasks...');
             await createMultipleTasks(tasksWithProjects);
 
             // Save history log to inbox
@@ -403,6 +405,7 @@ export default function GlobalVoiceCapture() {
             setStatus('error');
         } finally {
             setIsLoading(false);
+            setStatusMessage('');
         }
     };
 
@@ -443,9 +446,13 @@ export default function GlobalVoiceCapture() {
                 <div className="status-pill processing">
                     <Loader2 className="animate-spin" size={18} />
                     <span>
-                        {processingStage === 'transcribing' && t.transcribing}
-                        {processingStage === 'analyzing' && t.analyzing}
-                        {processingStage === 'extracting' && t.extracting}
+                        {statusMessage || (
+                            <>
+                                {processingStage === 'transcribing' && t.transcribing}
+                                {processingStage === 'analyzing' && t.analyzing}
+                                {processingStage === 'extracting' && t.extracting}
+                            </>
+                        )}
                     </span>
                 </div>
             )}
