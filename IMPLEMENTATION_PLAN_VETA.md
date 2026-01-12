@@ -38,6 +38,20 @@ Shift from a rigid Project Management tool to a Voice-First Intelligent Action S
 ## Phase 4: Frictionless Refinement [COMPLETED]
 - [x] **Simplify Terminology**: Removed "Context" and "Project" labels from main workflows.
 - [x] **Editable Inbox**: Added modal to edit raw inbox content.
-- [x] **Performance Optimization**: Reduced load timeouts from 60s to 10s.
-- [x] **Health Check**: Added "Database Unavailable" UI indicator.
+- [x] **Performance Optimization**: Reduced load timeouts from 60s to 10s (now 20s/30s).
+- [x] **Health Check**: Added "Database Unavailable" UI indicator + Retry.
+- [x] **Safe Mode**: Disabled Supabase Realtime to prevent connection hangs.
+
+## Phase 5: Ecosystem Sanitization & Mobile Audit
+- [/] **Ecosystem Cleanup**:
+    - [ ] Remove legacy `projects` and `project/:id` routes.
+    - [ ] Delete `ProjectsList.jsx` and `ProjectView.jsx` (redundant).
+    - [ ] Final `grep` for "Context" in user-facing labels.
+- [ ] **Mobile Audit**:
+    - [ ] Verify Command Center layout on small screens.
+    - [ ] Check touch targets for Action Cards.
+    - [ ] Optimize AI Assistant Sidebar for mobile drawers.
+- [ ] **Database Hygiene**:
+    - [ ] Ensure `project_id` in `pm_tasks` is fully optional/nullable.
+
 

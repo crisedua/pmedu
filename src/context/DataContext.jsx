@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 
 
@@ -46,10 +46,26 @@ export function DataProvider({ children }) {
     setLoading(false); // Login page can now show immediately
   }, []);
 
+  const initStarted = useRef(false);
+
   // Only load data from Supabase AFTER user is authenticated
   useEffect(() => {
-    if (currentUser && !dataLoaded) {
-      loadAllData();
+    if (currentUser && !dataLoaded && !initStarted.current) {
+      initStarted.current = true;
+
+      // Add a small delay for page refreshes to ensure connection is stable
+      const isInitialRefresh = !sessionStorage.getItem('veta-session-warmed');
+      const delay = isInitialRefresh ? 500 : 0;
+
+      if (isInitialRefresh) {
+        sessionStorage.setItem('veta-session-warmed', 'true');
+      }
+
+      const timer = setTimeout(() => {
+        loadAllData();
+      }, delay);
+
+      return () => clearTimeout(timer);
     }
   }, [currentUser, dataLoaded]);
 
@@ -152,7 +168,7 @@ export function DataProvider({ children }) {
           } catch (err) {
             const isTimeout = err.message === 'TIMEOUT';
             const msg = isTimeout ? `timed out after ${currentTimeout}ms` : err.message;
-            console.warn(`[Init] ⚠ ${name} failed attempt ${attempt}: ${msg}`);
+            console.warn(`[Init] ⚠ ${name} failed attempt ${attempt}:`, err);
 
             if (attempt >= retries) {
               console.error(`[Init] ✘ ${name} failed all ${retries} attempts.`);
@@ -160,20 +176,18 @@ export function DataProvider({ children }) {
                 setConnectionError(true);
               }
             } else {
-              // Backoff: 1s, 2s...
-              await new Promise(r => setTimeout(r, attempt * 1000));
+              // Backoff: 2s, 4s...
+              await new Promise(r => setTimeout(r, attempt * 2000));
             }
           }
         }
       };
 
-      // PHASE 1: Load critical data (users, projects, tasks)
-      // These are essential for the dashboard/project pages to work
-      console.log('[Init] Phase 1: Loading critical data...');
+      // PHASE 1: Load critical data
       await Promise.all([
-        loadWithRetry('users', loadUsers, { timeoutMs: 20000, retries: 2 }),
-        loadWithRetry('projects', loadProjects, { timeoutMs: 20000, retries: 2 }),
-        loadWithRetry('tasks', loadTasks, { timeoutMs: 20000, retries: 2 }),
+        loadWithRetry('users', loadUsers, { timeoutMs: 15000, retries: 3 }),
+        loadWithRetry('projects', loadProjects, { timeoutMs: 15000, retries: 3 }),
+        loadWithRetry('tasks', loadTasks, { timeoutMs: 15000, retries: 3 }),
       ]);
 
       // Mark as loaded after critical data - app is now usable
@@ -441,6 +455,8 @@ export function DataProvider({ children }) {
     // Clear state IMMEDIATELY - don't wait for Supabase
     setCurrentUser(null);
     setDataLoaded(false);
+    initStarted.current = false;
+    setConnectionError(false);
     setProjects([]);
     setTasks([]);
     setDocuments([]);

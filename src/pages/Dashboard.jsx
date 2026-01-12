@@ -195,21 +195,41 @@ export default function Dashboard() {
                             <strong>Database Unavailable:</strong> Connection timed out. Your Supabase project might be paused.
                         </div>
                     </div>
-                    <button
-                        onClick={() => window.location.reload()}
-                        style={{
-                            background: '#fff',
-                            border: '1px solid #991b1b',
-                            color: '#991b1b',
-                            padding: '4px 12px',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            fontSize: '12px',
-                            fontWeight: 'bold'
-                        }}
-                    >
-                        Retry
-                    </button>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                            onClick={() => window.location.reload()}
+                            style={{
+                                background: '#fff',
+                                border: '1px solid #991b1b',
+                                color: '#991b1b',
+                                padding: '4px 12px',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontSize: '12px',
+                                fontWeight: 'bold'
+                            }}
+                        >
+                            Retry
+                        </button>
+                        <button
+                            onClick={async () => {
+                                await supabase.auth.signOut();
+                                window.location.reload();
+                            }}
+                            style={{
+                                background: 'transparent',
+                                border: '1px solid #991b1b',
+                                color: '#991b1b',
+                                padding: '4px 12px',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontSize: '12px',
+                                opacity: 0.7
+                            }}
+                        >
+                            Sign Out
+                        </button>
+                    </div>
                 </div>
             )}
 

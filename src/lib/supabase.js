@@ -1,23 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.trim();
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim();
 
 // Connection Diagnostics
-console.log('[Supabase] Initializing client...');
+console.log('[Supabase] Initializing client (Safe Mode)...');
 if (!supabaseUrl || !supabaseAnonKey) {
     console.error('[Supabase] CRITICAL ERROR: Missing environment variables!');
-    console.error('VITE_SUPABASE_URL:', supabaseUrl ? 'Defined' : 'UNDEFINED');
-    console.error('VITE_SUPABASE_ANON_KEY:', supabaseAnonKey ? 'Defined' : 'UNDEFINED');
 } else {
     // Masked logging for safety
     const maskedUrl = supabaseUrl.substring(0, 10) + '...';
-    const isValidUrl = supabaseUrl.startsWith('http');
-    console.log(`[Supabase] URL: ${maskedUrl} (Valid format: ${isValidUrl})`);
-
-    if (!isValidUrl) {
-        console.error('[Supabase] ERROR: URL does not start with http/https! Check your .env or cloud settings.');
-    }
+    console.log(`[Supabase] Targeted URL: ${maskedUrl}`);
 }
 
 // Safe Mode: Disable Realtime to prevent connection hangs
@@ -30,6 +23,9 @@ const options = {
     },
     db: {
         schema: 'public'
+    },
+    global: {
+        headers: { 'x-application-name': 'veta-project-manager' }
     }
 };
 
@@ -38,3 +34,10 @@ export const supabase = createClient(
     supabaseAnonKey || 'missing-key',
     options
 );
+
+// Perform a silent ping check
+fetch(`${supabaseUrl}/rest/v1/`, {
+    headers: { 'apikey': supabaseAnonKey }
+})
+    .then(r => console.log(`[Supabase] REST Ping: ${r.status} ${r.statusText}`))
+    .catch(e => console.error(`[Supabase] REST Ping Failed:`, e));
