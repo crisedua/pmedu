@@ -415,14 +415,44 @@ export function DataProvider({ children }) {
 
   const loadInbox = async () => {
     try {
-      const { data, error } = await supabase
-        .from('pm_inbox')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const url = import.meta.env.VITE_SUPABASE_URL;
+      const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-      if (error) throw error;
+      if (!url || !key) {
+        throw new Error('Missing Supabase env vars');
+      }
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 12000);
+
+      console.log('[DEBUG-E] loadInbox:rawFetch - starting raw fetch with anon key');
+
+      const response = await fetch(`${url}/rest/v1/pm_inbox?select=*&order=created_at.desc`, {
+        headers: {
+          apikey: key,
+          Authorization: `Bearer ${key}`,
+        },
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeout);
+
+      console.log('[DEBUG-E] loadInbox:rawFetchDone', { status: response.status, ok: response.ok });
+
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`Fetch inbox failed ${response.status}: ${text}`);
+      }
+
+      const data = await response.json();
       setInbox(data || []);
     } catch (err) {
+      console.error('Error loading inbox (diagnostic):', {
+        message: err.message,
+        stack: err.stack,
+        url: import.meta.env.VITE_SUPABASE_URL,
+        hasKey: !!import.meta.env.VITE_SUPABASE_ANON_KEY
+      });
       console.error('Error loading inbox:', err);
       setInbox([]);
     }
@@ -430,14 +460,44 @@ export function DataProvider({ children }) {
 
   const loadFiles = async () => {
     try {
-      const { data, error } = await supabase
-        .from('pm_files')
-        .select('*')
-        .order('upload_date', { ascending: false });
+      const url = import.meta.env.VITE_SUPABASE_URL;
+      const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-      if (error) throw error;
+      if (!url || !key) {
+        throw new Error('Missing Supabase env vars');
+      }
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 12000);
+
+      console.log('[DEBUG-E] loadFiles:rawFetch - starting raw fetch with anon key');
+
+      const response = await fetch(`${url}/rest/v1/pm_files?select=*&order=upload_date.desc`, {
+        headers: {
+          apikey: key,
+          Authorization: `Bearer ${key}`,
+        },
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeout);
+
+      console.log('[DEBUG-E] loadFiles:rawFetchDone', { status: response.status, ok: response.ok });
+
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`Fetch files failed ${response.status}: ${text}`);
+      }
+
+      const data = await response.json();
       setFiles(data || []);
     } catch (err) {
+      console.error('Error loading files (diagnostic):', {
+        message: err.message,
+        stack: err.stack,
+        url: import.meta.env.VITE_SUPABASE_URL,
+        hasKey: !!import.meta.env.VITE_SUPABASE_ANON_KEY
+      });
       console.error('Error loading files:', err);
       setFiles([]);
     }
