@@ -113,17 +113,6 @@ export default function Layout() {
                                 {language === 'es' ? 'Gestión de Usuarios' : 'User Management'}
                             </NavLink>
                         )}
-                        <button
-                            className={`sidebar-link ${aiAssistantOpen ? 'active' : ''}`}
-                            onClick={() => {
-                                setAiAssistantOpen(true);
-                                setSidebarOpen(false);
-                            }}
-                        >
-                            <Brain size={20} className="text-primary-500" />
-                            <span>{language === 'es' ? 'Asistente IA' : 'Ask Assistant'}</span>
-                            <div className="sidebar-badge-ai">AI</div>
-                        </button>
                     </div>
 
                     <div className="sidebar-section">

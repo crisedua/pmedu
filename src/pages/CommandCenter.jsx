@@ -29,6 +29,43 @@ export default function CommandCenter() {
     const [query, setQuery] = useState('');
     const [aiResponse, setAiResponse] = useState('');
     const [isQuerying, setIsQuerying] = useState(false);
+    const [isListening, setIsListening] = useState(false);
+
+    const handleVoiceInput = () => {
+        if (isListening) {
+            setIsListening(false);
+            return;
+        }
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            alert('Browser does not support speech recognition');
+            return;
+        }
+
+        const recognition = new SpeechRecognition();
+        recognition.lang = language === 'es' ? 'es-ES' : 'en-US';
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        recognition.onstart = () => setIsListening(true);
+        recognition.onend = () => setIsListening(false);
+        recognition.onerror = (event) => {
+            console.error('Speech recognition error', event.error);
+            setIsListening(false);
+        };
+
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            setQuery(prev => prev ? `${prev} ${transcript}` : transcript);
+        };
+
+        try {
+            recognition.start();
+        } catch (e) {
+            console.error(e);
+        }
+    };
 
     // Derived Stats
     const overdueTasks = getOverdueTasks();
@@ -132,6 +169,14 @@ export default function CommandCenter() {
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                         />
+                        <button
+                            type="button"
+                            className={`voice-input-btn ${isListening ? 'listening' : ''}`}
+                            onClick={handleVoiceInput}
+                            title="Dictate query"
+                        >
+                            <Mic size={18} />
+                        </button>
                         <button
                             type="submit"
                             className="query-send-btn"
@@ -322,6 +367,38 @@ export default function CommandCenter() {
                 
                 .query-send-btn:hover { background: var(--color-primary-700); }
                 .query-send-btn:disabled { background: var(--border-medium); cursor: not-allowed; }
+
+                .voice-input-btn {
+                    width: 36px;
+                    height: 36px;
+                    border-radius: 50%;
+                    background: transparent;
+                    color: var(--text-tertiary);
+                    border: none;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    margin-right: 0.5rem;
+                    transition: all 0.2s;
+                }
+
+                .voice-input-btn:hover {
+                    background: var(--bg-tertiary);
+                    color: var(--color-primary-600);
+                }
+
+                .voice-input-btn.listening {
+                    color: var(--color-error);
+                    animation: pulse 1.5s infinite;
+                    background: rgba(239, 68, 68, 0.1);
+                }
+
+                @keyframes pulse {
+                    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+                    70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+                    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+                }
 
                 /* AI Response */
                 .ai-response-card {

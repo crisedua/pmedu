@@ -93,6 +93,7 @@ export default function GlobalVoiceCapture() {
         if (mediaRecorder.current && isRecording) {
             mediaRecorder.current.stop();
             setIsRecording(false);
+            setStatus(''); // Close the recording overlay immediately
             if (timerInterval.current) clearInterval(timerInterval.current);
         }
     };
@@ -390,6 +391,7 @@ export default function GlobalVoiceCapture() {
                 .stop-action {
                     display: flex;
                     align-items: center;
+                    justify-content: center;
                     gap: 0.75rem;
                     padding: 1rem 2rem;
                     background: var(--color-error);

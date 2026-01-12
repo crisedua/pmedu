@@ -172,22 +172,8 @@ export default function LoginPage() {
                                 </div>
 
                                 {/* Bottom Summary & CTA */}
-                                <div>
-                                    <div style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '10px',
-                                        marginBottom: '1rem',
-                                        padding: '0.5rem',
-                                        borderRadius: '0.5rem',
-                                        background: 'rgba(255,255,255,0.1)',
-                                        borderLeft: '3px solid #4ADE80'
-                                    }}>
-                                        <p style={{ fontWeight: 600, fontSize: '0.95rem', color: 'white', margin: 0 }}>
-                                            Tu sistema de memoria y control.
-                                        </p>
-                                    </div>
-
+                                {/* Bottom CTA */}
+                                <div style={{ marginTop: '1rem' }}>
                                     <div style={{
                                         background: 'white',
                                         color: '#4F46E5',
