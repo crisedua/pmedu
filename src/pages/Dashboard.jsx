@@ -195,10 +195,11 @@ export default function Dashboard() {
                                 <strong>Database Unavailable:</strong> Connection timed out (&gt;35s).
                             </div>
                         </div>
+                        <div style={{ display: 'flex', gap: '8px' }}>
                             <button
                                 onClick={async () => {
                                     const btn = document.getElementById('test-conn-btn');
-                                    if(btn) btn.innerText = 'Testing...';
+                                    if (btn) btn.innerText = 'Testing...';
                                     try {
                                         const start = Date.now();
                                         console.log('Testing connection...');
@@ -212,7 +213,7 @@ export default function Dashboard() {
                                     } catch (e) {
                                         alert(`Connection CRASHED\n${e.message}`);
                                     } finally {
-                                        if(btn) btn.innerText = 'Test Connect';
+                                        if (btn) btn.innerText = 'Test Connect';
                                     }
                                 }}
                                 id="test-conn-btn"
@@ -246,182 +247,182 @@ export default function Dashboard() {
                         </ul>
                     </div>
                 </div>
-    )
-}
-
-{
-    (isSlowConnection || isProcessing) && !connectionError && (
-        <div className="connection-banner" style={{ background: isProcessing ? 'var(--bg-primary)' : '#fff7ed', border: isProcessing ? '1px solid var(--color-primary-200)' : '1px solid #ffedd5' }}>
-            <Loader2 size={16} className="animate-spin" style={{ color: isProcessing ? 'var(--color-primary-600)' : '#9a3412' }} />
-            <span style={{ color: isProcessing ? 'var(--text-primary)' : '#9a3412' }}>
-                {isProcessing ? "AI is analyzing your action..." : "Syncing your action stream..."}
-            </span>
-        </div>
-    )
-}
-
-{/* Header */ }
-<div className="stream-header mb-8">
-    <div>
-        <h1 className="page-title">Command Center</h1>
-        <p className="page-subtitle">
-            {dataLoaded
-                ? `You have ${immediateActions.length} immediate actions and ${recentCaptures.length} unprocessed ideas.`
-                : "Loading your second brain..."
+            )
             }
-        </p>
-    </div>
-    <div className="flex gap-3">
-        <button className="btn btn-primary" onClick={() => setAiSidebarOpen(true)}>
-            <Sparkles size={18} />
-            <span className="hidden md:inline ml-2">AI Assistant</span>
-        </button>
 
-    </div>
-</div>
-
-{/* 3-Column Stream Layout */ }
-<div className="stream-grid">
-
-    {/* Column 1: Immediate Actions (Drop Zone) */}
-    <div
-        className={`stream-column ${dragOverColumn === 'action' ? 'drag-over' : ''}`}
-        onDragOver={(e) => handleDragOver(e, 'action')}
-        onDragLeave={handleDragLeave}
-        onDrop={(e) => handleDrop(e, 'action')}
-    >
-        <div className="column-header">
-            <div className="header-icon bg-red-100 text-red-600">
-                <Zap size={18} />
-            </div>
-            <h2>Do Now</h2>
-            <span className="badge">{immediateActions.length}</span>
-        </div>
-        <div className="column-content">
-            {immediateActions.length === 0 ? (
-                <div className="empty-stream">
-                    <p>All caught up! 🎉</p>
-                </div>
-            ) : (
-                immediateActions.map(task => (
-                    <ActionCard
-                        key={task.id}
-                        item={task}
-                        type="action"
-                        onAction={handleTaskComplete}
-                        onDelete={(t) => deleteTask(t.id)}
-                        onEdit={handleEdit}
-                    />
-                ))
-            )}
-        </div>
-    </div>
-
-    {/* Column 2: Waiting For (Drop Zone) */}
-    <div
-        className={`stream-column ${dragOverColumn === 'waiting' ? 'drag-over' : ''}`}
-        onDragOver={(e) => handleDragOver(e, 'waiting')}
-        onDragLeave={handleDragLeave}
-        onDrop={(e) => handleDrop(e, 'waiting')}
-    >
-        <div className="column-header">
-            <div className="header-icon bg-orange-100 text-orange-600">
-                <Clock size={18} />
-            </div>
-            <h2>Waiting For</h2>
-            <span className="badge">{waitingFor.length}</span>
-        </div>
-        <div className="column-content">
-            {waitingFor.length === 0 ? (
-                <div className="empty-stream">
-                    <p>No pending delegations.</p>
-                </div>
-            ) : (
-                waitingFor.map(task => (
-                    <ActionCard
-                        key={task.id}
-                        item={task}
-                        type="waiting"
-                        onDelete={(t) => deleteTask(t.id)}
-                        onEdit={handleEdit}
-                    />
-                ))
-            )}
-        </div>
-    </div>
-
-    {/* Column 3: Recent Captures (Draggable Source) */}
-    <div className="stream-column">
-        <div className="column-header">
-            <div className="header-icon bg-blue-100 text-blue-600">
-                <Inbox size={18} />
-            </div>
-            <h2>Inbox</h2>
-            <span className="badge">{recentCaptures.length}</span>
-        </div>
-        <div className="column-content">
-            {recentCaptures.length === 0 ? (
-                <div className="empty-stream">
-                    <p>Inbox zero! 🧠</p>
-                </div>
-            ) : (
-                recentCaptures.map(item => (
-                    <div
-                        key={item.id}
-                        draggable
-                        onDragStart={(e) => handleDragStart(e, item, 'inbox')}
-                        onDragEnd={handleDragEnd}
-                        style={{ cursor: 'move' }}
-                    >
-                        <ActionCard
-                            item={item}
-                            type="inbox"
-                            onAction={handleInboxProcess}
-                            onDelete={(i) => deleteInboxItem(i.id)}
-                            onEdit={(item, mode) => mode === 'auto' ? handleEdit(item, 'auto') : setEditingInboxItem(item)}
-                        />
+            {
+                (isSlowConnection || isProcessing) && !connectionError && (
+                    <div className="connection-banner" style={{ background: isProcessing ? 'var(--bg-primary)' : '#fff7ed', border: isProcessing ? '1px solid var(--color-primary-200)' : '1px solid #ffedd5' }}>
+                        <Loader2 size={16} className="animate-spin" style={{ color: isProcessing ? 'var(--color-primary-600)' : '#9a3412' }} />
+                        <span style={{ color: isProcessing ? 'var(--text-primary)' : '#9a3412' }}>
+                            {isProcessing ? "AI is analyzing your action..." : "Syncing your action stream..."}
+                        </span>
                     </div>
-                ))
-            )}
-        </div>
-    </div>
+                )
+            }
 
-</div>
+            {/* Header */}
+            <div className="stream-header mb-8">
+                <div>
+                    <h1 className="page-title">Command Center</h1>
+                    <p className="page-subtitle">
+                        {dataLoaded
+                            ? `You have ${immediateActions.length} immediate actions and ${recentCaptures.length} unprocessed ideas.`
+                            : "Loading your second brain..."
+                        }
+                    </p>
+                </div>
+                <div className="flex gap-3">
+                    <button className="btn btn-primary" onClick={() => setAiSidebarOpen(true)}>
+                        <Sparkles size={18} />
+                        <span className="hidden md:inline ml-2">AI Assistant</span>
+                    </button>
+
+                </div>
+            </div>
+
+            {/* 3-Column Stream Layout */}
+            <div className="stream-grid">
+
+                {/* Column 1: Immediate Actions (Drop Zone) */}
+                <div
+                    className={`stream-column ${dragOverColumn === 'action' ? 'drag-over' : ''}`}
+                    onDragOver={(e) => handleDragOver(e, 'action')}
+                    onDragLeave={handleDragLeave}
+                    onDrop={(e) => handleDrop(e, 'action')}
+                >
+                    <div className="column-header">
+                        <div className="header-icon bg-red-100 text-red-600">
+                            <Zap size={18} />
+                        </div>
+                        <h2>Do Now</h2>
+                        <span className="badge">{immediateActions.length}</span>
+                    </div>
+                    <div className="column-content">
+                        {immediateActions.length === 0 ? (
+                            <div className="empty-stream">
+                                <p>All caught up! 🎉</p>
+                            </div>
+                        ) : (
+                            immediateActions.map(task => (
+                                <ActionCard
+                                    key={task.id}
+                                    item={task}
+                                    type="action"
+                                    onAction={handleTaskComplete}
+                                    onDelete={(t) => deleteTask(t.id)}
+                                    onEdit={handleEdit}
+                                />
+                            ))
+                        )}
+                    </div>
+                </div>
+
+                {/* Column 2: Waiting For (Drop Zone) */}
+                <div
+                    className={`stream-column ${dragOverColumn === 'waiting' ? 'drag-over' : ''}`}
+                    onDragOver={(e) => handleDragOver(e, 'waiting')}
+                    onDragLeave={handleDragLeave}
+                    onDrop={(e) => handleDrop(e, 'waiting')}
+                >
+                    <div className="column-header">
+                        <div className="header-icon bg-orange-100 text-orange-600">
+                            <Clock size={18} />
+                        </div>
+                        <h2>Waiting For</h2>
+                        <span className="badge">{waitingFor.length}</span>
+                    </div>
+                    <div className="column-content">
+                        {waitingFor.length === 0 ? (
+                            <div className="empty-stream">
+                                <p>No pending delegations.</p>
+                            </div>
+                        ) : (
+                            waitingFor.map(task => (
+                                <ActionCard
+                                    key={task.id}
+                                    item={task}
+                                    type="waiting"
+                                    onDelete={(t) => deleteTask(t.id)}
+                                    onEdit={handleEdit}
+                                />
+                            ))
+                        )}
+                    </div>
+                </div>
+
+                {/* Column 3: Recent Captures (Draggable Source) */}
+                <div className="stream-column">
+                    <div className="column-header">
+                        <div className="header-icon bg-blue-100 text-blue-600">
+                            <Inbox size={18} />
+                        </div>
+                        <h2>Inbox</h2>
+                        <span className="badge">{recentCaptures.length}</span>
+                    </div>
+                    <div className="column-content">
+                        {recentCaptures.length === 0 ? (
+                            <div className="empty-stream">
+                                <p>Inbox zero! 🧠</p>
+                            </div>
+                        ) : (
+                            recentCaptures.map(item => (
+                                <div
+                                    key={item.id}
+                                    draggable
+                                    onDragStart={(e) => handleDragStart(e, item, 'inbox')}
+                                    onDragEnd={handleDragEnd}
+                                    style={{ cursor: 'move' }}
+                                >
+                                    <ActionCard
+                                        item={item}
+                                        type="inbox"
+                                        onAction={handleInboxProcess}
+                                        onDelete={(i) => deleteInboxItem(i.id)}
+                                        onEdit={(item, mode) => mode === 'auto' ? handleEdit(item, 'auto') : setEditingInboxItem(item)}
+                                    />
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+
+            </div>
 
 
 
-{/* Edit Task Modal */ }
-{
-    editingTask && (
-        <EditTaskModal
-            task={editingTask}
-            onClose={() => setEditingTask(null)}
-        />
-    )
-}
+            {/* Edit Task Modal */}
+            {
+                editingTask && (
+                    <EditTaskModal
+                        task={editingTask}
+                        onClose={() => setEditingTask(null)}
+                    />
+                )
+            }
 
-{/* Edit Inbox Item Modal */ }
-{
-    editingInboxItem && (
-        <EditInboxItemModal
-            item={editingInboxItem}
-            onClose={() => setEditingInboxItem(null)}
-        />
-    )
-}
+            {/* Edit Inbox Item Modal */}
+            {
+                editingInboxItem && (
+                    <EditInboxItemModal
+                        item={editingInboxItem}
+                        onClose={() => setEditingInboxItem(null)}
+                    />
+                )
+            }
 
-{/* Process Inbox Item Modal */ }
-{
-    processInboxItem && (
-        <CreateTaskModal
-            initialData={processInboxItem}
-            onClose={() => setProcessInboxItem(null)}
-            onSuccess={handleProcessComplete}
-        />
-    )
-}
+            {/* Process Inbox Item Modal */}
+            {
+                processInboxItem && (
+                    <CreateTaskModal
+                        initialData={processInboxItem}
+                        onClose={() => setProcessInboxItem(null)}
+                        onSuccess={handleProcessComplete}
+                    />
+                )
+            }
 
-{/* AI Sidebar */ }
+            {/* AI Sidebar */}
             <AIAssistantSidebar
                 isOpen={aiSidebarOpen}
                 onClose={() => setAiSidebarOpen(false)}
