@@ -3,6 +3,10 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.trim();
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim();
 
+// #region agent log
+console.log('[DEBUG-B] supabase.js:init - Env vars check:', {hasUrl:!!supabaseUrl,hasKey:!!supabaseAnonKey,urlLength:supabaseUrl?.length||0,keyLength:supabaseAnonKey?.length||0});
+// #endregion
+
 // Connection Diagnostics
 console.log('[Supabase] Initializing client (Safe Mode)...');
 if (!supabaseUrl || !supabaseAnonKey) {

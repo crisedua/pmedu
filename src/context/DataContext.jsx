@@ -147,6 +147,10 @@ export function DataProvider({ children }) {
         let attempt = 0;
         const start = Date.now();
 
+        // #region agent log
+        console.log(`[DEBUG-E] loadWithRetry:start - Starting ${name}:`, {name,timeoutMs,retries});
+        // #endregion
+
         while (attempt < retries) {
           attempt++;
           // Linear backoff for timeout: 20s, 30s...
@@ -164,11 +168,18 @@ export function DataProvider({ children }) {
             await Promise.race([fn(), timeoutPromise]);
 
             console.log(`[Init] ✓ ${name} loaded in ${Date.now() - start}ms`);
+            // #region agent log
+            console.log(`[DEBUG-E] loadWithRetry:success - SUCCESS ${name}:`, {name,attempt,durationMs:Date.now()-start});
+            // #endregion
             return; // Success
           } catch (err) {
             const isTimeout = err.message === 'TIMEOUT';
             const msg = isTimeout ? `timed out after ${currentTimeout}ms` : err.message;
             console.warn(`[Init] ⚠ ${name} failed attempt ${attempt}:`, err);
+
+            // #region agent log
+            console.log(`[DEBUG-E] loadWithRetry:failed - FAILED ${name} attempt ${attempt}:`, {name,attempt,isTimeout,errorMsg:err.message,durationMs:Date.now()-start});
+            // #endregion
 
             if (attempt >= retries) {
               console.error(`[Init] ✘ ${name} failed all ${retries} attempts.`);
@@ -222,6 +233,9 @@ export function DataProvider({ children }) {
   // Load functions
   // Load functions
   const loadUsers = async () => {
+    // #region agent log
+    console.log('[DEBUG-A] loadUsers:entry - loadUsers started');
+    // #endregion
     try {
       // robust: try to get session first to ensure we aren't hanging on client
       const { data: { session } } = await supabase.auth.getSession();
@@ -229,7 +243,15 @@ export function DataProvider({ children }) {
       const url = import.meta.env.VITE_SUPABASE_URL;
       const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+      // #region agent log
+      console.log('[DEBUG-A] loadUsers:session - Session check:', {hasSession:!!session,hasToken:!!token,hasUrl:!!url,hasKey:!!key,tokenLength:token?.length||0});
+      // #endregion
+
       if (token && url && key) {
+        // #region agent log
+        const fetchStart = Date.now();
+        console.log('[DEBUG-C] loadUsers:rawFetch - Starting raw fetch:', {url:`${url}/rest/v1/pm_users`});
+        // #endregion
         // Use Raw Fetch for maximum reliability
         const response = await fetch(`${url}/rest/v1/pm_users?select=*&order=created_at.desc`, {
           headers: {
@@ -238,11 +260,19 @@ export function DataProvider({ children }) {
           }
         });
 
+        // #region agent log
+        console.log('[DEBUG-C] loadUsers:rawFetchDone - Raw fetch completed:', {status:response.status,ok:response.ok,durationMs:Date.now()-fetchStart});
+        // #endregion
+
         if (!response.ok) throw new Error(`Fetch error: ${response.status}`);
         const data = await response.json();
         setUsers(data || []);
         return;
       }
+
+      // #region agent log
+      console.log('[DEBUG-A] loadUsers:fallback - Using Supabase client fallback (no session)');
+      // #endregion
 
       // Fallback (or if no session yet)
       const { data, error } = await supabase
@@ -253,6 +283,9 @@ export function DataProvider({ children }) {
       if (error) throw error;
       setUsers(data || []);
     } catch (err) {
+      // #region agent log
+      console.log('[DEBUG-A] loadUsers:error - loadUsers failed:', {error:err.message});
+      // #endregion
       console.error('Error loading users:', err);
       // Don't set empty on error immediately, as it might be a temp glitch, 
       // but the retry logic in loadAllData handles the throw.
@@ -276,30 +309,52 @@ export function DataProvider({ children }) {
   };
 
   const loadTasks = async () => {
+    // #region agent log
+    const taskStart = Date.now();
+    console.log('[DEBUG-D] loadTasks:entry - loadTasks started');
+    // #endregion
     try {
       const { data, error } = await supabase
         .from('pm_tasks')
         .select('*')
         .order('created_at', { ascending: false });
 
+      // #region agent log
+      console.log('[DEBUG-D] loadTasks:result - Query completed:', {hasError:!!error,errorMsg:error?.message||null,dataCount:data?.length||0,durationMs:Date.now()-taskStart});
+      // #endregion
+
       if (error) throw error;
       setTasks(data || []);
     } catch (err) {
+      // #region agent log
+      console.log('[DEBUG-D] loadTasks:error - loadTasks failed:', {error:err.message});
+      // #endregion
       console.error('Error loading tasks:', err);
       setTasks([]);
     }
   };
 
   const loadDocuments = async () => {
+    // #region agent log
+    const docStart = Date.now();
+    console.log('[DEBUG-D] loadDocuments:entry - loadDocuments started');
+    // #endregion
     try {
       const { data, error } = await supabase
         .from('pm_documents')
         .select('*')
         .order('created_at', { ascending: false });
 
+      // #region agent log
+      console.log('[DEBUG-D] loadDocuments:result - Query completed:', {hasError:!!error,errorMsg:error?.message||null,dataCount:data?.length||0,durationMs:Date.now()-docStart});
+      // #endregion
+
       if (error) throw error;
       setDocuments(data || []);
     } catch (err) {
+      // #region agent log
+      console.log('[DEBUG-D] loadDocuments:error - loadDocuments failed:', {error:err.message});
+      // #endregion
       console.error('Error loading documents:', err);
       setDocuments([]);
     }
