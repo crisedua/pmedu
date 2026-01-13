@@ -25,6 +25,7 @@ export default function DemoActionCard({
     onMenuToggle,
     users = [],
     getUser = () => null,
+    getProject = () => null,
     tutorialStep = null // 'open_menu' | 'click_smart_process' | null
 }) {
     const [menuOpen, setMenuOpen] = useState(false);
@@ -37,6 +38,7 @@ export default function DemoActionCard({
     const isAction = type === 'action';
 
     const assignee = item.assigned_to ? getUser(item.assigned_to) : null;
+    const project = item.project_id ? getProject(item.project_id) : null;
     const dateObj = item.due_date ? new Date(item.due_date) : (item.created_at ? new Date(item.created_at) : null);
     const dateStr = dateObj ? format(dateObj, 'MMM d') : '';
 
@@ -210,6 +212,20 @@ export default function DemoActionCard({
                     )}
                     {isWaiting && assignee && (
                         <span>→ {assignee.name.split(' ')[0]}</span>
+                    )}
+                    {project && (
+                        <span style={{
+                            background: project.color + '15',
+                            color: project.color,
+                            padding: '1px 8px',
+                            borderRadius: '12px',
+                            fontSize: '10px',
+                            fontWeight: 700,
+                            border: `1px solid ${project.color}30`,
+                            textTransform: 'uppercase'
+                        }}>
+                            {project.name}
+                        </span>
                     )}
                 </div>
             </div>

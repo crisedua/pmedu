@@ -8,7 +8,9 @@ import {
     Inbox,
     Mic,
     X,
-    Loader2
+    Loader2,
+    CheckCircle2,
+    Circle
 } from 'lucide-react';
 
 function DemoDashboardContent() {
@@ -23,7 +25,9 @@ function DemoDashboardContent() {
         updateInboxItem,
         deleteInboxItem,
         addInboxItem,
-        processInboxToTask
+        processInboxToTask,
+        getProject,
+        projects
     } = useDemoData();
 
     const [isRecording, setIsRecording] = useState(false);
@@ -70,22 +74,53 @@ function DemoDashboardContent() {
 
     const handleSmartProcess = async (item) => {
         setIsProcessing(true);
-        // Simulate AI processing
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        // Simulation of deep AI analysis
+        await new Promise(resolve => setTimeout(resolve, 2500));
+
+        const content = item.content.toLowerCase();
+        let projectId = null;
+        let assignedTo = currentUser.id;
+        let actionType = 'todo';
+
+        // 🚀 SMART POWER: Auto-categorization by project
+        if (content.includes('web') || content.includes('página')) projectId = 'proj-1';
+        else if (content.includes('marketing') || content.includes('ventas')) projectId = 'proj-2';
+        else if (content.includes('latam') || content.includes('expansión')) projectId = 'proj-3';
+
+        // 🚀 SMART POWER: Auto-delegation by mentioning names
+        if (content.includes('carlos')) assignedTo = 'user-3';
+        else if (content.includes('ana')) assignedTo = 'user-2';
+        else if (content.includes('sofía') || content.includes('sofia')) assignedTo = 'user-4';
+
+        // 🚀 SMART POWER: Semantic intent extraction
+        if (content.includes('llamar') || content.includes('reunión') || content.includes('cena')) actionType = 'meeting';
+        else if (content.includes('analizar') || content.includes('revisar')) actionType = 'analyze';
 
         processInboxToTask(item, {
-            name: item.content.substring(0, 50) + '...',
-            assigned_to: currentUser.id,
-            action_type: 'todo'
+            name: item.content.split(/[.?!]/)[0].substring(0, 60), // Use first sentence as title
+            project_id: projectId,
+            assigned_to: assignedTo,
+            action_type: actionType
         });
+
         setIsProcessing(false);
+
+        const project = projects.find(p => p.id === projectId);
+        const assignee = users.find(u => u.id === assignedTo);
+
+        let feedback = "He analizado tu nota. ";
+        if (project) feedback += `La he vinculado al proyecto ${project.name}. `;
+        if (assignee && assignee.id !== currentUser.id) {
+            feedback += `Se la he asignado a ${assignee.name.split(' ')[0]} automáticamente.`;
+        } else {
+            feedback += "La he añadido a tu lista de acciones priorizadas.";
+        }
+
+        speak(feedback);
 
         if (demoStep === 4) {
             setDemoStep(5);
-            speak("¡Magia! Se ha movido a 'Hacer Ahora'. Ahora prueba el Asistente IA.");
-            setTimeout(() => setDemoStep(6), 4000);
-        } else {
-            speak("He analizado tu nota y creado una tarea prioritaria.");
+            setTimeout(() => setDemoStep(6), 5000);
         }
     };
 
@@ -113,9 +148,9 @@ function DemoDashboardContent() {
 
     // Voice recording simulation
     const simulatedTexts = [
-        "Recordar enviar la propuesta comercial a Juan Pérez antes del mediodía y agendar una reunión de seguimiento para el viernes a las 3 de la tarde.",
-        "Necesito revisar los números del Q1 con el equipo de finanzas, especialmente el presupuesto de marketing que parece estar desfasado.",
-        "Llamar a María para confirmar la cena de equipo del jueves.",
+        "Pedirle a Carlos que revise el código de la nueva página web antes del lanzamiento.",
+        "Necesito que Ana revise el presupuesto de marketing para la expansión Latam.",
+        "Agendar reunión con el equipo de finanzas para analizar los números del Q1.",
     ];
 
     // WALKTHROUGH STATE
@@ -340,9 +375,35 @@ function DemoDashboardContent() {
                             👇 Presiona aquí y habla
                         </p>
                         <p style={{ fontSize: '16px', opacity: 0.9 }}>
-                            Simularemos una captura de voz en español
+                            Simularemos una captura de voz en español.
                         </p>
                     </div>
+                </div>
+            )}
+
+            {/* Step 2: During recording, tell them to click X */}
+            {demoStep === 2 && isRecording && (
+                <div style={{
+                    position: 'fixed',
+                    bottom: '120px',
+                    right: '120px',
+                    zIndex: 60,
+                    pointerEvents: 'none',
+                    animation: 'bounce 2s infinite',
+                    textAlign: 'right'
+                }}>
+                    <p style={{
+                        fontSize: '20px',
+                        fontWeight: 700,
+                        color: 'white',
+                        textShadow: '0 2px 8px rgba(0,0,0,0.5)',
+                        background: 'rgba(0,0,0,0.6)',
+                        padding: '12px 20px',
+                        borderRadius: '16px',
+                        backdropFilter: 'blur(4px)'
+                    }}>
+                        Haz clic en la <span style={{ color: '#ef4444' }}>X</span> para terminar 👈
+                    </p>
                 </div>
             )}
 
@@ -530,13 +591,28 @@ function DemoDashboardContent() {
                     <div style={{
                         background: 'white',
                         padding: '32px',
-                        borderRadius: '16px',
+                        borderRadius: '24px',
                         textAlign: 'center',
-                        maxWidth: '300px'
+                        maxWidth: '350px',
+                        boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
+                        border: '1px solid #e5e7eb'
                     }}>
-                        <Loader2 size={40} className="animate-spin" style={{ color: '#6366f1', marginBottom: '16px' }} />
-                        <p style={{ fontSize: '16px', fontWeight: 600, margin: 0 }}>La IA está analizando...</p>
-                        <p style={{ fontSize: '14px', color: '#71717a', margin: '8px 0 0 0' }}>Creando tarea desde nota de voz</p>
+                        <div style={{ position: 'relative', width: '60px', height: '60px', margin: '0 auto 20px' }}>
+                            <Loader2 size={60} className="animate-spin" style={{ color: '#6366f1' }} />
+                            <Sparkles size={24} style={{ position: 'absolute', top: '18px', left: '18px', color: '#8b5cf6' }} className="animate-pulse" />
+                        </div>
+                        <p style={{ fontSize: '18px', fontWeight: 700, color: '#111827', margin: '0 0 8px 0' }}>Procesando con IA</p>
+                        <div style={{ fontSize: '14px', color: '#6b7280', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center', opacity: 0.8 }}>
+                                <CheckCircle2 size={14} color="#10b981" /> Transcribiendo audio...
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
+                                <Loader2 size={14} className="animate-spin" /> Extrayendo acciones clave...
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center', opacity: 0.5 }}>
+                                <Circle size={14} /> Asignando prioridades...
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
@@ -600,6 +676,7 @@ function DemoDashboardContent() {
                                     onDelete={(t) => deleteTask(t.id)}
                                     users={users}
                                     getUser={getUser}
+                                    getProject={getProject}
                                 />
                             ))
                         )}
@@ -655,6 +732,7 @@ function DemoDashboardContent() {
                                     onDelete={(t) => deleteTask(t.id)}
                                     users={users}
                                     getUser={getUser}
+                                    getProject={getProject}
                                 />
                             ))
                         )}
@@ -712,6 +790,7 @@ function DemoDashboardContent() {
                                     onMarkProcessed={handleMarkProcessed}
                                     users={users}
                                     getUser={getUser}
+                                    getProject={getProject}
                                 />
                             ))
                         )}
