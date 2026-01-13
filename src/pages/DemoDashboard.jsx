@@ -2208,6 +2208,38 @@ function DemoDashboardContent() {
                 </div>
             )}
 
+
+            {/* Footer Credit */}
+            <div style={{
+                position: 'fixed',
+                bottom: '16px',
+                right: '16px',
+                zIndex: 40,
+                background: 'rgba(255, 255, 255, 0.9)',
+                padding: '8px 16px',
+                borderRadius: '30px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                fontSize: '12px',
+                color: '#64748b',
+                display: 'flex',
+                gap: '4px',
+                alignItems: 'center',
+                backdropFilter: 'blur(8px)',
+                border: '1px solid rgba(255,255,255,0.5)'
+            }}>
+                <span>Creado en</span>
+                <a
+                    href="https://fabricastartup.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: '#334155', fontWeight: 700, textDecoration: 'none', transition: 'color 0.2s' }}
+                    onMouseEnter={(e) => e.target.style.color = '#0f172a'}
+                    onMouseLeave={(e) => e.target.style.color = '#334155'}
+                >
+                    Fabrica Startup 🚀
+                </a>
+            </div>
+
             <style>{`
                 @keyframes pulse {
                     0%, 100% { opacity: 1; transform: scale(1); }
