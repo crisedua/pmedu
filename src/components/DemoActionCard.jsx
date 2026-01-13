@@ -305,6 +305,8 @@ export default function DemoActionCard({
                     opacity: 0.3 !important;
                     transition: all 0.2s ease;
                     pointer-events: auto !important;
+                    position: relative;
+                    z-index: 10;
                 }
                 .demo-action-btn:hover {
                     opacity: 1 !important;

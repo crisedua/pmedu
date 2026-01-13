@@ -1890,6 +1890,7 @@ a:hover {
   display: flex;
   align-items: center;
   gap: 4px;
+  z-index: 5;
 }
 
 /* Action buttons always visible but subtle */
@@ -1898,6 +1899,8 @@ a:hover {
   transition: all 0.2s ease;
   padding: 4px;
   pointer-events: auto !important;
+  z-index: 10;
+  position: relative;
 }
 
 .action-btn-visible-hover:hover {
