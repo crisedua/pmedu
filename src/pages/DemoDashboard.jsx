@@ -60,6 +60,7 @@ function DemoDashboardContent() {
     const [signupName, setSignupName] = useState('');
     const [signupEmail, setSignupEmail] = useState('');
     const [signupSubmitted, setSignupSubmitted] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const DEMO_ACTION_LIMIT = 5; // Artificial limit to create urgency
 
@@ -427,25 +428,36 @@ function DemoDashboardContent() {
         }
 
         try {
+            setIsSubmitting(true);
+
             // Track attempt
             trackEvent('prelaunch_checkout_started', {
                 name: signupName,
                 email: signupEmail
             });
 
-            // 1. Save Lead to Supabase (Blocking to ensure capture)
+            // 1. Save Lead to Supabase (Blocking to ensure capture, with timeout)
             // Using logic associated with aido_leads table
             if (supabase) {
                 try {
-                    const { error } = await supabase.from('aido_leads').insert([{
+                    // Create a promise that rejects after 3 seconds
+                    const timeoutPromise = new Promise((_, reject) =>
+                        setTimeout(() => reject(new Error('Supabase save timeout')), 3000)
+                    );
+
+                    const insertPromise = supabase.from('aido_leads').insert([{
                         name: signupName,
                         email: signupEmail,
                         source: 'demo_completion_lifetime',
                         created_at: new Date().toISOString()
                     }]);
+
+                    // Race usage against timeout so we don't hang payment logic forever
+                    const { error } = await Promise.race([insertPromise, timeoutPromise]);
+
                     if (error) console.warn('Lead save issue:', error);
                 } catch (err) {
-                    console.warn('Lead save crash:', err);
+                    console.warn('Lead save crashed or timed out (non-fatal):', err);
                 }
             }
 
@@ -487,6 +499,7 @@ function DemoDashboardContent() {
         } catch (error) {
             console.error('Signup/Payment Error:', error);
             alert(`No se pudo iniciar el pago: ${error.message}\n\nNota: Si estás probando localmente, la API de Vercel no funcionará sin 'vercel dev'. Asegúrate de configurar MERCADOPAGO_ACCESS_TOKEN en Vercel.`);
+            setIsSubmitting(false); // Re-enable button on error
         }
 
 
@@ -1966,29 +1979,35 @@ function DemoDashboardContent() {
                                     />
                                     <button
                                         type="submit"
+                                        disabled={isSubmitting}
                                         style={{
                                             width: '100%',
-                                            background: 'linear-gradient(135deg, #10b981, #059669)',
+                                            background: isSubmitting ? '#9ca3af' : 'linear-gradient(135deg, #10b981, #059669)',
                                             color: 'white',
                                             border: 'none',
                                             padding: '18px',
                                             borderRadius: '14px',
                                             fontSize: '17px',
                                             fontWeight: 700,
-                                            cursor: 'pointer',
-                                            boxShadow: '0 12px 24px rgba(16,185,129,0.4)',
-                                            transition: 'all 0.2s'
+                                            cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                                            boxShadow: isSubmitting ? 'none' : '0 12px 24px rgba(16,185,129,0.4)',
+                                            transition: 'all 0.2s',
+                                            opacity: isSubmitting ? 0.8 : 1
                                         }}
                                         onMouseEnter={e => {
-                                            e.target.style.transform = 'translateY(-2px)';
-                                            e.target.style.boxShadow = '0 16px 32px rgba(16,185,129,0.5)';
+                                            if (!isSubmitting) {
+                                                e.target.style.transform = 'translateY(-2px)';
+                                                e.target.style.boxShadow = '0 16px 32px rgba(16,185,129,0.5)';
+                                            }
                                         }}
                                         onMouseLeave={e => {
-                                            e.target.style.transform = 'translateY(0)';
-                                            e.target.style.boxShadow = '0 12px 24px rgba(16,185,129,0.4)';
+                                            if (!isSubmitting) {
+                                                e.target.style.transform = 'translateY(0)';
+                                                e.target.style.boxShadow = '0 12px 24px rgba(16,185,129,0.4)';
+                                            }
                                         }}
                                     >
-                                        💚 Reservar Acceso de por Vida — $9.99
+                                        {isSubmitting ? '⏳ Procesando...' : '💚 Reservar Acceso de por Vida — $9.99'}
                                     </button>
                                 </form>
 
