@@ -303,18 +303,15 @@ export default function DemoActionCard({
                     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
                 }
                 .demo-action-btn {
-                    opacity: 0 !important;
-                    transition: opacity 0.2s ease;
-                    pointer-events: none;
+                    opacity: 0.3 !important;
+                    transition: all 0.2s ease;
+                    pointer-events: auto !important;
                 }
-                .demo-action-card:hover .demo-action-btn {
-                    opacity: 0.5 !important;
-                    pointer-events: auto;
-                }
-                .demo-action-card:hover .demo-action-btn:hover {
+                .demo-action-btn:hover {
                     opacity: 1 !important;
                     background-color: #f4f4f5;
                     border-radius: 4px;
+                    transform: scale(1.1);
                 }
             `}</style>
         </div>

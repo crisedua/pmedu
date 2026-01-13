@@ -1892,23 +1892,18 @@ a:hover {
   gap: 4px;
 }
 
-/* Hide visible-hover buttons by default */
+/* Action buttons always visible but subtle */
 .action-btn-visible-hover {
-  opacity: 0 !important;
-  transition: opacity 0.2s ease;
-  pointer-events: none;
+  opacity: 0.3 !important;
+  transition: all 0.2s ease;
   padding: 4px;
+  pointer-events: auto !important;
 }
 
-/* Show them when card is hovered */
-.action-card:hover .action-btn-visible-hover {
-  opacity: 0.5 !important;
-  pointer-events: auto;
-}
-
-.action-card:hover .action-btn-visible-hover:hover {
+.action-btn-visible-hover:hover {
   opacity: 1 !important;
   background-color: var(--bg-secondary);
+  transform: scale(1.1);
 }
 
 .avatar-xs {
