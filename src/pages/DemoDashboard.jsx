@@ -41,8 +41,6 @@ function DemoDashboardContent() {
     const [showSignupPrompt, setShowSignupPrompt] = useState(false);
     const [showCompletionModal, setShowCompletionModal] = useState(false);
     const [hasSeenAiPower, setHasSeenAiPower] = useState(false);
-    const [showExitIntent, setShowExitIntent] = useState(false);
-    const [hasShownExitIntent, setHasShownExitIntent] = useState(false);
     const [showAiAssistant, setShowAiAssistant] = useState(false);
     const [aiDemoPhase, setAiDemoPhase] = useState(0); // 0=initial, 1=user typing, 2=AI typing, 3=AI responded, 4=quick actions
 
@@ -2043,18 +2041,18 @@ function DemoDashboardContent() {
                 position: 'fixed',
                 bottom: '16px',
                 right: '16px',
-                zIndex: 40,
-                background: 'rgba(255, 255, 255, 0.9)',
+                zIndex: 10000,
+                background: '#ffffff',
                 padding: '8px 16px',
                 borderRadius: '30px',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
                 fontSize: '12px',
                 color: '#64748b',
                 display: 'flex',
                 gap: '4px',
                 alignItems: 'center',
-                backdropFilter: 'blur(8px)',
-                border: '1px solid rgba(255,255,255,0.5)'
+                border: '1px solid #e2e8f0',
+                cursor: 'pointer'
             }}>
                 <span>Creado en</span>
                 <a
