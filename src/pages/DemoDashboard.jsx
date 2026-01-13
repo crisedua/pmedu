@@ -2023,24 +2023,7 @@ function DemoDashboardContent() {
                         border: '3px solid #f59e0b',
                         position: 'relative'
                     }}>
-                        <button
-                            onClick={() => {
-                                setShowExitIntent(false);
-                                trackEvent('exit_intent_dismissed');
-                            }}
-                            style={{
-                                position: 'absolute',
-                                top: '16px',
-                                right: '16px',
-                                background: 'none',
-                                border: 'none',
-                                cursor: 'pointer',
-                                color: '#9ca3af',
-                                padding: '4px'
-                            }}
-                        >
-                            <X size={24} />
-                        </button>
+
 
                         <div style={{
                             fontSize: '48px',
