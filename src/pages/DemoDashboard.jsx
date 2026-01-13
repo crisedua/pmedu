@@ -519,6 +519,34 @@ function DemoDashboardContent() {
             )}
 
             {/* Overlays for Steps */}
+            {demoStep === 6 && (
+                <div style={{
+                    position: 'fixed',
+                    top: '80px',
+                    right: '32px',
+                    zIndex: 100,
+                    pointerEvents: 'none',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-end',
+                    animation: 'bounce 2s infinite'
+                }}>
+                    <div style={{ fontSize: '32px', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }}>👆</div>
+                    <div style={{
+                        background: '#1f2937',
+                        color: 'white',
+                        padding: '8px 16px',
+                        borderRadius: '12px',
+                        fontSize: '14px',
+                        fontWeight: 700,
+                        marginTop: '4px',
+                        whiteSpace: 'nowrap',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                    }}>
+                        ¡Pruébalo ahora!
+                    </div>
+                </div>
+            )}
 
             {/* AI Sidebar Mock */}
             <div style={{
@@ -610,28 +638,6 @@ function DemoDashboardContent() {
                                 <Sparkles size={16} />
                                 Asistente IA
                             </button>
-                            {demoStep === 6 && (
-                                <div style={{
-                                    position: 'absolute',
-                                    top: '50px',
-                                    right: '0',
-                                    background: '#1f2937',
-                                    color: 'white',
-                                    padding: '8px 16px',
-                                    borderRadius: '20px',
-                                    fontSize: '13px',
-                                    fontWeight: 600,
-                                    whiteSpace: 'nowrap',
-                                    zIndex: 100,
-                                    animation: 'bounce 2s infinite',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '6px',
-                                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                                }}>
-                                    👆 Abre el Asistente IA
-                                </div>
-                            )}
                         </div>
                     </div>
                 </div>
