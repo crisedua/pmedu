@@ -355,7 +355,7 @@ export default function DemoActionCard({
                                 onClick={menuAction(onEdit, item, 'auto')}
                                 style={tutorialStep === 'click_smart_process' ? { background: '#eef2ff', fontWeight: 'bold' } : {}}
                             >
-                                {tutorialStep === 'click_smart_process' && <span style={{ position: 'absolute', right: '100%', marginRight: '10px', background: '#4f46e5', color: 'white', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', whiteSpace: 'nowrap' }}>👈 Clic aquí</span>}
+                                {tutorialStep === 'click_smart_process' && <span style={{ position: 'absolute', right: '100%', marginRight: '10px', background: '#4f46e5', color: 'white', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', whiteSpace: 'nowrap', boxShadow: '0 2px 5px rgba(0,0,0,0.2)' }}>👉 Clic aquí</span>}
                                 Procesamiento Inteligente
                             </MenuItem>
                             <MenuDivider />
@@ -405,7 +405,7 @@ export default function DemoActionCard({
 }
 
 // Menu Item Component
-function MenuItem({ icon, children, onClick, danger, highlight }) {
+function MenuItem({ icon, children, onClick, danger, highlight, style = {} }) {
     return (
         <button
             onClick={onClick}
@@ -422,7 +422,9 @@ function MenuItem({ icon, children, onClick, danger, highlight }) {
                 border: 'none',
                 cursor: 'pointer',
                 textAlign: 'left',
-                transition: 'background 0.15s'
+                transition: 'background 0.15s',
+                position: 'relative', // Needed for absolute positioning of children
+                ...style // Merge passed style
             }}
             onMouseEnter={(e) => e.target.style.background = danger ? 'rgba(239, 68, 68, 0.1)' : '#f4f4f5'}
             onMouseLeave={(e) => e.target.style.background = 'transparent'}
