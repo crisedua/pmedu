@@ -94,59 +94,162 @@ function DemoDashboardContent() {
 
     // Voice recording simulation
     const simulatedTexts = [
-        "Need to follow up with the design team about the new mockups...",
-        "Remember to schedule a meeting with Sarah about Q1 planning...",
-        "Check if the report is ready for tomorrow's presentation...",
+        "Recordar enviar la propuesta comercial a Juan Pérez antes del mediodía y agendar una reunión de seguimiento para el viernes a las 3 de la tarde.",
+        "Necesito revisar los números del Q1 con el equipo de finanzas, especialmente el presupuesto de marketing que parece estar desfasado.",
+        "Llamar a María para confirmar la cena de equipo del jueves.",
     ];
 
-    const handleStartRecording = () => {
-        setIsRecording(true);
-        setRecordingText('');
+    const toggleRecording = () => {
+        if (isRecording) {
+            setIsRecording(false);
+            if (recordingText) {
+                // Determine step for walkthrough
+                if (demoStep === 2) {
+                    setDemoStep(3); // Advance to processing explanation
+                }
 
-        // Simulate gradual text appearing
-        const text = simulatedTexts[Math.floor(Math.random() * simulatedTexts.length)];
-        let index = 0;
-        const interval = setInterval(() => {
-            if (index < text.length) {
-                setRecordingText(text.substring(0, index + 1));
-                index++;
-            } else {
-                clearInterval(interval);
+                setIsProcessing(true);
+                setTimeout(() => {
+                    const newItem = addInboxItem(recordingText);
+                    setRecordingText('');
+                    setIsProcessing(false);
+                }, 1500);
             }
-        }, 50);
+        } else {
+            setIsRecording(true);
+            setRecordingText('');
+
+            // Advance walkthrough if on the mic step
+            if (demoStep === 1) {
+                // Stay on step 1 or move to fake "listening" state? 
+                // Let's keep step 1 active until stop
+            }
+
+            let textIndex = 0;
+            const targetText = simulatedTexts[Math.floor(Math.random() * simulatedTexts.length)];
+            const words = targetText.split(' ');
+
+            const interval = setInterval(() => {
+                setRecordingText(prev => {
+                    const nextWord = words[textIndex];
+                    if (!nextWord) {
+                        clearInterval(interval);
+                        // Auto-stop for demo flow sweetness
+                        if (demoStep === 1) {
+                            setDemoStep(2); // Highlighting "Click Action to Process"
+                        }
+                        return prev;
+                    }
+                    textIndex++;
+                    return prev + (prev ? ' ' : '') + nextWord;
+                });
+            }, 300);
+        }
     };
 
-    const handleStopRecording = () => {
-        setIsRecording(false);
-        if (recordingText) {
-            addInboxItem(recordingText);
-        }
-        setRecordingText('');
-    };
+    // WALKTHROUGH STATE
+    const [demoStep, setDemoStep] = useState(0);
+    // 0: Welcome Modal
+    // 1: Click Mic (Highlight Mic)
+    // 2: Processing / Inbox (Highlight Inbox item)
+    // 3: Action columns (Highlight columns)
+    // 4: Done
 
     return (
-        <div style={{
-            minHeight: '100vh',
-            background: '#fafafa',
-            fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif"
-        }}>
+        <div className="dashboard-container relative">
+            {/* Walkthrough Overlays */}
+            {demoStep === 0 && (
+                <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6 animate-in fade-in zoom-in duration-300">
+                        <div className="flex justify-between items-start mb-4">
+                            <h2 className="text-2xl font-bold text-gray-900">Bienvenido a tu Segundo Cerebro</h2>
+                            <button onClick={() => setDemoStep(4)} className="text-gray-400 hover:text-gray-600"><X size={24} /></button>
+                        </div>
+                        <p className="text-gray-600 mb-4 text-lg">
+                            Esta aplicación está diseñada para ejecutivos que necesitan **capturar, organizar y ejecutar** sin fricción.
+                        </p>
+                        <ul className="space-y-3 mb-6">
+                            <li className="flex gap-3 items-start">
+                                <div className="bg-blue-100 p-2 rounded-lg text-blue-600 mt-1"><Mic size={18} /></div>
+                                <div>
+                                    <span className="font-semibold block text-gray-800">Captura de Voz Inteligente</span>
+                                    <span className="text-sm text-gray-500">Habla naturalmente. La IA transcribe, resume y extrae tareas automáticamente.</span>
+                                </div>
+                            </li>
+                            <li className="flex gap-3 items-start">
+                                <div className="bg-purple-100 p-2 rounded-lg text-purple-600 mt-1"><Inbox size={18} /></div>
+                                <div>
+                                    <span className="font-semibold block text-gray-800">Bandeja de Entrada Unificada</span>
+                                    <span className="text-sm text-gray-500">Todas tus ideas caen aquí. Procesa, delega o agenda con un clic.</span>
+                                </div>
+                            </li>
+                            <li className="flex gap-3 items-start">
+                                <div className="bg-green-100 p-2 rounded-lg text-green-600 mt-1"><Zap size={18} /></div>
+                                <div>
+                                    <span className="font-semibold block text-gray-800">Acción Inmediata</span>
+                                    <span className="text-sm text-gray-500">Lo que debes hacer HOY, filtrado y priorizado para ti.</span>
+                                </div>
+                            </li>
+                        </ul>
+                        <div className="flex justify-end pt-4 border-t">
+                            <button
+                                onClick={() => setDemoStep(1)}
+                                className="px-6 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200"
+                            >
+                                Iniciar Tour Interactivo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Step 1: Highlight Mic */}
+            {demoStep === 1 && (
+                <div className="fixed inset-0 z-40 pointer-events-none">
+                    <div className="absolute inset-0 bg-black/40" />
+                    {/* Hole punch handled via high z-index on local elements or replicated UI */}
+                    <div className="absolute bottom-24 left-1/2 -translate-x-1/2 text-white text-center animate-bounce">
+                        <p className="text-xl font-bold mb-2">👇 Presiona aquí y habla</p>
+                        <p className="opacity-90">Simularemos una captura de voz en español</p>
+                    </div>
+                </div>
+            )}
+
+            {/* Step 3: Explanation after recording */}
+            {demoStep === 3 && (
+                <div className="fixed inset-0 z-40 pointer-events-none flex items-center justify-center">
+                    <div className="bg-white p-6 rounded-xl shadow-xl max-w-md pointer-events-auto border-2 border-green-500">
+                        <h3 className="font-bold text-lg mb-2">¡Captura Procesada!</h3>
+                        <p className="text-gray-600 mb-4">
+                            Tu nota de voz ha sido transcrita y guardada en el Inbox.
+                            La IA ahora puede analizarla para crear tareas o delegar.
+                        </p>
+                        <button
+                            onClick={() => setDemoStep(4)}
+                            className="w-full py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                        >
+                            Ver mi Dashboard
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Connection Banner */}
+            {(isProcessing) && (
+                <div className="connection-banner bg-blue-50 border-blue-100 mb-6">
+                    <Loader2 size={16} className="animate-spin text-blue-600" />
+                    <span className="text-blue-800">
+                        {isProcessing ? "IA procesando tu nota de voz..." : "Sincronizando..."}
+                    </span>
+                </div>
+            )}
+
             {/* Header */}
-            <div style={{
-                background: '#ffffff',
-                borderBottom: '1px solid #e4e4e7',
-                padding: '16px 24px'
-            }}>
+            <div className="stream-header mb-8">
                 <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div>
-                            <h1 style={{
-                                fontSize: '28px',
-                                fontWeight: 700,
-                                color: '#18181b',
-                                margin: 0
-                            }}>
-                                Command
-                            </h1>
+                            <h1 className="page-title">Command Center</h1>
                             <p style={{
                                 fontSize: '14px',
                                 color: '#71717a',
@@ -391,8 +494,9 @@ function DemoDashboardContent() {
             </div>
 
             {/* Voice Recording Button */}
+            {/* Floating Mic Button */}
             <button
-                onClick={isRecording ? handleStopRecording : handleStartRecording}
+                onClick={toggleRecording}
                 style={{
                     position: 'fixed',
                     bottom: '32px',
@@ -411,7 +515,8 @@ function DemoDashboardContent() {
                     color: 'white',
                     boxShadow: '0 4px 20px rgba(99, 102, 241, 0.4)',
                     transition: 'all 0.3s ease',
-                    animation: isRecording ? 'pulse 1.5s infinite' : 'none'
+                    animation: isRecording ? 'pulse 1.5s infinite' : 'bounce 2s infinite',
+                    zIndex: demoStep === 1 ? 60 : 30 // Critical for walkthrough
                 }}
             >
                 {isRecording ? <X size={28} /> : <Mic size={28} />}
@@ -428,7 +533,8 @@ function DemoDashboardContent() {
                     borderRadius: '16px',
                     padding: '20px',
                     boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15)',
-                    border: '1px solid #e4e4e7'
+                    border: '1px solid #e4e4e7',
+                    zIndex: demoStep === 1 ? 60 : 30
                 }}>
                     <div style={{
                         display: 'flex',
@@ -444,7 +550,7 @@ function DemoDashboardContent() {
                             animation: 'pulse 1s infinite'
                         }} />
                         <span style={{ fontSize: '12px', color: '#71717a', fontWeight: 600 }}>
-                            Recording...
+                            Grabando...
                         </span>
                     </div>
                     <p style={{
@@ -454,7 +560,7 @@ function DemoDashboardContent() {
                         minHeight: '60px',
                         lineHeight: 1.5
                     }}>
-                        {recordingText || 'Listening...'}
+                        {recordingText || 'Escuchando...'}
                         <span style={{
                             animation: 'blink 1s infinite',
                             marginLeft: '2px'
