@@ -639,39 +639,216 @@ function DemoDashboardContent() {
                 </div>
             )}
 
-            {/* AI Sidebar Mock */}
-            <div style={{
-                position: 'fixed',
-                top: 0,
-                right: demoStep === 7 ? 0 : '-400px',
-                width: '350px',
-                height: '100vh',
-                background: 'white',
-                boxShadow: '-5px 0 25px rgba(0,0,0,0.1)',
-                transition: 'right 0.3s ease',
-                zIndex: 200, // Top level
-                display: 'flex',
-                flexDirection: 'column'
-            }}>
-                <div style={{ padding: '20px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ margin: 0, fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}><Sparkles size={18} color="#4f46e5" /> Asistente IA</h3>
-                    <button onClick={() => setDemoStep(6)}><X size={20} /></button>
-                </div>
-                <div style={{ flex: 1, padding: '20px', background: '#f9fafb' }}>
-                    <div style={{ background: 'white', padding: '12px', borderRadius: '12px', marginBottom: '12px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-                        <p style={{ margin: 0, fontSize: '14px', color: '#374151' }}>Hola, soy Aido. ¿En qué te ayudo hoy?</p>
+            {/* AI Assistant Popup - Top Right Corner */}
+            {demoStep >= 7 && (
+                <div style={{
+                    position: 'fixed',
+                    top: '80px',
+                    right: '24px',
+                    width: '380px',
+                    maxHeight: '520px',
+                    background: 'white',
+                    borderRadius: '20px',
+                    boxShadow: '0 20px 50px rgba(0,0,0,0.2), 0 0 0 1px rgba(0,0,0,0.05)',
+                    zIndex: 200,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    overflow: 'hidden',
+                    animation: 'slideIn 0.3s ease-out'
+                }}>
+                    {/* Header */}
+                    <div style={{
+                        padding: '16px 20px',
+                        background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <div style={{
+                                width: '36px',
+                                height: '36px',
+                                borderRadius: '10px',
+                                background: 'rgba(255,255,255,0.2)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}>
+                                <Sparkles size={20} color="white" />
+                            </div>
+                            <div>
+                                <h3 style={{ margin: 0, fontWeight: 700, color: 'white', fontSize: '16px' }}>Asistente IA</h3>
+                                <p style={{ margin: 0, fontSize: '11px', color: 'rgba(255,255,255,0.8)' }}>Tu segundo cerebro</p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => setDemoStep(8)}
+                            style={{
+                                background: 'rgba(255,255,255,0.2)',
+                                border: 'none',
+                                borderRadius: '8px',
+                                padding: '6px',
+                                cursor: 'pointer',
+                                color: 'white',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}
+                        >
+                            <X size={18} />
+                        </button>
                     </div>
-                    <div style={{ background: '#eef2ff', padding: '12px', borderRadius: '12px', marginBottom: '12px', marginLeft: 'auto', maxWidth: '80%' }}>
-                        <p style={{ margin: 0, fontSize: '14px', color: '#374151' }}>¿Qué tareas tengo pendientes?</p>
+
+                    {/* Chat Messages */}
+                    <div style={{ flex: 1, padding: '16px', background: '#f8fafc', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {/* AI Welcome */}
+                        <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                            <div style={{
+                                width: '28px',
+                                height: '28px',
+                                borderRadius: '8px',
+                                background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0
+                            }}>
+                                <Sparkles size={14} color="white" />
+                            </div>
+                            <div style={{ background: 'white', padding: '12px 14px', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', maxWidth: '85%' }}>
+                                <p style={{ margin: 0, fontSize: '14px', color: '#374151', lineHeight: '1.5' }}>
+                                    ¡Hola! Soy tu asistente IA. Puedo ayudarte con:
+                                </p>
+                                <ul style={{ margin: '8px 0 0 0', padding: '0 0 0 16px', fontSize: '13px', color: '#6b7280', lineHeight: '1.6' }}>
+                                    <li>Ver el estado de tus proyectos</li>
+                                    <li>Revisar tareas pendientes</li>
+                                    <li>Analizar tu productividad</li>
+                                    <li>Crear nuevas tareas por voz</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        {/* User Question */}
+                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                            <div style={{ background: '#6366f1', padding: '12px 14px', borderRadius: '12px', maxWidth: '80%' }}>
+                                <p style={{ margin: 0, fontSize: '14px', color: 'white' }}>¿Qué tareas tengo pendientes para hoy?</p>
+                            </div>
+                        </div>
+
+                        {/* AI Response */}
+                        <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                            <div style={{
+                                width: '28px',
+                                height: '28px',
+                                borderRadius: '8px',
+                                background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0
+                            }}>
+                                <Sparkles size={14} color="white" />
+                            </div>
+                            <div style={{ background: 'white', padding: '12px 14px', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', maxWidth: '85%' }}>
+                                <p style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#374151', lineHeight: '1.5' }}>
+                                    Tienes <strong>{immediateActions.length} tareas prioritarias</strong>:
+                                </p>
+                                {immediateActions.slice(0, 3).map((task, idx) => (
+                                    <div key={idx} style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        padding: '6px 0',
+                                        borderTop: idx > 0 ? '1px solid #f1f5f9' : 'none'
+                                    }}>
+                                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ef4444', flexShrink: 0 }} />
+                                        <span style={{ fontSize: '13px', color: '#4b5563' }}>{task.name}</span>
+                                    </div>
+                                ))}
+                                {waitingFor.length > 0 && (
+                                    <p style={{ margin: '10px 0 0 0', fontSize: '13px', color: '#6b7280' }}>
+                                        También tienes <strong>{waitingFor.length} tareas delegadas</strong> en espera.
+                                    </p>
+                                )}
+                            </div>
+                        </div>
                     </div>
-                    <div style={{ background: 'white', padding: '12px', borderRadius: '12px', marginBottom: '12px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-                        <p style={{ margin: 0, fontSize: '14px', color: '#374151' }}>Tienes {immediateActions.length} tareas prioritarias, incluyendo "Lanzamiento Web 2.0".</p>
+
+                    {/* Quick Actions */}
+                    <div style={{ padding: '12px 16px', borderTop: '1px solid #e5e7eb', background: 'white' }}>
+                        <p style={{ margin: '0 0 10px 0', fontSize: '12px', color: '#9ca3af', fontWeight: 600 }}>PREGUNTAS RÁPIDAS</p>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                            <button style={{
+                                background: '#f1f5f9',
+                                border: 'none',
+                                padding: '8px 12px',
+                                borderRadius: '8px',
+                                fontSize: '12px',
+                                color: '#475569',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                            }}>
+                                📊 Estado de proyectos
+                            </button>
+                            <button style={{
+                                background: '#f1f5f9',
+                                border: 'none',
+                                padding: '8px 12px',
+                                borderRadius: '8px',
+                                fontSize: '12px',
+                                color: '#475569',
+                                cursor: 'pointer'
+                            }}>
+                                📅 Próximas fechas límite
+                            </button>
+                            <button style={{
+                                background: '#f1f5f9',
+                                border: 'none',
+                                padding: '8px 12px',
+                                borderRadius: '8px',
+                                fontSize: '12px',
+                                color: '#475569',
+                                cursor: 'pointer'
+                            }}>
+                                👥 Tareas de mi equipo
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Input */}
+                    <div style={{ padding: '12px 16px', borderTop: '1px solid #e5e7eb', background: '#fafafa' }}>
+                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                            <input
+                                type="text"
+                                placeholder="Pregúntame algo..."
+                                style={{
+                                    flex: 1,
+                                    padding: '12px 14px',
+                                    borderRadius: '10px',
+                                    border: '1px solid #e5e7eb',
+                                    fontSize: '14px',
+                                    outline: 'none'
+                                }}
+                            />
+                            <button style={{
+                                background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                                border: 'none',
+                                borderRadius: '10px',
+                                padding: '12px 16px',
+                                color: 'white',
+                                fontWeight: 600,
+                                fontSize: '14px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px'
+                            }}>
+                                <Mic size={16} />
+                            </button>
+                        </div>
                     </div>
                 </div>
-                <div style={{ padding: '16px', borderTop: '1px solid #e5e7eb' }}>
-                    <input type="text" placeholder="Escribe un mensaje..." style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db' }} disabled />
-                </div>
-            </div>
+            )}
 
             {/* Connection Banner */}
             {(isProcessing) && (
@@ -715,9 +892,45 @@ function DemoDashboardContent() {
                                 {DEMO_ACTION_LIMIT - demoActionsUsed} {demoActionsUsed >= DEMO_ACTION_LIMIT - 1 ? 'acción restante' : 'acciones restantes'}
                             </div>
 
+                            {/* AI Assistant Button - Key Demo Feature */}
+                            <button
+                                onClick={handleAiSidebarToggle}
+                                style={{
+                                    background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '10px 18px',
+                                    borderRadius: '10px',
+                                    fontSize: '14px',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    position: 'relative',
+                                    zIndex: demoStep === 6 ? 65 : 1,
+                                    boxShadow: demoStep === 6 ? '0 0 0 4px rgba(99, 102, 241, 0.5)' : '0 4px 12px rgba(99, 102, 241, 0.3)',
+                                    transition: 'all 0.2s'
+                                }}
+                                onMouseEnter={e => {
+                                    e.target.style.transform = 'translateY(-2px)';
+                                    e.target.style.boxShadow = '0 6px 16px rgba(99, 102, 241, 0.5)';
+                                }}
+                                onMouseLeave={e => {
+                                    e.target.style.transform = 'translateY(0)';
+                                    e.target.style.boxShadow = demoStep === 6 ? '0 0 0 4px rgba(99, 102, 241, 0.5)' : '0 4px 12px rgba(99, 102, 241, 0.3)';
+                                }}
+                            >
+                                <Sparkles size={16} />
+                                Asistente IA
+                            </button>
+
                             {/* Primary CTA - Sign Up Button */}
                             <button
-                                onClick={() => window.location.href = '/login'}
+                                onClick={() => {
+                                    trackEvent('cta_clicked', { location: 'header', actionsUsed: demoActionsUsed });
+                                    window.location.href = '/login';
+                                }}
                                 style={{
                                     background: 'linear-gradient(135deg, #10b981, #059669)',
                                     color: 'white',
@@ -743,8 +956,7 @@ function DemoDashboardContent() {
                                     e.target.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.4)';
                                 }}
                             >
-                                <Sparkles size={16} />
-                                Crear Cuenta Gratis
+                                🚀 Crear Cuenta Gratis
                             </button>
                         </div>
                     </div>
@@ -1629,6 +1841,14 @@ function DemoDashboardContent() {
                 @keyframes slideUp {
                     from { transform: translateX(-50%) translateY(20px); opacity: 0; }
                     to { transform: translateX(-50%) translateY(0); opacity: 1; }
+                }
+                @keyframes slideIn {
+                    from { transform: translateY(-20px); opacity: 0; }
+                    to { transform: translateY(0); opacity: 1; }
+                }
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
                 }
                 @keyframes bounce {
                     0%, 100% { transform: translateY(0); }
