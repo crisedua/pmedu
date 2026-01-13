@@ -743,34 +743,7 @@ function DemoDashboardContent() {
             )}
 
             {/* Overlays for Steps */}
-            {demoStep === 6 && (
-                <div style={{
-                    position: 'fixed',
-                    top: '80px',
-                    right: '32px',
-                    zIndex: 100,
-                    pointerEvents: 'none',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'flex-end',
-                    animation: 'bounce 2s infinite'
-                }}>
-                    <div style={{ fontSize: '32px', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }}>👆</div>
-                    <div style={{
-                        background: '#1f2937',
-                        color: 'white',
-                        padding: '8px 16px',
-                        borderRadius: '12px',
-                        fontSize: '14px',
-                        fontWeight: 700,
-                        marginTop: '4px',
-                        whiteSpace: 'nowrap',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-                    }}>
-                        ¡Pruébalo ahora!
-                    </div>
-                </div>
-            )}
+
 
             {/* AI Assistant Popup - Top Right Corner */}
             {showAiAssistant && (
@@ -1320,7 +1293,10 @@ function DemoDashboardContent() {
                                     getUser={getUser}
                                     getProject={getProject}
                                     onMenuToggle={handleCardMenuToggle}
-                                    tutorialStep={demoStep === 4 && inbox.indexOf(item) === 0 ? 'open_menu' : null}
+                                    tutorialStep={
+                                        demoStep === 4 && inbox.indexOf(item) === 0 ? 'open_menu' :
+                                            (demoStep === 5 && inbox.indexOf(item) === 0 ? 'click_smart_process' : null)
+                                    }
                                 />
                             ))
                         )}
@@ -1335,7 +1311,8 @@ function DemoDashboardContent() {
                 style={{
                     position: 'fixed',
                     bottom: '32px',
-                    right: '32px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
                     width: '64px',
                     height: '64px',
                     borderRadius: '50%',
@@ -1362,7 +1339,8 @@ function DemoDashboardContent() {
                 <div style={{
                     position: 'fixed',
                     bottom: '110px',
-                    right: '32px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
                     width: '320px',
                     background: 'white',
                     borderRadius: '16px',
