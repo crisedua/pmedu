@@ -269,8 +269,11 @@ function DemoDashboardContent() {
         // Trigger AI Assistant demo if user hasn't seen it yet
         // Changed from (demoStep === 5) to (demoStep < 6) to work even if user skipped demo steps
         if (demoStep < 6) {
-            setDemoStep(6); // This triggers the useEffect which auto-opens AI Assistant
-            speak("¡Magia! " + feedback + " Ahora te muestro el Asistente IA.");
+            // Wait 5 seconds to let user see the task appear in "Do Now" and read the feedback
+            setTimeout(() => {
+                setDemoStep(6); // This triggers the useEffect which auto-opens AI Assistant
+                speak("¡Magia! " + feedback + " Ahora te muestro el Asistente IA.");
+            }, 5000);
         }
 
         trackEvent('ai_processing_completed', {
