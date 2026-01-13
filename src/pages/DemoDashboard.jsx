@@ -135,9 +135,10 @@ function DemoDashboardContent() {
 
         speak(feedback);
 
-        if (demoStep === 4) {
-            setDemoStep(5);
-            setTimeout(() => setDemoStep(6), 5000);
+        if (demoStep === 5) {
+            setDemoStep(6);
+            speak("¡Magia! Se ha movido a 'Hacer Ahora'. Ahora prueba el Asistente IA.");
+            setTimeout(() => setDemoStep(7), 4000);
         }
     };
 
@@ -229,8 +230,8 @@ function DemoDashboardContent() {
 
     const handleCardMenuToggle = (isOpen, item) => {
         // Only track the FIRST inbox item for the demo
-        if (demoStep === 3 && isOpen && inbox.indexOf(item) === 0) {
-            setDemoStep(4);
+        if (demoStep === 4 && isOpen && inbox.indexOf(item) === 0) {
+            setDemoStep(5);
             speak("Selecciona 'Procesamiento Inteligente' para que la IA organice esto.");
         }
     };
@@ -474,7 +475,9 @@ function DemoDashboardContent() {
                             La IA puede ahora analizarla para crear tareas o delegar.
                         </p>
                         <button
-                            onClick={() => setDemoStep(4)}
+                            onClick={() => {
+                                setDemoStep(4); // Move directly to Step 4 (Point to dots)
+                            }}
                             style={{
                                 width: '100%',
                                 backgroundColor: '#10b981',
@@ -495,9 +498,9 @@ function DemoDashboardContent() {
             )}
 
             {/* Overlays for Steps */}
-            {demoStep === 3 && (
-                <div style={{ position: 'fixed', bottom: '10%', left: '50%', transform: 'translateX(-50%)', zIndex: 60, pointerEvents: 'none', background: 'rgba(0,0,0,0.8)', color: 'white', padding: '12px 24px', borderRadius: '30px', animation: 'bounce 2s infinite' }}>
-                    👆 Haz clic en los tres puntos
+            {demoStep === 4 && (
+                <div style={{ position: 'fixed', bottom: '10%', left: '33%', transform: 'translateX(-50%)', zIndex: 60, pointerEvents: 'none', background: 'rgba(0,0,0,0.8)', color: 'white', padding: '12px 24px', borderRadius: '30px', animation: 'bounce 2s infinite' }}>
+                    👆 Haz clic en los tres puntos para ver la magia
                 </div>
             )}
             {demoStep === 6 && (
