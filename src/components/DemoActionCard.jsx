@@ -174,8 +174,48 @@ export default function DemoActionCard({
                 </div>
             </div>
 
-            {/* Menu Button */}
-            <div style={{ position: 'relative' }}>
+            {/* Actions Menu */}
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                {isInbox && (
+                    <>
+                        <button
+                            className="demo-action-btn"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if (onEdit) onEdit(item);
+                            }}
+                            title="Edit"
+                            style={{
+                                background: 'transparent',
+                                border: 'none',
+                                cursor: 'pointer',
+                                padding: '4px',
+                                opacity: 0.5,
+                                color: '#71717a'
+                            }}
+                        >
+                            <Edit3 size={14} />
+                        </button>
+                        <button
+                            className="demo-action-btn"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if (onDelete) onDelete(item);
+                            }}
+                            title="Delete"
+                            style={{
+                                background: 'transparent',
+                                border: 'none',
+                                cursor: 'pointer',
+                                padding: '4px',
+                                opacity: 0.5,
+                                color: '#ef4444'
+                            }}
+                        >
+                            <Trash2 size={14} />
+                        </button>
+                    </>
+                )}
                 <button
                     ref={menuButtonRef}
                     onClick={handleMenuToggle}
@@ -261,6 +301,20 @@ export default function DemoActionCard({
                 .demo-action-card:hover {
                     border-color: #c7d2fe;
                     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+                }
+                .demo-action-btn {
+                    opacity: 0 !important;
+                    transition: opacity 0.2s ease;
+                    pointer-events: none;
+                }
+                .demo-action-card:hover .demo-action-btn {
+                    opacity: 0.5 !important;
+                    pointer-events: auto;
+                }
+                .demo-action-card:hover .demo-action-btn:hover {
+                    opacity: 1 !important;
+                    background-color: #f4f4f5;
+                    border-radius: 4px;
                 }
             `}</style>
         </div>
