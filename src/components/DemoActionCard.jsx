@@ -289,6 +289,28 @@ export default function DemoActionCard({
                 >
                     <MoreVertical size={16} />
                 </button>
+                {tutorialStep === 'open_menu' && (
+                    <div style={{
+                        position: 'absolute',
+                        right: '40px',
+                        top: '-5px',
+                        background: '#1f2937',
+                        color: 'white',
+                        padding: '6px 12px',
+                        borderRadius: '20px',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        whiteSpace: 'nowrap',
+                        zIndex: 100,
+                        animation: 'bounce-horizontal 1.5s infinite',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                    }}>
+                        Haz clic en los tres puntos para ver la magia 👉
+                    </div>
+                )}
             </div>
 
             {/* Dropdown Menu - Fixed Position */}

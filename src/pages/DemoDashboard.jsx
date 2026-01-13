@@ -128,7 +128,8 @@ function DemoDashboardContent() {
         let feedback = "He analizado tu nota. ";
         if (project) feedback += `La he vinculado al proyecto ${project.name}. `;
         if (assignee && assignee.id !== currentUser.id) {
-            feedback += `Se la he asignado a ${assignee.name.split(' ')[0]} automáticamente.`;
+            feedback += `Se la he asignado a ${assignee.name.split(' ')[0]} automáticamente. `;
+            feedback += `Le he enviado un correo electrónico con los detalles.`;
         } else {
             feedback += "La he añadido a tu lista de acciones priorizadas.";
         }
@@ -137,7 +138,7 @@ function DemoDashboardContent() {
 
         if (demoStep === 5) {
             setDemoStep(6);
-            speak("¡Magia! Se ha movido a 'Hacer Ahora'. Ahora prueba el Asistente IA.");
+            speak("¡Magia! " + feedback + " Ahora prueba el Asistente IA.");
         }
     };
 
@@ -498,11 +499,6 @@ function DemoDashboardContent() {
             )}
 
             {/* Overlays for Steps */}
-            {demoStep === 4 && (
-                <div style={{ position: 'fixed', bottom: '10%', left: '33%', transform: 'translateX(-50%)', zIndex: 60, pointerEvents: 'none', background: 'rgba(0,0,0,0.8)', color: 'white', padding: '12px 24px', borderRadius: '30px', animation: 'bounce 2s infinite' }}>
-                    👆 Haz clic en los tres puntos para ver la magia
-                </div>
-            )}
             {demoStep === 6 && (
                 <div style={{ position: 'fixed', top: '90px', right: '20px', zIndex: 60, pointerEvents: 'none', background: 'rgba(0,0,0,0.8)', color: 'white', padding: '12px 24px', borderRadius: '30px', animation: 'bounce 2s infinite' }}>
                     👆 Abre el Asistente IA
@@ -818,6 +814,8 @@ function DemoDashboardContent() {
                                     users={users}
                                     getUser={getUser}
                                     getProject={getProject}
+                                    onMenuToggle={handleCardMenuToggle}
+                                    tutorialStep={demoStep === 4 && inbox.indexOf(item) === 0 ? 'open_menu' : null}
                                 />
                             ))
                         )}
