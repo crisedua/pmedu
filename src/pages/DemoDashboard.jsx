@@ -45,6 +45,11 @@ function DemoDashboardContent() {
     const [showAiAssistant, setShowAiAssistant] = useState(false);
     const [aiDemoPhase, setAiDemoPhase] = useState(0); // 0=initial, 1=user typing, 2=AI typing, 3=AI responded, 4=quick actions
 
+    // Pre-launch signup form state
+    const [signupName, setSignupName] = useState('');
+    const [signupEmail, setSignupEmail] = useState('');
+    const [signupSubmitted, setSignupSubmitted] = useState(false);
+
     const DEMO_ACTION_LIMIT = 5; // Artificial limit to create urgency
 
     // Analytics Tracking Utility
@@ -361,6 +366,50 @@ function DemoDashboardContent() {
                 trackEvent('tour_completion_modal_shown');
             }, 5000);
         }, 19000);
+    };
+
+    const handlePrelaunchSignup = (e) => {
+        e.preventDefault();
+
+        if (!signupName.trim() || !signupEmail.trim()) {
+            alert('Por favor completa todos los campos');
+            return;
+        }
+
+        if (!signupEmail.includes('@')) {
+            alert('Por favor ingresa un email válido');
+            return;
+        }
+
+        // Track signup
+        trackEvent('prelaunch_signup_submitted', {
+            name: signupName,
+            email: signupEmail,
+            demoActionsUsed,
+            hasSeenAiPower
+        });
+
+        // Store in localStorage (in production, send to backend/API)
+        const signups = JSON.parse(localStorage.getItem('prelaunch_signups') || '[]');
+        signups.push({
+            name: signupName,
+            email: signupEmail,
+            timestamp: new Date().toISOString(),
+            demoActionsUsed,
+            hasSeenAiPower
+        });
+        localStorage.setItem('prelaunch_signups', JSON.stringify(signups));
+
+        setSignupSubmitted(true);
+        playBeep(800, 0.2);
+        speak("¡Gracias por registrarte! Te avisaremos cuando lancemos.");
+
+        // Close modals after 3 seconds
+        setTimeout(() => {
+            setShowSignupPrompt(false);
+            setShowCompletionModal(false);
+            setShowExitIntent(false);
+        }, 3000);
     };
 
     return (
@@ -996,11 +1045,11 @@ function DemoDashboardContent() {
                                 Asistente IA
                             </button>
 
-                            {/* Primary CTA - Sign Up Button */}
+                            {/* Primary CTA - Pre-launch Sign Up Button */}
                             <button
                                 onClick={() => {
                                     trackEvent('cta_clicked', { location: 'header', actionsUsed: demoActionsUsed });
-                                    window.location.href = '/login';
+                                    setShowSignupPrompt(true);
                                 }}
                                 style={{
                                     background: 'linear-gradient(135deg, #10b981, #059669)',
@@ -1027,7 +1076,7 @@ function DemoDashboardContent() {
                                     e.target.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.4)';
                                 }}
                             >
-                                🚀 Crear Cuenta Gratis
+                                🚀 Únete al Pre-Lanzamiento
                             </button>
                         </div>
                     </div>
@@ -1492,45 +1541,95 @@ function DemoDashboardContent() {
                             <Sparkles size={24} />
                         </div>
                         <div style={{ flex: 1 }}>
-                            <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: 700, color: '#111827' }}>
-                                ¡Te gustó la magia de la IA!
-                            </h3>
-                            <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#6b7280', lineHeight: '1.5' }}>
-                                Crea tu cuenta gratis y obtén acceso ilimitado a procesamiento con IA, delegación automática y mucho más.
-                            </p>
-                            <div style={{ display: 'flex', gap: '12px' }}>
-                                <button
-                                    onClick={() => window.location.href = '/login'}
-                                    style={{
-                                        background: 'linear-gradient(135deg, #10b981, #059669)',
-                                        color: 'white',
-                                        border: 'none',
-                                        padding: '10px 20px',
-                                        borderRadius: '8px',
-                                        fontSize: '14px',
-                                        fontWeight: 600,
-                                        cursor: 'pointer',
-                                        flex: 1
-                                    }}
-                                >
-                                    Crear Cuenta Gratis
-                                </button>
-                                <button
-                                    onClick={() => setShowSignupPrompt(false)}
-                                    style={{
-                                        background: '#f3f4f6',
-                                        color: '#6b7280',
-                                        border: 'none',
-                                        padding: '10px 16px',
-                                        borderRadius: '8px',
-                                        fontSize: '14px',
-                                        fontWeight: 600,
-                                        cursor: 'pointer'
-                                    }}
-                                >
-                                    Después
-                                </button>
-                            </div>
+                            {!signupSubmitted ? (
+                                <>
+                                    <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: 700, color: '#111827' }}>
+                                        ¡Únete al Pre-Lanzamiento!
+                                    </h3>
+                                    <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#6b7280', lineHeight: '1.5' }}>
+                                        Sé de los primeros en acceder. Te avisaremos cuando lancemos con acceso ilimitado a IA, delegación automática y más.
+                                    </p>
+                                    <form onSubmit={handlePrelaunchSignup} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                        <input
+                                            type="text"
+                                            placeholder="Nombre completo"
+                                            value={signupName}
+                                            onChange={(e) => setSignupName(e.target.value)}
+                                            style={{
+                                                padding: '12px 14px',
+                                                borderRadius: '8px',
+                                                border: '1px solid #d1d5db',
+                                                fontSize: '14px',
+                                                outline: 'none',
+                                                transition: 'border-color 0.2s'
+                                            }}
+                                            onFocus={(e) => e.target.style.borderColor = '#10b981'}
+                                            onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                                            required
+                                        />
+                                        <input
+                                            type="email"
+                                            placeholder="Email"
+                                            value={signupEmail}
+                                            onChange={(e) => setSignupEmail(e.target.value)}
+                                            style={{
+                                                padding: '12px 14px',
+                                                borderRadius: '8px',
+                                                border: '1px solid #d1d5db',
+                                                fontSize: '14px',
+                                                outline: 'none',
+                                                transition: 'border-color 0.2s'
+                                            }}
+                                            onFocus={(e) => e.target.style.borderColor = '#10b981'}
+                                            onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                                            required
+                                        />
+                                        <div style={{ display: 'flex', gap: '12px', marginTop: '4px' }}>
+                                            <button
+                                                type="submit"
+                                                style={{
+                                                    background: 'linear-gradient(135deg, #10b981, #059669)',
+                                                    color: 'white',
+                                                    border: 'none',
+                                                    padding: '12px 20px',
+                                                    borderRadius: '8px',
+                                                    fontSize: '14px',
+                                                    fontWeight: 600,
+                                                    cursor: 'pointer',
+                                                    flex: 1
+                                                }}
+                                            >
+                                                🚀 Reservar Mi Lugar
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowSignupPrompt(false)}
+                                                style={{
+                                                    background: '#f3f4f6',
+                                                    color: '#6b7280',
+                                                    border: 'none',
+                                                    padding: '12px 16px',
+                                                    borderRadius: '8px',
+                                                    fontSize: '14px',
+                                                    fontWeight: 600,
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                Después
+                                            </button>
+                                        </div>
+                                    </form>
+                                </>
+                            ) : (
+                                <>
+                                    <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: 700, color: '#10b981' }}>
+                                        ✅ ¡Gracias por registrarte!
+                                    </h3>
+                                    <p style={{ margin: 0, fontSize: '14px', color: '#6b7280', lineHeight: '1.5' }}>
+                                        Te hemos guardado en la lista. Te avisaremos por email cuando lancemos. ¡Prepárate para la magia! 🎉
+                                    </p>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>
