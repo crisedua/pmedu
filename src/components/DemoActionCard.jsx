@@ -72,7 +72,7 @@ export default function DemoActionCard({
         e.stopPropagation();
         const newState = !menuOpen;
         setMenuOpen(newState);
-        if (onMenuToggle) onMenuToggle(newState);
+        if (onMenuToggle) onMenuToggle(newState, item);
     };
 
     const handleMainAction = (e) => {
