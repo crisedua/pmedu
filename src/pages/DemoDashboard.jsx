@@ -444,22 +444,24 @@ function DemoDashboardContent() {
                 email: signupEmail
             });
 
-            // 1. Save Lead to Supabase
-            // We check if supabase is configured, otherwise skip
+            // 1. Save Lead to Supabase (Non-blocking / Fire-and-forget)
             if (supabase) {
-                const { error } = await supabase.from('leads').insert([{
+                console.log('Saving lead to Supabase...');
+                supabase.from('leads').insert([{
                     name: signupName,
                     email: signupEmail,
                     source: 'demo_completion_lifetime',
                     created_at: new Date().toISOString()
-                }]).select();
-
-                if (error) console.warn('Lead save warning:', error);
+                }]).then(({ error }) => {
+                    if (error) console.warn('Supabase save warning:', error);
+                    else console.log('Supabase save success');
+                });
+            } else {
+                console.warn('Supabase client not available');
             }
 
             // 2. Call Payment API
-            // Note: In local dev without Vercel Functions, this might 404. 
-            // Ensure appropriate proxy or Vercel usage.
+            console.log('Calling Payment API...');
             const response = await fetch('/api/create_preference', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -469,6 +471,8 @@ function DemoDashboardContent() {
                     email: signupEmail
                 })
             });
+
+            console.log('Payment API Response status:', response.status);
 
             if (!response.ok) {
                 let errorMsg = 'Network response was not ok';
