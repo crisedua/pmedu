@@ -440,9 +440,13 @@ function DemoDashboardContent() {
             // Using logic associated with aido_leads table
             if (supabase) {
                 try {
-                    // Create a promise that rejects after 3 seconds
+                    // DEBUG: Check Supabase client configuration
+                    const supabaseUrl = supabase.supabaseUrl || 'unknown';
+                    console.log('DEBUG: Supabase client URL:', supabaseUrl);
+
+                    // Create a promise that rejects after 10 seconds (increased from 3)
                     const timeoutPromise = new Promise((_, reject) =>
-                        setTimeout(() => reject(new Error('Supabase save timeout')), 3000)
+                        setTimeout(() => reject(new Error('Supabase save timeout (10s)')), 10000)
                     );
 
                     const insertPromise = supabase.from('aido_leads').insert([{
@@ -457,7 +461,7 @@ function DemoDashboardContent() {
 
                     if (result?.error) {
                         console.warn('Lead save issue:', result.error);
-                        alert(`⚠️ DEBUG: Lead save failed!\n\nError: ${result.error.message || JSON.stringify(result.error)}\n\n(Payment will still proceed)`);
+                        alert(`⚠️ DEBUG: Lead save failed!\n\nError: ${result.error.message || JSON.stringify(result.error)}\n\nCode: ${result.error.code || 'none'}\n\n(Payment will still proceed)`);
                     } else {
                         console.log('✅ Lead saved successfully to aido_leads');
                     }
@@ -465,6 +469,8 @@ function DemoDashboardContent() {
                     console.warn('Lead save crashed or timed out (non-fatal):', err);
                     alert(`⚠️ DEBUG: Lead save exception!\n\nError: ${err.message}\n\n(Payment will still proceed)`);
                 }
+            } else {
+                alert('⚠️ DEBUG: Supabase client is NULL! Check environment variables.');
             }
 
             // 2. Call Payment API
