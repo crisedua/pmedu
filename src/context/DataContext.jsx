@@ -1158,23 +1158,39 @@ export function DataProvider({ children }) {
 
   const deleteInboxItem = async (itemId) => {
     console.log('[DataContext] deleteInboxItem called for:', itemId);
+
+    // 1. Optimistic UI Update (Immediate)
+    const previousInbox = [...inbox];
+    setInbox(prev => prev.filter(i => i.id !== itemId));
+
     try {
-      const { error, count } = await supabase
+      // 2. Perform Delete with Timeout Protection
+      const deletePromise = supabase
         .from('pm_inbox')
         .delete({ count: 'exact' })
         .eq('id', itemId);
+
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Request timed out')), 10000)
+      );
+
+      const { error, count } = await Promise.race([deletePromise, timeoutPromise]);
 
       console.log('[DataContext] Supabase delete output:', { error, count });
 
       if (error) throw error;
 
       if (count === 0) {
-        console.warn('[DataContext] Delete succeeded but 0 rows affected. Check RLS or ID.');
+        console.warn('[DataContext] Delete succeeded but 0 rows affected. Check RLS or ID. Reverting UI.');
+        // Revert if likely a permissions/logic error
+        setInbox(previousInbox);
+        throw new Error('Item not found or permission denied');
       }
 
-      setInbox(prev => prev.filter(i => i.id !== itemId));
     } catch (err) {
       console.error('Error deleting inbox item:', err);
+      // Revert UI on failure
+      setInbox(previousInbox);
       throw err;
     }
   };
