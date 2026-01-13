@@ -156,25 +156,27 @@ function DemoDashboardContent() {
                 speak("Abriendo tu asistente de inteligencia artificial. Aquí puedes preguntarme lo que quieras sobre tus proyectos.");
 
                 // Start typing animation sequence
+                // Increased delays to ensure voice finishes before next action
                 setTimeout(() => {
-                    setAiDemoPhase(1);
+                    setAiDemoPhase(1); // User message appears
                     speak("Mira cómo puedo responderte.");
-                }, 4000);
+                }, 5500); // Was 4000
 
                 setTimeout(() => {
-                    setAiDemoPhase(2);
-                }, 6000);
+                    setAiDemoPhase(2); // AI typing indicator
+                }, 7500); // Was 6000
 
                 setTimeout(() => {
-                    setAiDemoPhase(3);
+                    setAiDemoPhase(3); // AI response appears
                     playBeep(600, 0.1);
                     speak("Te muestro tus tareas prioritarias y te ayudo a organizarlas. También puedo enviar mensajes, delegar tareas, y mucho más.");
-                }, 8000);
+                }, 9500); // Was 8000
 
+                // Gave more time (9s) for the long explanation above
                 setTimeout(() => {
-                    setAiDemoPhase(4);
+                    setAiDemoPhase(4); // Highlight quick actions
                     speak("Usa los botones rápidos para consultas frecuentes, o habla conmigo usando el micrófono.");
-                }, 14000);
+                }, 18500); // Was 14000
 
                 setTimeout(() => {
                     speak("Esto es solo una muestra. Con tu cuenta, tendrás acceso ilimitado a tu asistente personal de inteligencia artificial.");
@@ -183,7 +185,7 @@ function DemoDashboardContent() {
                         setDemoStep(8);
                         trackEvent('tour_completion_modal_shown');
                     }, 5000);
-                }, 19000);
+                }, 25500); // Was 19000
             }, 2000);
 
             return () => clearTimeout(timer);
