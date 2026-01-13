@@ -204,15 +204,12 @@ function DemoDashboardContent() {
 
         if (demoStep === 5) {
             setDemoStep(6);
-            speak("¡Magia! " + feedback + " Ahora prueba el Asistente IA.");
-        }
+            speak("¡Magia! " + feedback + " Ahora te muestro el Asistente IA.");
 
-        // Show signup prompt after experiencing AI power
-        if (!hasSeenAiPower && demoActionsUsed >= 1) {
+            // Auto-trigger AI Assistant demo after 2 seconds
             setTimeout(() => {
-                setShowSignupPrompt(true);
-                trackEvent('signup_prompt_shown', { trigger: 'post_ai_processing' });
-            }, 3000);
+                handleAiSidebarToggle();
+            }, 2000);
         }
 
         trackEvent('ai_processing_completed', {
