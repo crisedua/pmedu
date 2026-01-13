@@ -489,12 +489,7 @@ function DemoDashboardContent() {
             alert(`No se pudo iniciar el pago: ${error.message}\n\nNota: Si estás probando localmente, la API de Vercel no funcionará sin 'vercel dev'. Asegúrate de configurar MERCADOPAGO_ACCESS_TOKEN en Vercel.`);
         }
 
-        // Close modals after 3 seconds
-        setTimeout(() => {
-            setShowSignupPrompt(false);
-            setShowCompletionModal(false);
-            setShowExitIntent(false);
-        }, 3000);
+
     };
 
     return (
