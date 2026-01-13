@@ -417,8 +417,6 @@ function DemoDashboardContent() {
 
     const handlePrelaunchSignup = async (e) => {
         e.preventDefault();
-        console.log('DEBUG: Signup initiated v1.2');
-
 
         if (!signupName.trim() || !signupEmail.trim()) {
             alert('Por favor completa todos los campos');
@@ -438,23 +436,19 @@ function DemoDashboardContent() {
             });
 
             // 1. Save Lead to Supabase (Non-blocking / Fire-and-forget)
+            // Using logic associated with aido_leads table
             if (supabase) {
-                console.log('Saving lead to Supabase...');
                 supabase.from('aido_leads').insert([{
                     name: signupName,
                     email: signupEmail,
                     source: 'demo_completion_lifetime',
                     created_at: new Date().toISOString()
                 }]).then(({ error }) => {
-                    if (error) console.warn('Supabase save warning:', error);
-                    else console.log('Supabase save success');
+                    if (error) console.warn('Lead save issue:', error);
                 });
-            } else {
-                console.warn('Supabase client not available');
             }
 
             // 2. Call Payment API
-            console.log('Calling Payment API...');
             const response = await fetch('/api/create_preference', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1994,7 +1988,7 @@ function DemoDashboardContent() {
                                             e.target.style.boxShadow = '0 12px 24px rgba(16,185,129,0.4)';
                                         }}
                                     >
-                                        💚 Reservar Acceso de por Vida — $9.99 (v1.2)
+                                        💚 Reservar Acceso de por Vida — $9.99
                                     </button>
                                 </form>
 
