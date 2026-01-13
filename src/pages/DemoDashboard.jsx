@@ -433,17 +433,20 @@ function DemoDashboardContent() {
                 email: signupEmail
             });
 
-            // 1. Save Lead to Supabase (Non-blocking / Fire-and-forget)
+            // 1. Save Lead to Supabase (Blocking to ensure capture)
             // Using logic associated with aido_leads table
             if (supabase) {
-                supabase.from('aido_leads').insert([{
-                    name: signupName,
-                    email: signupEmail,
-                    source: 'demo_completion_lifetime',
-                    created_at: new Date().toISOString()
-                }]).then(({ error }) => {
+                try {
+                    const { error } = await supabase.from('aido_leads').insert([{
+                        name: signupName,
+                        email: signupEmail,
+                        source: 'demo_completion_lifetime',
+                        created_at: new Date().toISOString()
+                    }]);
                     if (error) console.warn('Lead save issue:', error);
-                });
+                } catch (err) {
+                    console.warn('Lead save crash:', err);
+                }
             }
 
             // 2. Call Payment API
