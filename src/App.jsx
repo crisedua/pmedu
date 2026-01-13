@@ -22,8 +22,11 @@ function App() {
           {/* Public Routes */}
           <Route path="/login" element={<LoginPage />} />
 
+          {/* Root redirects to demo */}
+          <Route path="/" element={<Navigate to="/demo" replace />} />
+
           {/* Protected Routes */}
-          <Route path="/" element={
+          <Route path="/dashboard" element={
             <ProtectedRoute>
               <Layout />
             </ProtectedRoute>
@@ -36,7 +39,7 @@ function App() {
             <Route path="document/:docId" element={<DocumentEditor />} />
           </Route>
 
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to="/demo" replace />} />
         </Routes>
       </BrowserRouter>
     </DataProvider>
