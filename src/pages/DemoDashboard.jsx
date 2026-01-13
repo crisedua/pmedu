@@ -1694,27 +1694,89 @@ function DemoDashboardContent() {
                                 <span style={{ fontSize: '15px', color: '#374151' }}>Asistente IA <strong>personal 24/7</strong></span>
                             </div>
                         </div>
-                        <button
-                            onClick={() => window.location.href = '/login'}
-                            style={{
-                                width: '100%',
-                                background: 'linear-gradient(135deg, #10b981, #059669)',
-                                color: 'white',
-                                border: 'none',
-                                padding: '16px',
+                        {!signupSubmitted ? (
+                            <>
+                                <form onSubmit={handlePrelaunchSignup} style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '12px' }}>
+                                    <input
+                                        type="text"
+                                        placeholder="Nombre completo"
+                                        value={signupName}
+                                        onChange={(e) => setSignupName(e.target.value)}
+                                        style={{
+                                            padding: '14px 16px',
+                                            borderRadius: '10px',
+                                            border: '2px solid #e5e7eb',
+                                            fontSize: '15px',
+                                            outline: 'none',
+                                            transition: 'border-color 0.2s'
+                                        }}
+                                        onFocus={(e) => e.target.style.borderColor = '#10b981'}
+                                        onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                                        required
+                                    />
+                                    <input
+                                        type="email"
+                                        placeholder="Email"
+                                        value={signupEmail}
+                                        onChange={(e) => setSignupEmail(e.target.value)}
+                                        style={{
+                                            padding: '14px 16px',
+                                            borderRadius: '10px',
+                                            border: '2px solid #e5e7eb',
+                                            fontSize: '15px',
+                                            outline: 'none',
+                                            transition: 'border-color 0.2s'
+                                        }}
+                                        onFocus={(e) => e.target.style.borderColor = '#10b981'}
+                                        onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                                        required
+                                    />
+                                    <button
+                                        type="submit"
+                                        style={{
+                                            width: '100%',
+                                            background: 'linear-gradient(135deg, #10b981, #059669)',
+                                            color: 'white',
+                                            border: 'none',
+                                            padding: '16px',
+                                            borderRadius: '12px',
+                                            fontSize: '16px',
+                                            fontWeight: 700,
+                                            cursor: 'pointer',
+                                            boxShadow: '0 10px 20px rgba(16,185,129,0.3)',
+                                            transition: 'all 0.2s'
+                                        }}
+                                        onMouseEnter={e => {
+                                            e.target.style.transform = 'translateY(-2px)';
+                                            e.target.style.boxShadow = '0 12px 24px rgba(16,185,129,0.4)';
+                                        }}
+                                        onMouseLeave={e => {
+                                            e.target.style.transform = 'translateY(0)';
+                                            e.target.style.boxShadow = '0 10px 20px rgba(16,185,129,0.3)';
+                                        }}
+                                    >
+                                        🚀 Reservar Mi Lugar
+                                    </button>
+                                </form>
+                                <p style={{ fontSize: '13px', color: '#9ca3af', margin: 0 }}>
+                                    Sin tarjeta de crédito • Configuración en 30 segundos
+                                </p>
+                            </>
+                        ) : (
+                            <div style={{
+                                background: '#d1fae5',
+                                padding: '24px',
                                 borderRadius: '12px',
-                                fontSize: '16px',
-                                fontWeight: 700,
-                                cursor: 'pointer',
-                                boxShadow: '0 10px 20px rgba(16,185,129,0.3)',
-                                marginBottom: '12px'
-                            }}
-                        >
-                            🚀 Crear Mi Cuenta Gratis
-                        </button>
-                        <p style={{ fontSize: '13px', color: '#9ca3af', margin: 0 }}>
-                            Sin tarjeta de crédito • Configuración en 30 segundos
-                        </p>
+                                border: '2px solid #10b981'
+                            }}>
+                                <h3 style={{ margin: '0 0 8px 0', fontSize: '20px', fontWeight: 700, color: '#10b981' }}>
+                                    ✅ ¡Perfecto!
+                                </h3>
+                                <p style={{ margin: 0, fontSize: '15px', color: '#065f46', lineHeight: '1.5' }}>
+                                    Te contactaremos cuando lancemos. ¡Gracias! 🎉
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
@@ -1807,39 +1869,94 @@ function DemoDashboardContent() {
                             </div>
                         </div>
 
-                        <button
-                            onClick={() => window.location.href = '/login'}
-                            style={{
-                                width: '100%',
-                                background: 'linear-gradient(135deg, #10b981, #059669)',
-                                color: 'white',
-                                border: 'none',
-                                padding: '18px',
-                                borderRadius: '14px',
-                                fontSize: '17px',
-                                fontWeight: 700,
-                                cursor: 'pointer',
-                                boxShadow: '0 12px 24px rgba(16,185,129,0.4)',
-                                marginBottom: '12px',
-                                transition: 'all 0.2s'
-                            }}
-                            onMouseEnter={e => {
-                                e.target.style.transform = 'translateY(-2px)';
-                                e.target.style.boxShadow = '0 16px 32px rgba(16,185,129,0.5)';
-                            }}
-                            onMouseLeave={e => {
-                                e.target.style.transform = 'translateY(0)';
-                                e.target.style.boxShadow = '0 12px 24px rgba(16,185,129,0.4)';
-                            }}
-                        >
-                            🚀 Crear Mi Cuenta Gratis
-                        </button>
 
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '16px' }}>
-                            <div style={{ fontSize: '12px', color: '#9ca3af' }}>Sin tarjeta de crédito</div>
-                            <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#d1d5db' }} />
-                            <div style={{ fontSize: '12px', color: '#9ca3af' }}>Gratis para siempre</div>
-                        </div>
+                        {!signupSubmitted ? (
+                            <>
+                                <form onSubmit={handlePrelaunchSignup} style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
+                                    <input
+                                        type="text"
+                                        placeholder="Nombre completo"
+                                        value={signupName}
+                                        onChange={(e) => setSignupName(e.target.value)}
+                                        style={{
+                                            padding: '14px 16px',
+                                            borderRadius: '12px',
+                                            border: '2px solid #e5e7eb',
+                                            fontSize: '15px',
+                                            outline: 'none',
+                                            transition: 'border-color 0.2s'
+                                        }}
+                                        onFocus={(e) => e.target.style.borderColor = '#10b981'}
+                                        onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                                        required
+                                    />
+                                    <input
+                                        type="email"
+                                        placeholder="Email"
+                                        value={signupEmail}
+                                        onChange={(e) => setSignupEmail(e.target.value)}
+                                        style={{
+                                            padding: '14px 16px',
+                                            borderRadius: '12px',
+                                            border: '2px solid #e5e7eb',
+                                            fontSize: '15px',
+                                            outline: 'none',
+                                            transition: 'border-color 0.2s'
+                                        }}
+                                        onFocus={(e) => e.target.style.borderColor = '#10b981'}
+                                        onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                                        required
+                                    />
+                                    <button
+                                        type="submit"
+                                        style={{
+                                            width: '100%',
+                                            background: 'linear-gradient(135deg, #10b981, #059669)',
+                                            color: 'white',
+                                            border: 'none',
+                                            padding: '18px',
+                                            borderRadius: '14px',
+                                            fontSize: '17px',
+                                            fontWeight: 700,
+                                            cursor: 'pointer',
+                                            boxShadow: '0 12px 24px rgba(16,185,129,0.4)',
+                                            transition: 'all 0.2s'
+                                        }}
+                                        onMouseEnter={e => {
+                                            e.target.style.transform = 'translateY(-2px)';
+                                            e.target.style.boxShadow = '0 16px 32px rgba(16,185,129,0.5)';
+                                        }}
+                                        onMouseLeave={e => {
+                                            e.target.style.transform = 'translateY(0)';
+                                            e.target.style.boxShadow = '0 12px 24px rgba(16,185,129,0.4)';
+                                        }}
+                                    >
+                                        🚀 Reservar Mi Lugar
+                                    </button>
+                                </form>
+
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '16px' }}>
+                                    <div style={{ fontSize: '12px', color: '#9ca3af' }}>Sin tarjeta de crédito</div>
+                                    <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#d1d5db' }} />
+                                    <div style={{ fontSize: '12px', color: '#9ca3af' }}>Gratis para siempre</div>
+                                </div>
+                            </>
+                        ) : (
+                            <div style={{
+                                background: '#d1fae5',
+                                padding: '24px',
+                                borderRadius: '16px',
+                                marginBottom: '16px',
+                                border: '2px solid #10b981'
+                            }}>
+                                <h3 style={{ margin: '0 0 8px 0', fontSize: '20px', fontWeight: 700, color: '#10b981' }}>
+                                    ✅ ¡Registro Exitoso!
+                                </h3>
+                                <p style={{ margin: 0, fontSize: '15px', color: '#065f46', lineHeight: '1.5' }}>
+                                    Te avisaremos por email cuando lancemos. ¡Gracias por unirte! 🎉
+                                </p>
+                            </div>
+                        )}
 
                         <button
                             onClick={() => setShowCompletionModal(false)}
@@ -1941,56 +2058,108 @@ function DemoDashboardContent() {
                             </p>
                         </div>
 
-                        <button
-                            onClick={() => {
-                                trackEvent('exit_intent_converted', { actionsUsed: demoActionsUsed });
-                                window.location.href = '/login';
-                            }}
-                            style={{
-                                width: '100%',
-                                background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-                                color: 'white',
-                                border: 'none',
-                                padding: '18px',
-                                borderRadius: '12px',
-                                fontSize: '17px',
-                                fontWeight: 700,
-                                cursor: 'pointer',
-                                boxShadow: '0 12px 24px rgba(245,158,11,0.4)',
-                                marginBottom: '12px',
-                                transition: 'all 0.2s'
-                            }}
-                            onMouseEnter={e => {
-                                e.target.style.transform = 'translateY(-2px)';
-                                e.target.style.boxShadow = '0 16px 32px rgba(245,158,11,0.5)';
-                            }}
-                            onMouseLeave={e => {
-                                e.target.style.transform = 'translateY(0)';
-                                e.target.style.boxShadow = '0 12px 24px rgba(245,158,11,0.4)';
-                            }}
-                        >
-                            🚀 Sí, Quiero Crear Mi Cuenta Gratis
-                        </button>
 
-                        <button
-                            onClick={() => {
-                                setShowExitIntent(false);
-                                trackEvent('exit_intent_dismissed');
-                            }}
-                            style={{
-                                width: '100%',
-                                background: '#f3f4f6',
-                                color: '#6b7280',
-                                border: 'none',
-                                padding: '12px',
-                                borderRadius: '8px',
-                                fontSize: '14px',
-                                fontWeight: 600,
-                                cursor: 'pointer'
-                            }}
-                        >
-                            No gracias, seguir explorando
-                        </button>
+                        {!signupSubmitted ? (
+                            <>
+                                <form onSubmit={handlePrelaunchSignup} style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '12px' }}>
+                                    <input
+                                        type="text"
+                                        placeholder="Nombre completo"
+                                        value={signupName}
+                                        onChange={(e) => setSignupName(e.target.value)}
+                                        style={{
+                                            padding: '14px 16px',
+                                            borderRadius: '10px',
+                                            border: '2px solid #fbbf24',
+                                            fontSize: '15px',
+                                            outline: 'none',
+                                            transition: 'border-color 0.2s'
+                                        }}
+                                        onFocus={(e) => e.target.style.borderColor = '#f59e0b'}
+                                        onBlur={(e) => e.target.style.borderColor = '#fbbf24'}
+                                        required
+                                    />
+                                    <input
+                                        type="email"
+                                        placeholder="Email"
+                                        value={signupEmail}
+                                        onChange={(e) => setSignupEmail(e.target.value)}
+                                        style={{
+                                            padding: '14px 16px',
+                                            borderRadius: '10px',
+                                            border: '2px solid #fbbf24',
+                                            fontSize: '15px',
+                                            outline: 'none',
+                                            transition: 'border-color 0.2s'
+                                        }}
+                                        onFocus={(e) => e.target.style.borderColor = '#f59e0b'}
+                                        onBlur={(e) => e.target.style.borderColor = '#fbbf24'}
+                                        required
+                                    />
+                                    <button
+                                        type="submit"
+                                        style={{
+                                            width: '100%',
+                                            background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                                            color: 'white',
+                                            border: 'none',
+                                            padding: '18px',
+                                            borderRadius: '12px',
+                                            fontSize: '17px',
+                                            fontWeight: 700,
+                                            cursor: 'pointer',
+                                            boxShadow: '0 12px 24px rgba(245,158,11,0.4)',
+                                            transition: 'all 0.2s'
+                                        }}
+                                        onMouseEnter={e => {
+                                            e.target.style.transform = 'translateY(-2px)';
+                                            e.target.style.boxShadow = '0 16px 32px rgba(245,158,11,0.5)';
+                                        }}
+                                        onMouseLeave={e => {
+                                            e.target.style.transform = 'translateY(0)';
+                                            e.target.style.boxShadow = '0 12px 24px rgba(245,158,11,0.4)';
+                                        }}
+                                    >
+                                        🚀 Sí, Reservar Mi Lugar
+                                    </button>
+                                </form>
+
+                                <button
+                                    onClick={() => {
+                                        setShowExitIntent(false);
+                                        trackEvent('exit_intent_dismissed');
+                                    }}
+                                    style={{
+                                        width: '100%',
+                                        background: '#f3f4f6',
+                                        color: '#6b7280',
+                                        border: 'none',
+                                        padding: '12px',
+                                        borderRadius: '8px',
+                                        fontSize: '14px',
+                                        fontWeight: 600,
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    No gracias, seguir explorando
+                                </button>
+                            </>
+                        ) : (
+                            <div style={{
+                                background: '#fef3c7',
+                                padding: '24px',
+                                borderRadius: '12px',
+                                marginBottom: '12px',
+                                border: '2px solid #f59e0b'
+                            }}>
+                                <h3 style={{ margin: '0 0 8px 0', fontSize: '20px', fontWeight: 700, color: '#d97706' }}>
+                                    ✅ ¡Excelente Decisión!
+                                </h3>
+                                <p style={{ margin: 0, fontSize: '15px', color: '#92400e', lineHeight: '1.5' }}>
+                                    Te avisaremos cuando lancemos. ¡Gracias por quedarte! 🎉
+                                </p>
+                            </div>
+                        )}
 
                         <p style={{ fontSize: '12px', color: '#9ca3af', margin: '16px 0 0 0' }}>
                             Sin tarjeta de crédito • Configuración en 30 segundos • Gratis para siempre
