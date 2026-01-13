@@ -2003,12 +2003,7 @@ function DemoDashboardContent() {
                     }}>
 
 
-                        <div style={{
-                            fontSize: '48px',
-                            marginBottom: '16px'
-                        }}>
-                            ⏸️
-                        </div>
+
 
                         <h2 style={{
                             fontSize: '28px',
