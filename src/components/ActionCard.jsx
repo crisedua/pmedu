@@ -178,7 +178,33 @@ export default function ActionCard({ item, type, onAction, onEdit, onDelete, onM
             </div>
 
             {/* Actions Menu */}
-            <div className="action-trailing" style={{ position: 'relative' }}>
+            <div className="action-trailing" style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                {isInbox && (
+                    <>
+                        <button
+                            className="btn btn-ghost btn-icon btn-sm action-btn-visible-hover"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if (onEdit) onEdit(item);
+                            }}
+                            title="Edit"
+                            style={{ opacity: 0.5 }}
+                        >
+                            <Edit3 size={14} />
+                        </button>
+                        <button
+                            className="btn btn-ghost btn-icon btn-sm action-btn-visible-hover"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if (onDelete) onDelete(item);
+                            }}
+                            title="Delete"
+                            style={{ opacity: 0.5, color: 'var(--color-error)' }}
+                        >
+                            <Trash2 size={14} />
+                        </button>
+                    </>
+                )}
                 <button
                     ref={menuButtonRef}
                     className="btn btn-ghost btn-icon btn-sm"

@@ -1887,6 +1887,28 @@ a:hover {
 .action-trailing {
   position: relative;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Hide visible-hover buttons by default */
+.action-btn-visible-hover {
+  opacity: 0 !important;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+  padding: 4px;
+}
+
+/* Show them when card is hovered */
+.action-card:hover .action-btn-visible-hover {
+  opacity: 0.5 !important;
+  pointer-events: auto;
+}
+
+.action-card:hover .action-btn-visible-hover:hover {
+  opacity: 1 !important;
+  background-color: var(--bg-secondary);
 }
 
 .avatar-xs {
