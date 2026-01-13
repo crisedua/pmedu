@@ -1839,40 +1839,47 @@ function DemoDashboardContent() {
                         </p>
 
                         <div style={{
-                            background: 'white',
+                            background: '#f9fafb',
                             borderRadius: '16px',
-                            padding: '20px',
-                            marginBottom: '32px',
-                            boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                            textAlign: 'left'
+                            padding: '24px',
+                            marginBottom: '24px',
+                            textAlign: 'left',
+                            border: '1px solid #e5e7eb'
                         }}>
-                            <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '16px', fontWeight: 600 }}>
-                                Con una cuenta gratis obtienes:
+                            <p style={{ fontSize: '16px', color: '#111827', marginBottom: '16px', fontWeight: 700, marginTop: 0 }}>
+                                Acceso de por vida incluye:
                             </p>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981', flexShrink: 0 }} />
-                                    <span style={{ fontSize: '14px', color: '#374151' }}>Procesamiento ilimitado con IA</span>
-                                </div>
-                                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981', flexShrink: 0 }} />
-                                    <span style={{ fontSize: '14px', color: '#374151' }}>Sincronización multi-dispositivo</span>
-                                </div>
-                                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981', flexShrink: 0 }} />
-                                    <span style={{ fontSize: '14px', color: '#374151' }}>Colaboración en equipo</span>
-                                </div>
-                                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981', flexShrink: 0 }} />
-                                    <span style={{ fontSize: '14px', color: '#374151' }}>Asistente IA personal 24/7</span>
-                                </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                {[
+                                    'Todas las funciones actuales de Aido',
+                                    'Todas las funciones futuras, sin costo adicional',
+                                    'Procesamiento con IA incluido',
+                                    'Sin suscripciones — pagas una sola vez'
+                                ].map((text, i) => (
+                                    <div key={i} style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                                        <CheckCircle2 size={18} color="#10b981" fill="#ecfdf5" />
+                                        <span style={{ fontSize: '14px', color: '#374151' }}>{text}</span>
+                                    </div>
+                                ))}
                             </div>
                         </div>
 
 
                         {!signupSubmitted ? (
                             <>
-                                <form onSubmit={handlePrelaunchSignup} style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
+                                <div style={{ marginBottom: '24px', textAlign: 'center' }}>
+                                    <div style={{ display: 'inline-block', background: '#fff7ed', color: '#ea580c', fontSize: '12px', fontWeight: 700, padding: '4px 12px', borderRadius: '20px', marginBottom: '8px' }}>
+                                        🔥 OFERTA DE PRE-LANZAMIENTO
+                                    </div>
+                                    <div style={{ fontSize: '22px', fontWeight: 800, color: '#111827' }}>
+                                        Acceso de por vida por solo <span style={{ color: '#10b981' }}>$15 USD</span>
+                                    </div>
+                                    <p style={{ fontSize: '13px', color: '#6b7280', margin: '4px 0 0 0' }}>
+                                        (pago único) · Después del lanzamiento será solo por suscripción
+                                    </p>
+                                </div>
+
+                                <form onSubmit={handlePrelaunchSignup} style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
                                     <input
                                         type="text"
                                         placeholder="Nombre completo"
@@ -1931,14 +1938,16 @@ function DemoDashboardContent() {
                                             e.target.style.boxShadow = '0 12px 24px rgba(16,185,129,0.4)';
                                         }}
                                     >
-                                        🚀 Reservar Mi Lugar
+                                        🚀 Desbloquear Acceso de por Vida — $15
                                     </button>
                                 </form>
 
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '16px' }}>
-                                    <div style={{ fontSize: '12px', color: '#9ca3af' }}>Sin tarjeta de crédito</div>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
+                                    <div style={{ fontSize: '13px', color: '#6b7280' }}>Pago único</div>
                                     <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#d1d5db' }} />
-                                    <div style={{ fontSize: '12px', color: '#9ca3af' }}>Gratis para siempre</div>
+                                    <div style={{ fontSize: '13px', color: '#6b7280' }}>Sin suscripciones</div>
+                                    <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#d1d5db' }} />
+                                    <div style={{ fontSize: '13px', color: '#6b7280' }}>Acceso para siempre</div>
                                 </div>
                             </>
                         ) : (
