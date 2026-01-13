@@ -1100,39 +1100,6 @@ function DemoDashboardContent() {
                                 Asistente IA
                             </button>
 
-                            {/* Primary CTA - Pre-launch Sign Up Button */}
-                            <button
-                                onClick={() => {
-                                    trackEvent('cta_clicked', { location: 'header', actionsUsed: demoActionsUsed });
-                                    setShowSignupPrompt(true);
-                                }}
-                                style={{
-                                    background: 'linear-gradient(135deg, #10b981, #059669)',
-                                    color: 'white',
-                                    border: 'none',
-                                    padding: '10px 20px',
-                                    borderRadius: '10px',
-                                    fontSize: '15px',
-                                    fontWeight: 700,
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '8px',
-                                    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.4)',
-                                    transition: 'all 0.2s',
-                                    animation: demoActionsUsed >= 2 ? 'pulse 2s infinite' : 'none'
-                                }}
-                                onMouseEnter={e => {
-                                    e.target.style.transform = 'translateY(-2px)';
-                                    e.target.style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.5)';
-                                }}
-                                onMouseLeave={e => {
-                                    e.target.style.transform = 'translateY(0)';
-                                    e.target.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.4)';
-                                }}
-                            >
-                                🚀 Únete al Pre-Lanzamiento
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -2097,21 +2064,7 @@ function DemoDashboardContent() {
                             {demoActionsUsed >= 2 && " Has usado " + demoActionsUsed + " acciones del demo."}
                         </p>
 
-                        <div style={{
-                            background: '#fef3c7',
-                            borderLeft: '4px solid #f59e0b',
-                            padding: '16px 20px',
-                            borderRadius: '8px',
-                            marginBottom: '28px',
-                            textAlign: 'left'
-                        }}>
-                            <p style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: 700, color: '#92400e' }}>
-                                🎁 Oferta especial de bienvenida:
-                            </p>
-                            <p style={{ margin: 0, fontSize: '14px', color: '#78350f', lineHeight: '1.5' }}>
-                                Crea tu cuenta AHORA y obtén acceso ilimitado a todo lo que viste en el demo, más funciones premium.
-                            </p>
-                        </div>
+
 
 
                         {!signupSubmitted ? (
