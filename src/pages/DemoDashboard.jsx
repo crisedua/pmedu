@@ -145,7 +145,7 @@ function DemoDashboardContent() {
                                 color: '#18181b',
                                 margin: 0
                             }}>
-                                Command Center
+                                Command
                             </h1>
                             <p style={{
                                 fontSize: '14px',
