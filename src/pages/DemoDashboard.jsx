@@ -436,42 +436,28 @@ function DemoDashboardContent() {
                 email: signupEmail
             });
 
-            // 1. Save Lead to Supabase (Blocking to ensure capture, with timeout)
+            // 1. Save Lead to Supabase (Fire-and-forget - non-blocking)
             // Using logic associated with aido_leads table
             if (supabase) {
-                try {
-                    // DEBUG: Check Supabase client configuration
-                    const supabaseUrl = supabase.supabaseUrl || 'unknown';
-                    console.log('DEBUG: Supabase client URL:', supabaseUrl);
-
-                    // Create a promise that rejects after 10 seconds (increased from 3)
-                    const timeoutPromise = new Promise((_, reject) =>
-                        setTimeout(() => reject(new Error('Supabase save timeout (10s)')), 10000)
-                    );
-
-                    const insertPromise = supabase.from('aido_leads').insert([{
-                        name: signupName,
-                        email: signupEmail,
-                        source: 'demo_completion_lifetime',
-                        created_at: new Date().toISOString()
-                    }]);
-
-                    // Race usage against timeout so we don't hang payment logic forever
-                    const result = await Promise.race([insertPromise, timeoutPromise]);
-
-                    if (result?.error) {
-                        console.warn('Lead save issue:', result.error);
-                        alert(`⚠️ DEBUG: Lead save failed!\n\nError: ${result.error.message || JSON.stringify(result.error)}\n\nCode: ${result.error.code || 'none'}\n\n(Payment will still proceed)`);
+                // Send the insert but don't await it - let it complete in background
+                supabase.from('aido_leads').insert([{
+                    name: signupName,
+                    email: signupEmail,
+                    source: 'demo_completion_lifetime',
+                    created_at: new Date().toISOString()
+                }]).then(({ error, data }) => {
+                    if (error) {
+                        console.warn('⚠️ Lead save failed (background):', error);
                     } else {
-                        console.log('✅ Lead saved successfully to aido_leads');
+                        console.log('✅ Lead saved successfully to aido_leads (background)');
                     }
-                } catch (err) {
-                    console.warn('Lead save crashed or timed out (non-fatal):', err);
-                    alert(`⚠️ DEBUG: Lead save exception!\n\nError: ${err.message}\n\n(Payment will still proceed)`);
-                }
+                }).catch(err => {
+                    console.warn('⚠️ Lead save exception (background):', err);
+                });
             } else {
-                alert('⚠️ DEBUG: Supabase client is NULL! Check environment variables.');
+                console.warn('⚠️ Supabase client is NULL! Check environment variables.');
             }
+
 
             // 2. Call Payment API
             const response = await fetch('/api/create_preference', {
