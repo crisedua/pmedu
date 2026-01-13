@@ -203,11 +203,13 @@ function DemoDashboardContent() {
             setIsRecording(true);
             setRecordingText('');
             playBeep(440, 0.1); // Start beep
-            speak("Grabando... puedes hablar ahora.");
+
+            const targetText = simulatedTexts[Math.floor(Math.random() * simulatedTexts.length)];
+            speak("Grabando... " + targetText); // Speak the text being recorded
+
             if (demoStep === 1) setDemoStep(2);
 
             let textIndex = 0;
-            const targetText = simulatedTexts[Math.floor(Math.random() * simulatedTexts.length)];
             const words = targetText.split(' ');
 
             const interval = setInterval(() => {
@@ -407,7 +409,7 @@ function DemoDashboardContent() {
             {demoStep === 2 && isRecording && (
                 <div style={{
                     position: 'fixed',
-                    bottom: '120px',
+                    bottom: '250px',
                     right: '120px',
                     zIndex: 60,
                     pointerEvents: 'none',
