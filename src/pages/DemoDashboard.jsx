@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DemoDataProvider, useDemoData } from '../context/DemoDataContext';
 import DemoActionCard from '../components/DemoActionCard';
 import {
@@ -35,6 +35,47 @@ function DemoDashboardContent() {
     const [editingItem, setEditingItem] = useState(null);
     const [isProcessing, setIsProcessing] = useState(false);
 
+    // Conversion Optimization State
+    const [demoActionsUsed, setDemoActionsUsed] = useState(0);
+    const [showSignupPrompt, setShowSignupPrompt] = useState(false);
+    const [showCompletionModal, setShowCompletionModal] = useState(false);
+    const [hasSeenAiPower, setHasSeenAiPower] = useState(false);
+    const [showExitIntent, setShowExitIntent] = useState(false);
+    const [hasShownExitIntent, setHasShownExitIntent] = useState(false);
+
+    const DEMO_ACTION_LIMIT = 5; // Artificial limit to create urgency
+
+    // Analytics Tracking Utility
+    const trackEvent = (eventName, eventData = {}) => {
+        const timestamp = new Date().toISOString();
+        const eventPayload = {
+            event: eventName,
+            timestamp,
+            demoActionsUsed,
+            demoStep,
+            hasSeenAiPower,
+            ...eventData
+        };
+
+        // Log to console in development
+        console.log('📊 Analytics Event:', eventPayload);
+
+        // Send to analytics platform (ready for integration)
+        // Example integrations:
+        // window.gtag?.('event', eventName, eventData); // Google Analytics
+        // window.mixpanel?.track(eventName, eventPayload); // Mixpanel
+        // window.analytics?.track(eventName, eventPayload); // Segment
+
+        // For now, store in localStorage for debugging
+        try {
+            const existingEvents = JSON.parse(localStorage.getItem('demo_analytics') || '[]');
+            existingEvents.push(eventPayload);
+            localStorage.setItem('demo_analytics', JSON.stringify(existingEvents.slice(-100))); // Keep last 100 events
+        } catch (e) {
+            console.warn('Could not store analytics event:', e);
+        }
+    };
+
     // Audio Helpers
     const playBeep = (freq = 440, duration = 0.1) => {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -62,6 +103,26 @@ function DemoDashboardContent() {
             window.speechSynthesis.speak(speech);
         }
     };
+
+    // Exit-Intent Detection
+    useEffect(() => {
+        const handleMouseLeave = (e) => {
+            // Detect when mouse leaves at the top of the viewport (user trying to close tab/go back)
+            if (e.clientY <= 0 && !hasShownExitIntent && demoActionsUsed >= 1) {
+                setShowExitIntent(true);
+                setHasShownExitIntent(true);
+                trackEvent('exit_intent_triggered', { actionsUsed: demoActionsUsed });
+            }
+        };
+
+        document.addEventListener('mouseout', handleMouseLeave);
+        return () => document.removeEventListener('mouseout', handleMouseLeave);
+    }, [hasShownExitIntent, demoActionsUsed]);
+
+    // Track initial demo load
+    useEffect(() => {
+        trackEvent('demo_loaded');
+    }, []);
 
     // Filter tasks
     const immediateActions = tasks.filter(t =>
@@ -91,6 +152,8 @@ function DemoDashboardContent() {
 
     const handleSmartProcess = async (item) => {
         setIsProcessing(true);
+        setDemoActionsUsed(prev => prev + 1); // Track demo usage
+
         // Simulation of deep AI analysis
         await new Promise(resolve => setTimeout(resolve, 2500));
 
@@ -121,6 +184,7 @@ function DemoDashboardContent() {
         });
 
         setIsProcessing(false);
+        setHasSeenAiPower(true); // Mark that user has seen AI in action
 
         const project = projects.find(p => p.id === projectId);
         const assignee = users.find(u => u.id === assignedTo);
@@ -140,6 +204,19 @@ function DemoDashboardContent() {
             setDemoStep(6);
             speak("¡Magia! " + feedback + " Ahora prueba el Asistente IA.");
         }
+
+        // Show signup prompt after experiencing AI power
+        if (!hasSeenAiPower && demoActionsUsed >= 1) {
+            setTimeout(() => {
+                setShowSignupPrompt(true);
+                trackEvent('signup_prompt_shown', { trigger: 'post_ai_processing' });
+            }, 3000);
+        }
+
+        trackEvent('ai_processing_completed', {
+            projectAssigned: projectId ? true : false,
+            delegated: assignedTo !== currentUser.id
+        });
     };
 
     const handleInboxProcess = (item, target) => {
@@ -203,6 +280,8 @@ function DemoDashboardContent() {
         } else {
             setIsRecording(true);
             setRecordingText('');
+            setDemoActionsUsed(prev => prev + 1); // Track recording as action
+            trackEvent('voice_recording_started');
             playBeep(440, 0.1); // Start beep
 
             const targetText = simulatedTexts[Math.floor(Math.random() * simulatedTexts.length)];
@@ -241,6 +320,13 @@ function DemoDashboardContent() {
             setDemoStep(7);
             playBeep(800, 0.1);
             speak("Aquí tienes a tu segundo cerebro. Pregúntale lo que quieras sobre tus proyectos.");
+            trackEvent('ai_assistant_opened');
+            // Show completion modal after experiencing full tour
+            setTimeout(() => {
+                setDemoStep(8); // End of tour
+                setShowCompletionModal(true);
+                trackEvent('tour_completion_modal_shown');
+            }, 5000);
         } else {
             // Toggle normal behavior if not in that step?
             // For demo, we just toggle step 7 off if clicked again?
@@ -269,6 +355,8 @@ function DemoDashboardContent() {
                         boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
                         maxWidth: '560px',
                         width: '100%',
+                        maxHeight: '90vh',
+                        overflowY: 'auto',
                         padding: '32px',
                         animation: 'fadeIn 0.3s ease-out'
                     }}>
@@ -372,7 +460,10 @@ function DemoDashboardContent() {
 
                         <div style={{ paddingTop: '24px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end' }}>
                             <button
-                                onClick={() => setDemoStep(1)}
+                                onClick={() => {
+                                    setDemoStep(1);
+                                    setDemoActionsUsed(prev => prev + 1);
+                                }}
                                 style={{
                                     backgroundColor: '#2563eb',
                                     color: 'white',
@@ -606,37 +697,54 @@ function DemoDashboardContent() {
                                 Tienes {immediateActions.length} acciones inmediatas y {recentCaptures.length} ideas sin procesar.
                             </p>
                         </div>
-                        <div style={{ display: 'flex', gap: '12px', position: 'relative' }}>
-                            <span style={{
-                                background: '#eef2ff',
-                                color: '#6366f1',
-                                padding: '6px 12px',
-                                borderRadius: '20px',
-                                fontSize: '12px',
-                                fontWeight: 600
+                        <div style={{ display: 'flex', gap: '12px', position: 'relative', alignItems: 'center' }}>
+                            {/* Action Counter - Creates Urgency */}
+                            <div style={{
+                                background: demoActionsUsed >= DEMO_ACTION_LIMIT - 1 ? '#fef2f2' : '#f0f9ff',
+                                color: demoActionsUsed >= DEMO_ACTION_LIMIT - 1 ? '#dc2626' : '#0369a1',
+                                padding: '8px 14px',
+                                borderRadius: '8px',
+                                fontSize: '13px',
+                                fontWeight: 600,
+                                border: `1px solid ${demoActionsUsed >= DEMO_ACTION_LIMIT - 1 ? '#fecaca' : '#bae6fd'}`,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px'
                             }}>
-                                🎮 Modo Demo
-                            </span>
+                                <Clock size={14} />
+                                {DEMO_ACTION_LIMIT - demoActionsUsed} {demoActionsUsed >= DEMO_ACTION_LIMIT - 1 ? 'acción restante' : 'acciones restantes'}
+                            </div>
+
+                            {/* Primary CTA - Sign Up Button */}
                             <button
-                                onClick={handleAiSidebarToggle}
+                                onClick={() => window.location.href = '/login'}
                                 style={{
-                                    background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                                    background: 'linear-gradient(135deg, #10b981, #059669)',
                                     color: 'white',
                                     border: 'none',
-                                    padding: '8px 16px',
-                                    borderRadius: '8px',
-                                    fontSize: '14px',
-                                    fontWeight: 600,
+                                    padding: '10px 20px',
+                                    borderRadius: '10px',
+                                    fontSize: '15px',
+                                    fontWeight: 700,
                                     cursor: 'pointer',
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: '6px',
-                                    position: 'relative',
-                                    zIndex: demoStep === 6 ? 65 : 1, // Highlight button
-                                    boxShadow: demoStep === 6 ? '0 0 0 4px rgba(99, 102, 241, 0.5)' : 'none'
-                                }}>
+                                    gap: '8px',
+                                    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.4)',
+                                    transition: 'all 0.2s',
+                                    animation: demoActionsUsed >= 2 ? 'pulse 2s infinite' : 'none'
+                                }}
+                                onMouseEnter={e => {
+                                    e.target.style.transform = 'translateY(-2px)';
+                                    e.target.style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.5)';
+                                }}
+                                onMouseLeave={e => {
+                                    e.target.style.transform = 'translateY(0)';
+                                    e.target.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.4)';
+                                }}
+                            >
                                 <Sparkles size={16} />
-                                Asistente IA
+                                Crear Cuenta Gratis
                             </button>
                         </div>
                     </div>
@@ -1054,6 +1162,461 @@ function DemoDashboardContent() {
                 </div>
             )}
 
+            {/* Floating Signup Prompt - After AI Experience */}
+            {showSignupPrompt && (
+                <div style={{
+                    position: 'fixed',
+                    bottom: '110px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    background: 'white',
+                    borderRadius: '16px',
+                    padding: '20px 28px',
+                    boxShadow: '0 20px 50px rgba(0,0,0,0.3)',
+                    zIndex: 9998,
+                    maxWidth: '500px',
+                    animation: 'slideUp 0.4s ease-out',
+                    border: '2px solid #10b981'
+                }}>
+                    <button
+                        onClick={() => setShowSignupPrompt(false)}
+                        style={{
+                            position: 'absolute',
+                            top: '12px',
+                            right: '12px',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: '#9ca3af',
+                            padding: '4px'
+                        }}
+                    >
+                        <X size={18} />
+                    </button>
+
+                    <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+                        <div style={{
+                            width: '48px',
+                            height: '48px',
+                            borderRadius: '12px',
+                            background: 'linear-gradient(135deg, #10b981, #059669)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'white',
+                            flexShrink: 0
+                        }}>
+                            <Sparkles size={24} />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                            <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: 700, color: '#111827' }}>
+                                ¡Te gustó la magia de la IA!
+                            </h3>
+                            <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#6b7280', lineHeight: '1.5' }}>
+                                Crea tu cuenta gratis y obtén acceso ilimitado a procesamiento con IA, delegación automática y mucho más.
+                            </p>
+                            <div style={{ display: 'flex', gap: '12px' }}>
+                                <button
+                                    onClick={() => window.location.href = '/login'}
+                                    style={{
+                                        background: 'linear-gradient(135deg, #10b981, #059669)',
+                                        color: 'white',
+                                        border: 'none',
+                                        padding: '10px 20px',
+                                        borderRadius: '8px',
+                                        fontSize: '14px',
+                                        fontWeight: 600,
+                                        cursor: 'pointer',
+                                        flex: 1
+                                    }}
+                                >
+                                    Crear Cuenta Gratis
+                                </button>
+                                <button
+                                    onClick={() => setShowSignupPrompt(false)}
+                                    style={{
+                                        background: '#f3f4f6',
+                                        color: '#6b7280',
+                                        border: 'none',
+                                        padding: '10px 16px',
+                                        borderRadius: '8px',
+                                        fontSize: '14px',
+                                        fontWeight: 600,
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    Después
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Demo Limit Reached Modal */}
+            {demoActionsUsed >= DEMO_ACTION_LIMIT && (
+                <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    background: 'rgba(0,0,0,0.6)',
+                    backdropFilter: 'blur(4px)',
+                    zIndex: 10000,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '16px'
+                }}>
+                    <div style={{
+                        background: 'white',
+                        borderRadius: '24px',
+                        maxWidth: '480px',
+                        width: '100%',
+                        padding: '40px',
+                        textAlign: 'center',
+                        boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)'
+                    }}>
+                        <div style={{
+                            width: '80px',
+                            height: '80px',
+                            borderRadius: '50%',
+                            background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                            margin: '0 auto 24px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'white'
+                        }}>
+                            <Clock size={40} />
+                        </div>
+                        <h2 style={{ fontSize: '28px', fontWeight: 800, color: '#111827', marginBottom: '16px' }}>
+                            ¡Has Alcanzado el Límite del Demo!
+                        </h2>
+                        <p style={{ fontSize: '16px', color: '#6b7280', lineHeight: '1.6', marginBottom: '32px' }}>
+                            ¿Viste el poder de Aido? Crea tu cuenta gratis ahora para obtener:
+                        </p>
+                        <div style={{ textAlign: 'left', marginBottom: '32px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                                <CheckCircle2 size={20} color="#10b981" />
+                                <span style={{ fontSize: '15px', color: '#374151' }}><strong>Acciones ilimitadas</strong> con IA</span>
+                            </div>
+                            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                                <CheckCircle2 size={20} color="#10b981" />
+                                <span style={{ fontSize: '15px', color: '#374151' }}>Sincronización en <strong>todos tus dispositivos</strong></span>
+                            </div>
+                            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                                <CheckCircle2 size={20} color="#10b981" />
+                                <span style={{ fontSize: '15px', color: '#374151' }}>Colaboración <strong>con tu equipo</strong></span>
+                            </div>
+                            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                                <CheckCircle2 size={20} color="#10b981" />
+                                <span style={{ fontSize: '15px', color: '#374151' }}>Asistente IA <strong>personal 24/7</strong></span>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => window.location.href = '/login'}
+                            style={{
+                                width: '100%',
+                                background: 'linear-gradient(135deg, #10b981, #059669)',
+                                color: 'white',
+                                border: 'none',
+                                padding: '16px',
+                                borderRadius: '12px',
+                                fontSize: '16px',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                boxShadow: '0 10px 20px rgba(16,185,129,0.3)',
+                                marginBottom: '12px'
+                            }}
+                        >
+                            🚀 Crear Mi Cuenta Gratis
+                        </button>
+                        <p style={{ fontSize: '13px', color: '#9ca3af', margin: 0 }}>
+                            Sin tarjeta de crédito • Configuración en 30 segundos
+                        </p>
+                    </div>
+                </div>
+            )}
+
+            {/* Tour Completion Modal - Shows after interactive walkthrough */}
+            {showCompletionModal && (
+                <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    background: 'rgba(0,0,0,0.7)',
+                    backdropFilter: 'blur(6px)',
+                    zIndex: 10001,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '16px',
+                    animation: 'fadeIn 0.3s ease-out'
+                }}>
+                    <div style={{
+                        background: 'linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%)',
+                        borderRadius: '32px',
+                        maxWidth: '540px',
+                        width: '100%',
+                        padding: '48px 40px',
+                        textAlign: 'center',
+                        boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
+                        border: '2px solid #bae6fd',
+                        position: 'relative'
+                    }}>
+                        <div style={{
+                            width: '100px',
+                            height: '100px',
+                            borderRadius: '50%',
+                            background: 'linear-gradient(135deg, #10b981, #059669)',
+                            margin: '-80px auto 24px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'white',
+                            animation: 'bounce 2s infinite',
+                            boxShadow: '0 20px 40px rgba(16,185,129,0.4)'
+                        }}>
+                            <CheckCircle2 size={50} strokeWidth={2.5} />
+                        </div>
+
+                        <h2 style={{
+                            fontSize: '32px',
+                            fontWeight: 900,
+                            background: 'linear-gradient(135deg, #111827, #374151)',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                            marginBottom: '12px',
+                            lineHeight: '1.2'
+                        }}>
+                            ¡Completaste el Tour!
+                        </h2>
+
+                        <p style={{ fontSize: '18px', color: '#6b7280', lineHeight: '1.6', marginBottom: '32px' }}>
+                            Ahora sabes cómo <strong style={{ color: '#111827' }}>Aido puede transformar tu productividad</strong>.
+                        </p>
+
+                        <div style={{
+                            background: 'white',
+                            borderRadius: '16px',
+                            padding: '20px',
+                            marginBottom: '32px',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                            textAlign: 'left'
+                        }}>
+                            <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '16px', fontWeight: 600 }}>
+                                Con una cuenta gratis obtienes:
+                            </p>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981', flexShrink: 0 }} />
+                                    <span style={{ fontSize: '14px', color: '#374151' }}>Procesamiento ilimitado con IA</span>
+                                </div>
+                                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981', flexShrink: 0 }} />
+                                    <span style={{ fontSize: '14px', color: '#374151' }}>Sincronización multi-dispositivo</span>
+                                </div>
+                                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981', flexShrink: 0 }} />
+                                    <span style={{ fontSize: '14px', color: '#374151' }}>Colaboración en equipo</span>
+                                </div>
+                                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981', flexShrink: 0 }} />
+                                    <span style={{ fontSize: '14px', color: '#374151' }}>Asistente IA personal 24/7</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={() => window.location.href = '/login'}
+                            style={{
+                                width: '100%',
+                                background: 'linear-gradient(135deg, #10b981, #059669)',
+                                color: 'white',
+                                border: 'none',
+                                padding: '18px',
+                                borderRadius: '14px',
+                                fontSize: '17px',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                boxShadow: '0 12px 24px rgba(16,185,129,0.4)',
+                                marginBottom: '12px',
+                                transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={e => {
+                                e.target.style.transform = 'translateY(-2px)';
+                                e.target.style.boxShadow = '0 16px 32px rgba(16,185,129,0.5)';
+                            }}
+                            onMouseLeave={e => {
+                                e.target.style.transform = 'translateY(0)';
+                                e.target.style.boxShadow = '0 12px 24px rgba(16,185,129,0.4)';
+                            }}
+                        >
+                            🚀 Crear Mi Cuenta Gratis
+                        </button>
+
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '16px' }}>
+                            <div style={{ fontSize: '12px', color: '#9ca3af' }}>Sin tarjeta de crédito</div>
+                            <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#d1d5db' }} />
+                            <div style={{ fontSize: '12px', color: '#9ca3af' }}>Gratis para siempre</div>
+                        </div>
+
+                        <button
+                            onClick={() => setShowCompletionModal(false)}
+                            style={{
+                                background: 'none',
+                                border: 'none',
+                                color: '#9ca3af',
+                                fontSize: '14px',
+                                cursor: 'pointer',
+                                textDecoration: 'underline',
+                                padding: '8px'
+                            }}
+                        >
+                            Continuar explorando el demo
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Exit-Intent Modal - Last chance to convert */}
+            {showExitIntent && (
+                <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    background: 'rgba(0,0,0,0.8)',
+                    backdropFilter: 'blur(8px)',
+                    zIndex: 10002,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '16px',
+                    animation: 'fadeIn 0.2s ease-out'
+                }}>
+                    <div style={{
+                        background: 'white',
+                        borderRadius: '24px',
+                        maxWidth: '520px',
+                        width: '100%',
+                        padding: '40px',
+                        textAlign: 'center',
+                        boxShadow: '0 25px 50px -12px rgba(0,0,0,0.6)',
+                        border: '3px solid #f59e0b',
+                        position: 'relative'
+                    }}>
+                        <button
+                            onClick={() => {
+                                setShowExitIntent(false);
+                                trackEvent('exit_intent_dismissed');
+                            }}
+                            style={{
+                                position: 'absolute',
+                                top: '16px',
+                                right: '16px',
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer',
+                                color: '#9ca3af',
+                                padding: '4px'
+                            }}
+                        >
+                            <X size={24} />
+                        </button>
+
+                        <div style={{
+                            fontSize: '48px',
+                            marginBottom: '16px'
+                        }}>
+                            ⏸️
+                        </div>
+
+                        <h2 style={{
+                            fontSize: '28px',
+                            fontWeight: 800,
+                            color: '#111827',
+                            marginBottom: '12px',
+                            lineHeight: '1.2'
+                        }}>
+                            ¡Espera! No pierdas tu progreso
+                        </h2>
+
+                        <p style={{ fontSize: '17px', color: '#6b7280', lineHeight: '1.5', marginBottom: '32px' }}>
+                            Ya has visto cómo <strong style={{ color: '#111827' }}>Aido puede transformar tu forma de trabajar</strong>.
+                            {demoActionsUsed >= 2 && " Has usado " + demoActionsUsed + " acciones del demo."}
+                        </p>
+
+                        <div style={{
+                            background: '#fef3c7',
+                            borderLeft: '4px solid #f59e0b',
+                            padding: '16px 20px',
+                            borderRadius: '8px',
+                            marginBottom: '28px',
+                            textAlign: 'left'
+                        }}>
+                            <p style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: 700, color: '#92400e' }}>
+                                🎁 Oferta especial de bienvenida:
+                            </p>
+                            <p style={{ margin: 0, fontSize: '14px', color: '#78350f', lineHeight: '1.5' }}>
+                                Crea tu cuenta AHORA y obtén acceso ilimitado a todo lo que viste en el demo, más funciones premium.
+                            </p>
+                        </div>
+
+                        <button
+                            onClick={() => {
+                                trackEvent('exit_intent_converted', { actionsUsed: demoActionsUsed });
+                                window.location.href = '/login';
+                            }}
+                            style={{
+                                width: '100%',
+                                background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                                color: 'white',
+                                border: 'none',
+                                padding: '18px',
+                                borderRadius: '12px',
+                                fontSize: '17px',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                boxShadow: '0 12px 24px rgba(245,158,11,0.4)',
+                                marginBottom: '12px',
+                                transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={e => {
+                                e.target.style.transform = 'translateY(-2px)';
+                                e.target.style.boxShadow = '0 16px 32px rgba(245,158,11,0.5)';
+                            }}
+                            onMouseLeave={e => {
+                                e.target.style.transform = 'translateY(0)';
+                                e.target.style.boxShadow = '0 12px 24px rgba(245,158,11,0.4)';
+                            }}
+                        >
+                            🚀 Sí, Quiero Crear Mi Cuenta Gratis
+                        </button>
+
+                        <button
+                            onClick={() => {
+                                setShowExitIntent(false);
+                                trackEvent('exit_intent_dismissed');
+                            }}
+                            style={{
+                                width: '100%',
+                                background: '#f3f4f6',
+                                color: '#6b7280',
+                                border: 'none',
+                                padding: '12px',
+                                borderRadius: '8px',
+                                fontSize: '14px',
+                                fontWeight: 600,
+                                cursor: 'pointer'
+                            }}
+                        >
+                            No gracias, seguir explorando
+                        </button>
+
+                        <p style={{ fontSize: '12px', color: '#9ca3af', margin: '16px 0 0 0' }}>
+                            Sin tarjeta de crédito • Configuración en 30 segundos • Gratis para siempre
+                        </p>
+                    </div>
+                </div>
+            )}
+
             <style>{`
                 @keyframes pulse {
                     0%, 100% { opacity: 1; transform: scale(1); }
@@ -1062,6 +1625,14 @@ function DemoDashboardContent() {
                 @keyframes blink {
                     0%, 50% { opacity: 1; }
                     51%, 100% { opacity: 0; }
+                }
+                @keyframes slideUp {
+                    from { transform: translateX(-50%) translateY(20px); opacity: 0; }
+                    to { transform: translateX(-50%) translateY(0); opacity: 1; }
+                }
+                @keyframes bounce {
+                    0%, 100% { transform: translateY(0); }
+                    50% { transform: translateY(-10px); }
                 }
                 .animate-spin {
                     animation: spin 1s linear infinite;
