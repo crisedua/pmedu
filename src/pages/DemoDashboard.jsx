@@ -348,6 +348,26 @@ function DemoDashboardContent() {
                                     </p>
                                 </div>
                             </div>
+
+                            {/* Feature 4 */}
+                            <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+                                <div style={{
+                                    background: '#eef2ff',
+                                    padding: '12px',
+                                    borderRadius: '12px',
+                                    color: '#6366f1'
+                                }}>
+                                    <Sparkles size={24} />
+                                </div>
+                                <div>
+                                    <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#1f2937', margin: '0 0 4px 0' }}>
+                                        Asistente IA
+                                    </h3>
+                                    <p style={{ fontSize: '14px', color: '#6b7280', margin: 0, lineHeight: '1.5' }}>
+                                        Tu segundo cerebro. Pregunta sobre el estado de proyectos, fechas y responsables.
+                                    </p>
+                                </div>
+                            </div>
                         </div>
 
                         <div style={{ paddingTop: '24px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end' }}>
