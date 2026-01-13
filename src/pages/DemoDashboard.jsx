@@ -131,6 +131,53 @@ function DemoDashboardContent() {
         trackEvent('demo_loaded');
     }, []);
 
+    // Auto-trigger AI Assistant when demoStep reaches 6
+    useEffect(() => {
+        if (demoStep === 6 && !showAiAssistant) {
+            const timer = setTimeout(() => {
+                setShowAiAssistant(true);
+                setDemoStep(7);
+                trackEvent('ai_assistant_opened');
+
+                // Play opening sound
+                playBeep(800, 0.1);
+                speak("Abriendo tu asistente de inteligencia artificial. Aquí puedes preguntarme lo que quieras sobre tus proyectos.");
+
+                // Start typing animation sequence
+                setTimeout(() => {
+                    setAiDemoPhase(1);
+                    speak("Mira cómo puedo responderte.");
+                }, 4000);
+
+                setTimeout(() => {
+                    setAiDemoPhase(2);
+                }, 6000);
+
+                setTimeout(() => {
+                    setAiDemoPhase(3);
+                    playBeep(600, 0.1);
+                    speak("Te muestro tus tareas prioritarias y te ayudo a organizarlas. También puedo enviar mensajes, delegar tareas, y mucho más.");
+                }, 8000);
+
+                setTimeout(() => {
+                    setAiDemoPhase(4);
+                    speak("Usa los botones rápidos para consultas frecuentes, o habla conmigo usando el micrófono.");
+                }, 14000);
+
+                setTimeout(() => {
+                    speak("Esto es solo una muestra. Con tu cuenta, tendrás acceso ilimitado a tu asistente personal de inteligencia artificial.");
+                    setTimeout(() => {
+                        setShowCompletionModal(true);
+                        setDemoStep(8);
+                        trackEvent('tour_completion_modal_shown');
+                    }, 5000);
+                }, 19000);
+            }, 2000);
+
+            return () => clearTimeout(timer);
+        }
+    }, [demoStep, showAiAssistant]);
+
     // Filter tasks
     const immediateActions = tasks.filter(t =>
         (t.assigned_to === currentUser.id || !t.assigned_to) && t.status !== 'Done'
@@ -208,13 +255,8 @@ function DemoDashboardContent() {
         speak(feedback);
 
         if (demoStep === 5) {
-            setDemoStep(6);
+            setDemoStep(6); // This triggers the useEffect which auto-opens AI Assistant
             speak("¡Magia! " + feedback + " Ahora te muestro el Asistente IA.");
-
-            // Auto-trigger AI Assistant demo after 2 seconds
-            setTimeout(() => {
-                handleAiSidebarToggle();
-            }, 2000);
         }
 
         trackEvent('ai_processing_completed', {
