@@ -159,42 +159,121 @@ function DemoDashboardContent() {
         <div className="dashboard-container relative">
             {/* Walkthrough Overlays */}
             {demoStep === 0 && (
-                <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6 animate-in fade-in zoom-in duration-300">
-                        <div className="flex justify-between items-start mb-4">
-                            <h2 className="text-2xl font-bold text-gray-900">Bienvenido a tu Segundo Cerebro</h2>
-                            <button onClick={() => setDemoStep(4)} className="text-gray-400 hover:text-gray-600"><X size={24} /></button>
+                <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                    backdropFilter: 'blur(4px)',
+                    zIndex: 100,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '16px'
+                }}>
+                    <div style={{
+                        backgroundColor: 'white',
+                        borderRadius: '24px',
+                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                        maxWidth: '560px',
+                        width: '100%',
+                        padding: '32px',
+                        animation: 'fadeIn 0.3s ease-out'
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '24px' }}>
+                            <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#111827', margin: 0 }}>
+                                Bienvenido a Aido
+                            </h2>
+                            <button
+                                onClick={() => setDemoStep(4)}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: '4px' }}
+                            >
+                                <X size={24} />
+                            </button>
                         </div>
-                        <p className="text-gray-600 mb-4 text-lg">
-                            Esta aplicación está diseñada para ejecutivos que necesitan **capturar, organizar y ejecutar** sin fricción.
+
+                        <p style={{ fontSize: '18px', lineHeight: '1.6', color: '#4b5563', marginBottom: '32px' }}>
+                            Esta aplicación está diseñada para ejecutivos que necesitan <strong style={{ color: '#111827' }}>capturar, organizar y ejecutar</strong> sin fricción.
                         </p>
-                        <ul className="space-y-3 mb-6">
-                            <li className="flex gap-3 items-start">
-                                <div className="bg-blue-100 p-2 rounded-lg text-blue-600 mt-1"><Mic size={18} /></div>
-                                <div>
-                                    <span className="font-semibold block text-gray-800">Captura de Voz Inteligente</span>
-                                    <span className="text-sm text-gray-500">Habla naturalmente. La IA transcribe, resume y extrae tareas automáticamente.</span>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '32px' }}>
+                            {/* Feature 1 */}
+                            <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+                                <div style={{
+                                    background: '#eff6ff',
+                                    padding: '12px',
+                                    borderRadius: '12px',
+                                    color: '#2563eb'
+                                }}>
+                                    <Mic size={24} />
                                 </div>
-                            </li>
-                            <li className="flex gap-3 items-start">
-                                <div className="bg-purple-100 p-2 rounded-lg text-purple-600 mt-1"><Inbox size={18} /></div>
                                 <div>
-                                    <span className="font-semibold block text-gray-800">Bandeja de Entrada Unificada</span>
-                                    <span className="text-sm text-gray-500">Todas tus ideas caen aquí. Procesa, delega o agenda con un clic.</span>
+                                    <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#1f2937', margin: '0 0 4px 0' }}>
+                                        Captura de Voz Inteligente
+                                    </h3>
+                                    <p style={{ fontSize: '14px', color: '#6b7280', margin: 0, lineHeight: '1.5' }}>
+                                        Habla naturalmente. La IA transcribe, resume y extrae tareas automáticamente.
+                                    </p>
                                 </div>
-                            </li>
-                            <li className="flex gap-3 items-start">
-                                <div className="bg-green-100 p-2 rounded-lg text-green-600 mt-1"><Zap size={18} /></div>
+                            </div>
+
+                            {/* Feature 2 */}
+                            <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+                                <div style={{
+                                    background: '#f3e8ff',
+                                    padding: '12px',
+                                    borderRadius: '12px',
+                                    color: '#9333ea'
+                                }}>
+                                    <Inbox size={24} />
+                                </div>
                                 <div>
-                                    <span className="font-semibold block text-gray-800">Acción Inmediata</span>
-                                    <span className="text-sm text-gray-500">Lo que debes hacer HOY, filtrado y priorizado para ti.</span>
+                                    <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#1f2937', margin: '0 0 4px 0' }}>
+                                        Bandeja de Entrada Unificada
+                                    </h3>
+                                    <p style={{ fontSize: '14px', color: '#6b7280', margin: 0, lineHeight: '1.5' }}>
+                                        Todas tus ideas caen aquí. Procesa, delega o agenda con un clic.
+                                    </p>
                                 </div>
-                            </li>
-                        </ul>
-                        <div className="flex justify-end pt-4 border-t">
+                            </div>
+
+                            {/* Feature 3 */}
+                            <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+                                <div style={{
+                                    background: '#dcfce7',
+                                    padding: '12px',
+                                    borderRadius: '12px',
+                                    color: '#16a34a'
+                                }}>
+                                    <Zap size={24} />
+                                </div>
+                                <div>
+                                    <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#1f2937', margin: '0 0 4px 0' }}>
+                                        Acción Inmediata
+                                    </h3>
+                                    <p style={{ fontSize: '14px', color: '#6b7280', margin: 0, lineHeight: '1.5' }}>
+                                        Lo que debes hacer HOY, filtrado y priorizado para ti.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style={{ paddingTop: '24px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end' }}>
                             <button
                                 onClick={() => setDemoStep(1)}
-                                className="px-6 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200"
+                                style={{
+                                    backgroundColor: '#2563eb',
+                                    color: 'white',
+                                    fontWeight: 600,
+                                    fontSize: '16px',
+                                    padding: '12px 24px',
+                                    borderRadius: '12px',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    boxShadow: '0 10px 15px -3px rgba(37, 99, 235, 0.3)',
+                                    transition: 'transform 0.2s',
+                                }}
+                                onMouseEnter={e => e.target.style.transform = 'translateY(-1px)'}
+                                onMouseLeave={e => e.target.style.transform = 'translateY(0)'}
                             >
                                 Iniciar Tour Interactivo
                             </button>
@@ -205,28 +284,92 @@ function DemoDashboardContent() {
 
             {/* Step 1: Highlight Mic */}
             {demoStep === 1 && (
-                <div className="fixed inset-0 z-40 pointer-events-none">
-                    <div className="absolute inset-0 bg-black/40" />
-                    {/* Hole punch handled via high z-index on local elements or replicated UI */}
-                    <div className="absolute bottom-24 left-1/2 -translate-x-1/2 text-white text-center animate-bounce">
-                        <p className="text-xl font-bold mb-2">👇 Presiona aquí y habla</p>
-                        <p className="opacity-90">Simularemos una captura de voz en español</p>
+                <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    zIndex: 50,
+                    pointerEvents: 'none'
+                }}>
+                    <div style={{
+                        position: 'absolute',
+                        inset: 0,
+                        backgroundColor: 'rgba(0, 0, 0, 0.5)'
+                    }} />
+                    <div style={{
+                        position: 'absolute',
+                        bottom: '120px',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        textAlign: 'center',
+                        color: 'white',
+                        animation: 'bounce 2s infinite'
+                    }}>
+                        <p style={{ fontSize: '24px', fontWeight: 700, marginBottom: '8px', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
+                            👇 Presiona aquí y habla
+                        </p>
+                        <p style={{ fontSize: '16px', opacity: 0.9 }}>
+                            Simularemos una captura de voz en español
+                        </p>
                     </div>
                 </div>
             )}
 
             {/* Step 3: Explanation after recording */}
             {demoStep === 3 && (
-                <div className="fixed inset-0 z-40 pointer-events-none flex items-center justify-center">
-                    <div className="bg-white p-6 rounded-xl shadow-xl max-w-md pointer-events-auto border-2 border-green-500">
-                        <h3 className="font-bold text-lg mb-2">¡Captura Procesada!</h3>
-                        <p className="text-gray-600 mb-4">
+                <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    zIndex: 100,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    backdropFilter: 'blur(2px)'
+                }}>
+                    <div style={{
+                        backgroundColor: 'white',
+                        padding: '32px',
+                        borderRadius: '20px',
+                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                        maxWidth: '400px',
+                        width: '90%',
+                        textAlign: 'center',
+                        animation: 'fadeIn 0.3s ease-out'
+                    }}>
+                        <div style={{
+                            width: '64px',
+                            height: '64px',
+                            background: '#dcfce7',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            margin: '0 auto 24px',
+                            color: '#16a34a'
+                        }}>
+                            <Sparkles size={32} />
+                        </div>
+                        <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#111827', marginBottom: '12px' }}>
+                            ¡Captura Procesada!
+                        </h3>
+                        <p style={{ fontSize: '15px', color: '#4b5563', lineHeight: '1.6', marginBottom: '24px' }}>
                             Tu nota de voz ha sido transcrita y guardada en el Inbox.
-                            La IA ahora puede analizarla para crear tareas o delegar.
+                            La IA puede ahora analizarla para crear tareas o delegar.
                         </p>
                         <button
                             onClick={() => setDemoStep(4)}
-                            className="w-full py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                            style={{
+                                width: '100%',
+                                backgroundColor: '#10b981',
+                                color: 'white',
+                                fontWeight: 600,
+                                fontSize: '16px',
+                                padding: '12px',
+                                borderRadius: '12px',
+                                border: 'none',
+                                cursor: 'pointer',
+                                boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.3)'
+                            }}
                         >
                             Ver mi Dashboard
                         </button>
@@ -249,7 +392,7 @@ function DemoDashboardContent() {
                 <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div>
-                            <h1 className="page-title">Command Center</h1>
+                            <h1 className="page-title">Aido</h1>
                             <p style={{
                                 fontSize: '14px',
                                 color: '#71717a',

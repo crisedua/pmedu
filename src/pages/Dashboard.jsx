@@ -309,7 +309,7 @@ export default function Dashboard() {
                         style={{ cursor: 'pointer' }}
                         title="Alt + Double Click to Reset Demo Data"
                     >
-                        Command Center
+                        Aido
                     </h1>
                     <p className="page-subtitle">
                         {dataLoaded
