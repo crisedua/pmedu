@@ -436,27 +436,26 @@ function DemoDashboardContent() {
                 email: signupEmail
             });
 
-            // 1. Save Lead to Supabase (Fire-and-forget - non-blocking)
-            // Using logic associated with aido_leads table
-            if (supabase) {
-                // Send the insert but don't await it - let it complete in background
-                supabase.from('aido_leads').insert([{
+            // 1. Save Lead to Database (via reliable server-side function)
+            fetch('/api/save_lead', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
                     name: signupName,
                     email: signupEmail,
-                    source: 'demo_completion_lifetime',
-                    created_at: new Date().toISOString()
-                }]).then(({ error, data }) => {
-                    if (error) {
-                        console.warn('⚠️ Lead save failed (background):', error);
+                    source: 'demo_completion_lifetime'
+                })
+            }).then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        console.log('✅ Lead saved successfully via server API');
                     } else {
-                        console.log('✅ Lead saved successfully to aido_leads (background)');
+                        console.warn('⚠️ Lead save failed via API:', result.error);
                     }
-                }).catch(err => {
-                    console.warn('⚠️ Lead save exception (background):', err);
+                })
+                .catch(err => {
+                    console.warn('⚠️ Lead save API exception:', err);
                 });
-            } else {
-                console.warn('⚠️ Supabase client is NULL! Check environment variables.');
-            }
 
 
             // 2. Call Payment API
