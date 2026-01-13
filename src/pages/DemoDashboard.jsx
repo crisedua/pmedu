@@ -35,13 +35,30 @@ function DemoDashboardContent() {
     const [editingItem, setEditingItem] = useState(null);
     const [isProcessing, setIsProcessing] = useState(false);
 
-    // TTS Helper
+    // Audio Helpers
+    const playBeep = (freq = 440, duration = 0.1) => {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + duration);
+    };
+
     const speak = (text) => {
         if ('speechSynthesis' in window) {
             window.speechSynthesis.cancel();
             const speech = new SpeechSynthesisUtterance(text);
             speech.lang = 'es-ES';
-            speech.rate = 1.1;
+            speech.rate = 1.05;
             window.speechSynthesis.speak(speech);
         }
     };
@@ -167,6 +184,8 @@ function DemoDashboardContent() {
     const toggleRecording = () => {
         if (isRecording) {
             setIsRecording(false);
+            playBeep(660, 0.15); // Higher pitched finish beep
+            speak("Captura finalizada. Guardando en tu bandeja de entrada.");
             if (recordingText) {
                 setIsProcessing(true);
                 setTimeout(() => {
@@ -176,13 +195,15 @@ function DemoDashboardContent() {
 
                     if (demoStep === 2) {
                         setDemoStep(3);
-                        speak("Nota guardada. Ahora haz clic en los tres puntos de la tarjeta.");
+                        speak("Nota guardada correctamente. Ahora haz clic en los tres puntos de la tarjeta.");
                     }
                 }, 1500);
             }
         } else {
             setIsRecording(true);
             setRecordingText('');
+            playBeep(440, 0.1); // Start beep
+            speak("Grabando... puedes hablar ahora.");
             if (demoStep === 1) setDemoStep(2);
 
             let textIndex = 0;
@@ -191,6 +212,7 @@ function DemoDashboardContent() {
 
             const interval = setInterval(() => {
                 setRecordingText(prev => {
+                    // Stop adding text but DON'T stop recording automatically
                     const nextWord = words[textIndex];
                     if (!nextWord) {
                         clearInterval(interval);
@@ -199,7 +221,7 @@ function DemoDashboardContent() {
                     textIndex++;
                     return prev + (prev ? ' ' : '') + nextWord;
                 });
-            }, 300);
+            }, 350); // Slightly slower for better readability
         }
     };
 
