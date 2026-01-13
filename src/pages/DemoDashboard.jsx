@@ -42,6 +42,8 @@ function DemoDashboardContent() {
     const [hasSeenAiPower, setHasSeenAiPower] = useState(false);
     const [showExitIntent, setShowExitIntent] = useState(false);
     const [hasShownExitIntent, setHasShownExitIntent] = useState(false);
+    const [showAiAssistant, setShowAiAssistant] = useState(false);
+    const [aiDemoPhase, setAiDemoPhase] = useState(0); // 0=initial, 1=user typing, 2=AI typing, 3=AI responded, 4=quick actions
 
     const DEMO_ACTION_LIMIT = 5; // Artificial limit to create urgency
 
@@ -316,22 +318,52 @@ function DemoDashboardContent() {
     };
 
     const handleAiSidebarToggle = () => {
+        // Start the AI Assistant demo sequence
+        setShowAiAssistant(true);
+        trackEvent('ai_assistant_opened');
+
         if (demoStep === 6) {
             setDemoStep(7);
-            playBeep(800, 0.1);
-            speak("Aquí tienes a tu segundo cerebro. Pregúntale lo que quieras sobre tus proyectos.");
-            trackEvent('ai_assistant_opened');
-            // Show completion modal after experiencing full tour
+        }
+
+        // Play opening sound
+        playBeep(800, 0.1);
+        speak("Abriendo tu asistente de inteligencia artificial. Aquí puedes preguntarme lo que quieras sobre tus proyectos.");
+
+        // Start typing animation sequence after intro
+        setTimeout(() => {
+            setAiDemoPhase(1); // Start user typing
+            speak("Mira cómo puedo responderte.");
+        }, 4000);
+
+        // Show AI typing after user message appears
+        setTimeout(() => {
+            setAiDemoPhase(2); // AI is typing
+        }, 6000);
+
+        // Show AI response
+        setTimeout(() => {
+            setAiDemoPhase(3); // AI responded
+            playBeep(600, 0.1);
+            speak("Te muestro tus " + immediateActions.length + " tareas prioritarias y te ayudo a organizarlas. También puedo enviar mensajes, delegar tareas, y mucho más.");
+        }, 8000);
+
+        // Show quick action demo
+        setTimeout(() => {
+            setAiDemoPhase(4); // Highlight quick actions
+            speak("Usa los botones rápidos para consultas frecuentes, o habla conmigo usando el micrófono.");
+        }, 14000);
+
+        // Complete demo
+        setTimeout(() => {
+            speak("Esto es solo una muestra. Con tu cuenta gratis, tendrás acceso ilimitado a tu asistente personal de inteligencia artificial.");
+            // Show completion modal
             setTimeout(() => {
-                setDemoStep(8); // End of tour
                 setShowCompletionModal(true);
+                setDemoStep(8);
                 trackEvent('tour_completion_modal_shown');
             }, 5000);
-        } else {
-            // Toggle normal behavior if not in that step?
-            // For demo, we just toggle step 7 off if clicked again?
-            if (demoStep === 7) setDemoStep(6);
-        }
+        }, 19000);
     };
 
     return (
@@ -640,7 +672,7 @@ function DemoDashboardContent() {
             )}
 
             {/* AI Assistant Popup - Top Right Corner */}
-            {demoStep >= 7 && (
+            {showAiAssistant && (
                 <div style={{
                     position: 'fixed',
                     top: '80px',
@@ -699,10 +731,11 @@ function DemoDashboardContent() {
                         </button>
                     </div>
 
-                    {/* Chat Messages */}
+                    {/* Chat Messages - Animated based on demo phase */}
                     <div style={{ flex: 1, padding: '16px', background: '#f8fafc', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        {/* AI Welcome */}
-                        <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+
+                        {/* AI Welcome - Always visible */}
+                        <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', animation: 'slideIn 0.3s ease-out' }}>
                             <div style={{
                                 width: '28px',
                                 height: '28px',
@@ -717,76 +750,117 @@ function DemoDashboardContent() {
                             </div>
                             <div style={{ background: 'white', padding: '12px 14px', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', maxWidth: '85%' }}>
                                 <p style={{ margin: 0, fontSize: '14px', color: '#374151', lineHeight: '1.5' }}>
-                                    ¡Hola! Soy tu asistente IA. Puedo ayudarte con:
+                                    ¡Hola! Soy tu asistente IA. ¿En qué te ayudo?
                                 </p>
-                                <ul style={{ margin: '8px 0 0 0', padding: '0 0 0 16px', fontSize: '13px', color: '#6b7280', lineHeight: '1.6' }}>
-                                    <li>Ver el estado de tus proyectos</li>
-                                    <li>Revisar tareas pendientes</li>
-                                    <li>Analizar tu productividad</li>
-                                    <li>Crear nuevas tareas por voz</li>
-                                </ul>
                             </div>
                         </div>
 
-                        {/* User Question */}
-                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                            <div style={{ background: '#6366f1', padding: '12px 14px', borderRadius: '12px', maxWidth: '80%' }}>
-                                <p style={{ margin: 0, fontSize: '14px', color: 'white' }}>¿Qué tareas tengo pendientes para hoy?</p>
+                        {/* User Question - Appears in phase 1+ */}
+                        {aiDemoPhase >= 1 && (
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', animation: 'slideIn 0.3s ease-out' }}>
+                                <div style={{ background: '#6366f1', padding: '12px 14px', borderRadius: '12px', maxWidth: '80%', boxShadow: '0 2px 8px rgba(99,102,241,0.3)' }}>
+                                    <p style={{ margin: 0, fontSize: '14px', color: 'white' }}>¿Qué tareas tengo pendientes para hoy?</p>
+                                </div>
                             </div>
-                        </div>
+                        )}
 
-                        {/* AI Response */}
-                        <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                            <div style={{
-                                width: '28px',
-                                height: '28px',
-                                borderRadius: '8px',
-                                background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                flexShrink: 0
-                            }}>
-                                <Sparkles size={14} color="white" />
+                        {/* AI Typing Indicator - Shows in phase 2 only */}
+                        {aiDemoPhase === 2 && (
+                            <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', animation: 'slideIn 0.3s ease-out' }}>
+                                <div style={{
+                                    width: '28px',
+                                    height: '28px',
+                                    borderRadius: '8px',
+                                    background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    flexShrink: 0
+                                }}>
+                                    <Sparkles size={14} color="white" />
+                                </div>
+                                <div style={{
+                                    background: 'white',
+                                    padding: '14px 18px',
+                                    borderRadius: '12px',
+                                    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                                    display: 'flex',
+                                    gap: '6px',
+                                    alignItems: 'center'
+                                }}>
+                                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#6366f1', animation: 'pulse 1s infinite' }} />
+                                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#6366f1', animation: 'pulse 1s infinite 0.2s' }} />
+                                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#6366f1', animation: 'pulse 1s infinite 0.4s' }} />
+                                    <span style={{ marginLeft: '8px', fontSize: '13px', color: '#9ca3af' }}>Analizando tus datos...</span>
+                                </div>
                             </div>
-                            <div style={{ background: 'white', padding: '12px 14px', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', maxWidth: '85%' }}>
-                                <p style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#374151', lineHeight: '1.5' }}>
-                                    Tienes <strong>{immediateActions.length} tareas prioritarias</strong>:
-                                </p>
-                                {immediateActions.slice(0, 3).map((task, idx) => (
-                                    <div key={idx} style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '8px',
-                                        padding: '6px 0',
-                                        borderTop: idx > 0 ? '1px solid #f1f5f9' : 'none'
-                                    }}>
-                                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ef4444', flexShrink: 0 }} />
-                                        <span style={{ fontSize: '13px', color: '#4b5563' }}>{task.name}</span>
-                                    </div>
-                                ))}
-                                {waitingFor.length > 0 && (
-                                    <p style={{ margin: '10px 0 0 0', fontSize: '13px', color: '#6b7280' }}>
-                                        También tienes <strong>{waitingFor.length} tareas delegadas</strong> en espera.
+                        )}
+
+                        {/* AI Full Response - Shows in phase 3+ */}
+                        {aiDemoPhase >= 3 && (
+                            <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', animation: 'slideIn 0.3s ease-out' }}>
+                                <div style={{
+                                    width: '28px',
+                                    height: '28px',
+                                    borderRadius: '8px',
+                                    background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    flexShrink: 0
+                                }}>
+                                    <Sparkles size={14} color="white" />
+                                </div>
+                                <div style={{ background: 'white', padding: '12px 14px', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', maxWidth: '85%' }}>
+                                    <p style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#374151', lineHeight: '1.5' }}>
+                                        📋 Tienes <strong style={{ color: '#6366f1' }}>{immediateActions.length} tareas prioritarias</strong>:
                                     </p>
-                                )}
+                                    {immediateActions.slice(0, 3).map((task, idx) => (
+                                        <div key={idx} style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '8px',
+                                            padding: '8px 10px',
+                                            marginBottom: '4px',
+                                            background: '#f8fafc',
+                                            borderRadius: '8px'
+                                        }}>
+                                            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ef4444', flexShrink: 0 }} />
+                                            <span style={{ fontSize: '13px', color: '#374151', fontWeight: 500 }}>{task.name}</span>
+                                        </div>
+                                    ))}
+                                    {waitingFor.length > 0 && (
+                                        <p style={{ margin: '12px 0 0 0', fontSize: '13px', color: '#6b7280', background: '#fef3c7', padding: '8px 10px', borderRadius: '8px' }}>
+                                            ⏳ También tienes <strong>{waitingFor.length} tareas delegadas</strong> esperando respuesta.
+                                        </p>
+                                    )}
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
 
-                    {/* Quick Actions */}
-                    <div style={{ padding: '12px 16px', borderTop: '1px solid #e5e7eb', background: 'white' }}>
-                        <p style={{ margin: '0 0 10px 0', fontSize: '12px', color: '#9ca3af', fontWeight: 600 }}>PREGUNTAS RÁPIDAS</p>
+                    {/* Quick Actions - Highlighted in phase 4 */}
+                    <div style={{
+                        padding: '12px 16px',
+                        borderTop: '1px solid #e5e7eb',
+                        background: aiDemoPhase === 4 ? '#eef2ff' : 'white',
+                        transition: 'all 0.3s',
+                        boxShadow: aiDemoPhase === 4 ? 'inset 0 0 0 2px #6366f1' : 'none'
+                    }}>
+                        <p style={{ margin: '0 0 10px 0', fontSize: '12px', color: aiDemoPhase === 4 ? '#4f46e5' : '#9ca3af', fontWeight: 600 }}>
+                            {aiDemoPhase === 4 ? '👇 PRUEBA ESTAS PREGUNTAS' : 'PREGUNTAS RÁPIDAS'}
+                        </p>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                             <button style={{
-                                background: '#f1f5f9',
+                                background: aiDemoPhase === 4 ? '#6366f1' : '#f1f5f9',
+                                color: aiDemoPhase === 4 ? 'white' : '#475569',
                                 border: 'none',
                                 padding: '8px 12px',
                                 borderRadius: '8px',
                                 fontSize: '12px',
-                                color: '#475569',
                                 cursor: 'pointer',
-                                transition: 'all 0.2s'
+                                transition: 'all 0.2s',
+                                animation: aiDemoPhase === 4 ? 'pulse 2s infinite' : 'none'
                             }}>
                                 📊 Estado de proyectos
                             </button>
@@ -799,7 +873,7 @@ function DemoDashboardContent() {
                                 color: '#475569',
                                 cursor: 'pointer'
                             }}>
-                                📅 Próximas fechas límite
+                                📅 Próximas fechas
                             </button>
                             <button style={{
                                 background: '#f1f5f9',
@@ -810,7 +884,7 @@ function DemoDashboardContent() {
                                 color: '#475569',
                                 cursor: 'pointer'
                             }}>
-                                👥 Tareas de mi equipo
+                                👥 Mi equipo
                             </button>
                         </div>
                     </div>
