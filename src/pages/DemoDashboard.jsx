@@ -82,7 +82,7 @@ function DemoDashboardContent() {
 
         if (demoStep === 4) {
             setDemoStep(5);
-            speak("¡Magia! Se ha movido a 'Do Now'. Ahora prueba el Asistente IA.");
+            speak("¡Magia! Se ha movido a 'Hacer Ahora'. Ahora prueba el Asistente IA.");
             setTimeout(() => setDemoStep(6), 4000);
         } else {
             speak("He analizado tu nota y creado una tarea prioritaria.");
@@ -172,7 +172,7 @@ function DemoDashboardContent() {
         // Only track the FIRST inbox item for the demo
         if (demoStep === 3 && isOpen && inbox.indexOf(item) === 0) {
             setDemoStep(4);
-            speak("Selecciona 'Smart Process' para que la IA organice esto.");
+            speak("Selecciona 'Procesamiento Inteligente' para que la IA organice esto.");
         }
     };
 
@@ -436,7 +436,7 @@ function DemoDashboardContent() {
                 flexDirection: 'column'
             }}>
                 <div style={{ padding: '20px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ margin: 0, fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}><Sparkles size={18} color="#4f46e5" /> AI Assistant</h3>
+                    <h3 style={{ margin: 0, fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}><Sparkles size={18} color="#4f46e5" /> Asistente IA</h3>
                     <button onClick={() => setDemoStep(6)}><X size={20} /></button>
                 </div>
                 <div style={{ flex: 1, padding: '20px', background: '#f9fafb' }}>
@@ -444,7 +444,7 @@ function DemoDashboardContent() {
                         <p style={{ margin: 0, fontSize: '14px', color: '#374151' }}>Hola, soy Aido. ¿En qué te ayudo hoy?</p>
                     </div>
                     <div style={{ background: '#eef2ff', padding: '12px', borderRadius: '12px', marginBottom: '12px', marginLeft: 'auto', maxWidth: '80%' }}>
-                        <p style={{ margin: 0, fontSize: '14px', color: '#374151' }}>¿Qué tares tengo pendientes?</p>
+                        <p style={{ margin: 0, fontSize: '14px', color: '#374151' }}>¿Qué tareas tengo pendientes?</p>
                     </div>
                     <div style={{ background: 'white', padding: '12px', borderRadius: '12px', marginBottom: '12px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
                         <p style={{ margin: 0, fontSize: '14px', color: '#374151' }}>Tienes {immediateActions.length} tareas prioritarias, incluyendo "Lanzamiento Web 2.0".</p>
@@ -476,7 +476,7 @@ function DemoDashboardContent() {
                                 color: '#71717a',
                                 margin: '4px 0 0 0'
                             }}>
-                                You have {immediateActions.length} immediate actions and {recentCaptures.length} unprocessed ideas.
+                                Tienes {immediateActions.length} acciones inmediatas y {recentCaptures.length} ideas sin procesar.
                             </p>
                         </div>
                         <div style={{ display: 'flex', gap: '12px' }}>
@@ -488,7 +488,7 @@ function DemoDashboardContent() {
                                 fontSize: '12px',
                                 fontWeight: 600
                             }}>
-                                🎮 Demo Mode
+                                🎮 Modo Demo
                             </span>
                             <button
                                 onClick={handleAiSidebarToggle}
@@ -509,7 +509,7 @@ function DemoDashboardContent() {
                                     boxShadow: demoStep === 6 ? '0 0 0 4px rgba(99, 102, 241, 0.5)' : 'none'
                                 }}>
                                 <Sparkles size={16} />
-                                AI Assistant
+                                Asistente IA
                             </button>
                         </div>
                     </div>
@@ -535,8 +535,8 @@ function DemoDashboardContent() {
                         maxWidth: '300px'
                     }}>
                         <Loader2 size={40} className="animate-spin" style={{ color: '#6366f1', marginBottom: '16px' }} />
-                        <p style={{ fontSize: '16px', fontWeight: 600, margin: 0 }}>AI is analyzing...</p>
-                        <p style={{ fontSize: '14px', color: '#71717a', margin: '8px 0 0 0' }}>Creating task from voice note</p>
+                        <p style={{ fontSize: '16px', fontWeight: 600, margin: 0 }}>La IA está analizando...</p>
+                        <p style={{ fontSize: '14px', color: '#71717a', margin: '8px 0 0 0' }}>Creando tarea desde nota de voz</p>
                     </div>
                 </div>
             )}
@@ -576,7 +576,7 @@ function DemoDashboardContent() {
                             }}>
                                 <Zap size={18} />
                             </div>
-                            <h2 style={{ flex: 1, margin: 0, fontSize: '18px', fontWeight: 700 }}>Do Now</h2>
+                            <h2 style={{ flex: 1, margin: 0, fontSize: '18px', fontWeight: 700 }}>Hacer Ahora</h2>
                             <span style={{
                                 background: '#e4e4e7',
                                 padding: '2px 8px',
@@ -587,7 +587,7 @@ function DemoDashboardContent() {
                         </div>
                         {immediateActions.length === 0 ? (
                             <div style={{ textAlign: 'center', padding: '32px', color: '#a1a1aa' }}>
-                                <p>All caught up! 🎉</p>
+                                <p>¡Todo al día! 🎉</p>
                             </div>
                         ) : (
                             immediateActions.map(task => (
@@ -632,7 +632,7 @@ function DemoDashboardContent() {
                             }}>
                                 <Clock size={18} />
                             </div>
-                            <h2 style={{ flex: 1, margin: 0, fontSize: '18px', fontWeight: 700 }}>Waiting For</h2>
+                            <h2 style={{ flex: 1, margin: 0, fontSize: '18px', fontWeight: 700 }}>En Espera</h2>
                             <span style={{
                                 background: '#e4e4e7',
                                 padding: '2px 8px',
@@ -643,7 +643,7 @@ function DemoDashboardContent() {
                         </div>
                         {waitingFor.length === 0 ? (
                             <div style={{ textAlign: 'center', padding: '32px', color: '#a1a1aa' }}>
-                                <p>No pending delegations.</p>
+                                <p>Sin delegaciones pendientes.</p>
                             </div>
                         ) : (
                             waitingFor.map(task => (
@@ -687,7 +687,7 @@ function DemoDashboardContent() {
                             }}>
                                 <Inbox size={18} />
                             </div>
-                            <h2 style={{ flex: 1, margin: 0, fontSize: '18px', fontWeight: 700 }}>Inbox</h2>
+                            <h2 style={{ flex: 1, margin: 0, fontSize: '18px', fontWeight: 700 }}>Bandeja de Entrada</h2>
                             <span style={{
                                 background: '#e4e4e7',
                                 padding: '2px 8px',
@@ -698,7 +698,7 @@ function DemoDashboardContent() {
                         </div>
                         {recentCaptures.length === 0 ? (
                             <div style={{ textAlign: 'center', padding: '32px', color: '#a1a1aa' }}>
-                                <p>Inbox zero! 🧠</p>
+                                <p>¡Bandeja vacía! 🧠</p>
                             </div>
                         ) : (
                             recentCaptures.map(item => (
@@ -824,8 +824,8 @@ function DemoDashboardContent() {
                             alignItems: 'center'
                         }}>
                             <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600 }}>
-                                {editingItem.type === 'task' ? 'Edit Task' :
-                                    editingItem.type === 'inbox' ? 'Edit Note' : 'Process Voice Note'}
+                                {editingItem.type === 'task' ? 'Editar Tarea' :
+                                    editingItem.type === 'inbox' ? 'Editar Nota' : 'Procesar Nota de Voz'}
                             </h3>
                             <button
                                 onClick={() => setEditingItem(null)}
@@ -847,7 +847,7 @@ function DemoDashboardContent() {
                                 fontWeight: 500,
                                 marginBottom: '8px'
                             }}>
-                                Content
+                                Contenido
                             </label>
                             <textarea
                                 defaultValue={editingItem.item.name || editingItem.item.content}
@@ -882,7 +882,7 @@ function DemoDashboardContent() {
                                     cursor: 'pointer'
                                 }}
                             >
-                                Cancel
+                                Cancelar
                             </button>
                             <button
                                 onClick={() => {
@@ -900,7 +900,7 @@ function DemoDashboardContent() {
                                     cursor: 'pointer'
                                 }}
                             >
-                                Save Changes
+                                Guardar Cambios
                             </button>
                         </div>
                     </div>

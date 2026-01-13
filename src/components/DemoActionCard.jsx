@@ -166,6 +166,21 @@ export default function DemoActionCard({
                     lineHeight: 1.4
                 }}>
                     {item.name || item.content}
+                    {item.auto_processed && (
+                        <span style={{
+                            fontSize: '10px',
+                            background: '#eef2ff',
+                            color: '#6366f1',
+                            padding: '1px 6px',
+                            borderRadius: '4px',
+                            marginLeft: '8px',
+                            fontWeight: 700,
+                            verticalAlign: 'middle',
+                            border: '1px solid #c7d2fe'
+                        }}>
+                            IA
+                        </span>
+                    )}
                 </h4>
                 <div style={{
                     display: 'flex',
@@ -175,6 +190,18 @@ export default function DemoActionCard({
                     fontSize: '12px',
                     color: '#71717a'
                 }}>
+                    {item.auto_processed && (
+                        <span style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            color: '#6366f1',
+                            fontWeight: 500
+                        }}>
+                            <Sparkles size={11} />
+                            Procesado automáticamente
+                        </span>
+                    )}
                     {dateStr && (
                         <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
                             <Clock size={10} />
@@ -269,11 +296,11 @@ export default function DemoActionCard({
                     {(isAction || isWaiting) && (
                         <>
                             <MenuItem icon={<Edit3 size={14} />} onClick={menuAction(onEdit, item)}>
-                                Edit
+                                Editar
                             </MenuItem>
                             <MenuDivider />
                             <MenuItem icon={<Trash2 size={14} />} danger onClick={menuAction(onDelete, item)}>
-                                Delete
+                                Eliminar
                             </MenuItem>
                         </>
                     )}
@@ -282,7 +309,7 @@ export default function DemoActionCard({
                     {isInbox && (
                         <>
                             <MenuItem icon={<ArrowRight size={14} />} onClick={menuAction(onAction, item)}>
-                                Process (Manual)
+                                Procesar (Manual)
                             </MenuItem>
                             <MenuItem
                                 icon={<Sparkles size={14} />}
@@ -291,25 +318,25 @@ export default function DemoActionCard({
                                 style={tutorialStep === 'click_smart_process' ? { background: '#eef2ff', fontWeight: 'bold' } : {}}
                             >
                                 {tutorialStep === 'click_smart_process' && <span style={{ position: 'absolute', right: '100%', marginRight: '10px', background: '#4f46e5', color: 'white', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', whiteSpace: 'nowrap' }}>👈 Clic aquí</span>}
-                                Smart Process
+                                Procesamiento Inteligente
                             </MenuItem>
                             <MenuDivider />
                             <MenuItem icon={<Edit3 size={14} />} onClick={menuAction(onEdit, item)}>
-                                Edit note
+                                Editar nota
                             </MenuItem>
                             <MenuItem icon={<Trash2 size={14} />} danger onClick={menuAction(onDelete, item)}>
-                                Delete
+                                Eliminar
                             </MenuItem>
                             <MenuDivider />
                             <MenuItem icon={<Archive size={14} />} onClick={menuAction(onMarkProcessed, item)}>
-                                Archive
+                                Archivar
                             </MenuItem>
                             <MenuDivider />
                             <MenuItem icon={<Zap size={14} />} onClick={menuAction(onAction, item, 'action')}>
-                                Move to Do Now
+                                Mover a Hacer Ahora
                             </MenuItem>
                             <MenuItem icon={<Clock size={14} />} onClick={menuAction(onAction, item, 'waiting')}>
-                                Move to Waiting
+                                Mover a En Espera
                             </MenuItem>
                         </>
                     )}

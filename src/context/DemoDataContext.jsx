@@ -142,6 +142,7 @@ export function DemoDataProvider({ children }) {
             description: inboxItem.content,
             assigned_to: taskData.assigned_to || currentUser.id,
             action_type: taskData.action_type || 'todo',
+            auto_processed: true,
             ...taskData
         });
         updateInboxItem(inboxItem.id, { processed: true });
