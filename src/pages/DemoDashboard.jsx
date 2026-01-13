@@ -426,6 +426,8 @@ function DemoDashboardContent() {
 
     const handlePrelaunchSignup = async (e) => {
         e.preventDefault();
+        console.log('DEBUG: Signup initiated v1.2');
+
 
         if (!signupName.trim() || !signupEmail.trim()) {
             alert('Por favor completa todos los campos');
@@ -2001,7 +2003,7 @@ function DemoDashboardContent() {
                                             e.target.style.boxShadow = '0 12px 24px rgba(16,185,129,0.4)';
                                         }}
                                     >
-                                        💚 Reservar Acceso de por Vida — $9.99
+                                        💚 Reservar Acceso de por Vida — $9.99 (v1.2)
                                     </button>
                                 </form>
 
