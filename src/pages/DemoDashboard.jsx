@@ -262,7 +262,7 @@ function DemoDashboardContent() {
         if (project) feedback += `La he vinculado al proyecto ${project.name}. `;
         if (assignee && assignee.id !== currentUser.id) {
             feedback += `Se la he asignado a ${assignee.name.split(' ')[0]} automáticamente. `;
-            feedback += `Le he enviado un correo electrónico con los detalles.`;
+            feedback += `He notificado a ${assignee.name.split(' ')[0]} por correo electrónico.`;
         } else {
             feedback += "La he añadido a tu lista de acciones priorizadas.";
         }
@@ -293,11 +293,15 @@ function DemoDashboardContent() {
                 action_type: 'todo'
             });
         } else if (target === 'waiting') {
+            const assignee = users[1];
             processInboxToTask(item, {
                 name: item.content.substring(0, 50),
-                assigned_to: users[1]?.id,
+                assigned_to: assignee?.id,
                 action_type: 'delegate'
             });
+            if (assignee) {
+                speak(`Delegado a ${assignee.name.split(' ')[0]}. Notificación enviada.`);
+            }
         } else {
             setEditingItem({ type: 'process', item });
         }
