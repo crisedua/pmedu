@@ -474,8 +474,12 @@ function DemoDashboardContent() {
             const data = await response.json();
 
             if (data.init_point) {
-                // 3. Redirect to Checkout
-                window.location.href = data.init_point;
+                // 3. Show Success & Redirect
+                setSignupSubmitted(true); // Shows "Usuario Creado" popup
+
+                setTimeout(() => {
+                    window.location.href = data.init_point;
+                }, 2500); // 2.5s delay to read the message
             } else {
                 throw new Error('No init_point returned');
             }
@@ -2010,10 +2014,10 @@ function DemoDashboardContent() {
                                 border: '2px solid #10b981'
                             }}>
                                 <h3 style={{ margin: '0 0 8px 0', fontSize: '20px', fontWeight: 700, color: '#10b981' }}>
-                                    ✅ ¡Registro Exitoso!
+                                    ✅ ¡Usuario Creado!
                                 </h3>
                                 <p style={{ margin: 0, fontSize: '15px', color: '#065f46', lineHeight: '1.5' }}>
-                                    Te avisaremos por email cuando lancemos. ¡Gracias por unirte! 🎉
+                                    Te estamos redirigiendo a Mercado Pago para finalizar tu reserva... ⏳
                                 </p>
                             </div>
                         )}
