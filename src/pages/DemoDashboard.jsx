@@ -2134,9 +2134,7 @@ function DemoDashboardContent() {
                             </div>
                         )}
 
-                        <p style={{ fontSize: '12px', color: '#9ca3af', margin: '16px 0 0 0' }}>
-                            Sin tarjeta de crédito • Configuración en 30 segundos • Gratis para siempre
-                        </p>
+
                     </div>
                 </div>
             )}
