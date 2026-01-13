@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 import { DemoDataProvider, useDemoData } from '../context/DemoDataContext';
 import DemoActionCard from '../components/DemoActionCard';
 import {
@@ -423,7 +424,7 @@ function DemoDashboardContent() {
         }, 19000);
     };
 
-    const handlePrelaunchSignup = (e) => {
+    const handlePrelaunchSignup = async (e) => {
         e.preventDefault();
 
         if (!signupName.trim() || !signupEmail.trim()) {
@@ -436,28 +437,60 @@ function DemoDashboardContent() {
             return;
         }
 
-        // Track signup
-        trackEvent('prelaunch_signup_submitted', {
-            name: signupName,
-            email: signupEmail,
-            demoActionsUsed,
-            hasSeenAiPower
-        });
+        try {
+            // Track attempt
+            trackEvent('prelaunch_checkout_started', {
+                name: signupName,
+                email: signupEmail
+            });
 
-        // Store in localStorage (in production, send to backend/API)
-        const signups = JSON.parse(localStorage.getItem('prelaunch_signups') || '[]');
-        signups.push({
-            name: signupName,
-            email: signupEmail,
-            timestamp: new Date().toISOString(),
-            demoActionsUsed,
-            hasSeenAiPower
-        });
-        localStorage.setItem('prelaunch_signups', JSON.stringify(signups));
+            // 1. Save Lead to Supabase
+            // We check if supabase is configured, otherwise skip
+            if (supabase) {
+                const { error } = await supabase.from('leads').insert([{
+                    name: signupName,
+                    email: signupEmail,
+                    source: 'demo_completion_lifetime',
+                    created_at: new Date().toISOString()
+                }]).select();
 
-        setSignupSubmitted(true);
-        playBeep(800, 0.2);
-        speak("¡Gracias por registrarte! Te avisaremos cuando lancemos.");
+                if (error) console.warn('Lead save warning:', error);
+            }
+
+            // 2. Call Payment API
+            // Note: In local dev without Vercel Functions, this might 404. 
+            // Ensure appropriate proxy or Vercel usage.
+            const response = await fetch('/api/create_preference', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title: 'Acceso de por vida Aido',
+                    price: 15,
+                    email: signupEmail
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+
+            const data = await response.json();
+
+            if (data.init_point) {
+                // 3. Redirect to Checkout
+                window.location.href = data.init_point;
+            } else {
+                throw new Error('No init_point returned');
+            }
+
+        } catch (error) {
+            console.error('Signup/Payment Error:', error);
+            // Fallback for demo purposes if API fails (e.g. local dev)
+            alert('Redirigiendo a pago... (Simulación: API no disponible localmente sin Vercel)');
+            setSignupSubmitted(true);
+            playBeep(800, 0.2);
+            speak("Gracias. Te hemos registrado.");
+        }
 
         // Close modals after 3 seconds
         setTimeout(() => {
