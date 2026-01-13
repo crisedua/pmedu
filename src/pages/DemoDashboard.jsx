@@ -323,10 +323,10 @@ function DemoDashboardContent() {
                     setIsProcessing(false);
 
                     if (demoStep === 2) {
-                        setDemoStep(3);
+                        setDemoStep(4); // Move to Step 4 (Ready to click menu)
                         speak("Nota guardada correctamente. Ahora haz clic en los tres puntos de la tarjeta.");
                     }
-                }, 1500);
+                }, 3500);
             }
         } else {
             setIsRecording(true);
