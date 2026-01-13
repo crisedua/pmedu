@@ -453,7 +453,7 @@ function DemoDashboardContent() {
             // 1. Save Lead to Supabase (Non-blocking / Fire-and-forget)
             if (supabase) {
                 console.log('Saving lead to Supabase...');
-                supabase.from('leads').insert([{
+                supabase.from('aido_leads').insert([{
                     name: signupName,
                     email: signupEmail,
                     source: 'demo_completion_lifetime',

@@ -114,7 +114,7 @@ export function DataProvider({ children }) {
         try {
           // Check if user exists in our pm_users table
           const { data: existingUser } = await supabase
-            .from('pm_users')
+            .from('aido_users')
             .select('*')
             .eq('email', email)
             .single();
@@ -131,7 +131,7 @@ export function DataProvider({ children }) {
             };
 
             const { data: createdUser, error } = await supabase
-              .from('pm_users')
+              .from('aido_users')
               .insert([newUser])
               .select()
               .single();
@@ -140,7 +140,7 @@ export function DataProvider({ children }) {
               // If error is unique violation, it might have been created concurrently, try fetching again
               if (error.code === '23505') {
                 const { data: retryUser } = await supabase
-                  .from('pm_users')
+                  .from('aido_users')
                   .select('*')
                   .eq('email', email)
                   .single();
@@ -316,7 +316,7 @@ export function DataProvider({ children }) {
   const loadProjects = async () => {
     try {
       const { data, error } = await supabase
-        .from('pm_projects')
+        .from('aido_projects')
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -532,7 +532,7 @@ export function DataProvider({ children }) {
     /*
     const projectsSubscription = supabase
       .channel('projects_changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'pm_projects' }, (payload) => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'aido_projects' }, (payload) => {
         handleRealtimeUpdate('projects', payload);
       })
       .subscribe();
@@ -541,7 +541,7 @@ export function DataProvider({ children }) {
     // Subscribe to tasks changes
     const tasksSubscription = supabase
       .channel('tasks_changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'pm_tasks' }, (payload) => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'aido_tasks' }, (payload) => {
         handleRealtimeUpdate('tasks', payload);
       })
       .subscribe();
@@ -549,7 +549,7 @@ export function DataProvider({ children }) {
     // Subscribe to documents changes
     const documentsSubscription = supabase
       .channel('documents_changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'pm_documents' }, (payload) => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'aido_documents' }, (payload) => {
         handleRealtimeUpdate('documents', payload);
       })
       .subscribe();
@@ -557,7 +557,7 @@ export function DataProvider({ children }) {
     // Subscribe to inbox changes
     const inboxSubscription = supabase
       .channel('inbox_changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'pm_inbox' }, (payload) => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'aido_inbox' }, (payload) => {
         handleRealtimeUpdate('inbox', payload);
       })
       .subscribe();
@@ -635,7 +635,7 @@ export function DataProvider({ children }) {
   const login = async (emailData) => {
     try {
       const { data: user, error } = await supabase
-        .from('pm_users')
+        .from('aido_users')
         .select('*')
         .ilike('email', emailData)
         .single();
@@ -696,7 +696,7 @@ export function DataProvider({ children }) {
       };
 
       const { data, error } = await supabase
-        .from('pm_users')
+        .from('aido_users')
         .insert([newUser])
         .select()
         .single();
@@ -730,7 +730,7 @@ export function DataProvider({ children }) {
       };
 
       const { data, error } = await supabase
-        .from('pm_users')
+        .from('aido_users')
         .insert([newUser])
         .select()
         .single();
@@ -741,7 +741,7 @@ export function DataProvider({ children }) {
           const randomSuffix = Math.floor(Math.random() * 1000);
           newUser.email = `${name.toLowerCase().replace(/\s+/g, '.')}${randomSuffix}@placeholder.com`;
           const { data: retryData, error: retryError } = await supabase
-            .from('pm_users')
+            .from('aido_users')
             .insert([newUser])
             .select()
             .single();
@@ -764,7 +764,7 @@ export function DataProvider({ children }) {
   const updateUser = async (userId, updates) => {
     try {
       const { data, error } = await supabase
-        .from('pm_users')
+        .from('aido_users')
         .update(updates)
         .eq('id', userId)
         .select()
@@ -788,7 +788,7 @@ export function DataProvider({ children }) {
   const deleteUser = async (userId) => {
     try {
       const { error } = await supabase
-        .from('pm_users')
+        .from('aido_users')
         .delete()
         .eq('id', userId);
 
@@ -824,7 +824,7 @@ export function DataProvider({ children }) {
 
       const { data, error } = await Promise.race([
         supabase
-          .from('pm_projects')
+          .from('aido_projects')
           .insert([newProject])
           .select()
           .single(),
@@ -850,7 +850,7 @@ export function DataProvider({ children }) {
   const updateProject = async (projectId, updates) => {
     try {
       const { data, error } = await supabase
-        .from('pm_projects')
+        .from('aido_projects')
         .update(updates)
         .eq('id', projectId)
         .select()
@@ -868,7 +868,7 @@ export function DataProvider({ children }) {
   const deleteProject = async (projectId) => {
     try {
       const { error } = await supabase
-        .from('pm_projects')
+        .from('aido_projects')
         .delete()
         .eq('id', projectId);
 
@@ -904,7 +904,7 @@ export function DataProvider({ children }) {
       };
 
       const { data, error } = await supabase
-        .from('pm_tasks')
+        .from('aido_tasks')
         .insert([newTask])
         .select()
         .single();
@@ -934,7 +934,7 @@ export function DataProvider({ children }) {
 
       const { data, error } = await Promise.race([
         supabase
-          .from('pm_tasks')
+          .from('aido_tasks')
           .insert(newTasks)
           .select(),
         new Promise((_, reject) =>
@@ -969,7 +969,7 @@ export function DataProvider({ children }) {
       if (getVal('actionType', 'action_type') !== undefined) dbUpdates.action_type = getVal('actionType', 'action_type');
 
       const { data, error } = await supabase
-        .from('pm_tasks')
+        .from('aido_tasks')
         .update(dbUpdates)
         .eq('id', taskId)
         .select()
@@ -987,7 +987,7 @@ export function DataProvider({ children }) {
   const deleteTask = async (taskId) => {
     try {
       const { error } = await supabase
-        .from('pm_tasks')
+        .from('aido_tasks')
         .delete()
         .eq('id', taskId);
 
@@ -1015,7 +1015,7 @@ export function DataProvider({ children }) {
       };
 
       const { data, error } = await supabase
-        .from('pm_documents')
+        .from('aido_documents')
         .insert([newDoc])
         .select()
         .single();
@@ -1038,7 +1038,7 @@ export function DataProvider({ children }) {
       };
 
       const { data, error } = await supabase
-        .from('pm_documents')
+        .from('aido_documents')
         .update(dbUpdates)
         .eq('id', docId)
         .select()
@@ -1056,7 +1056,7 @@ export function DataProvider({ children }) {
   const deleteDocument = async (docId) => {
     try {
       const { error } = await supabase
-        .from('pm_documents')
+        .from('aido_documents')
         .delete()
         .eq('id', docId);
 
@@ -1110,7 +1110,7 @@ export function DataProvider({ children }) {
       };
 
       const { data, error } = await supabase
-        .from('pm_inbox')
+        .from('aido_inbox')
         .insert([newItem])
         .select()
         .single();
@@ -1141,7 +1141,7 @@ export function DataProvider({ children }) {
   const updateInboxItem = async (itemId, updates) => {
     try {
       const { data, error } = await supabase
-        .from('pm_inbox')
+        .from('aido_inbox')
         .update(updates)
         .eq('id', itemId)
         .select()
@@ -1166,7 +1166,7 @@ export function DataProvider({ children }) {
     try {
       // 2. Perform Delete with Timeout Protection
       const deletePromise = supabase
-        .from('pm_inbox')
+        .from('aido_inbox')
         .delete({ count: 'exact' })
         .eq('id', itemId);
 
@@ -1207,7 +1207,7 @@ export function DataProvider({ children }) {
       };
 
       const { data, error } = await supabase
-        .from('pm_files')
+        .from('aido_files')
         .insert([newFile])
         .select()
         .single();
@@ -1225,7 +1225,7 @@ export function DataProvider({ children }) {
   const deleteFile = async (fileId) => {
     try {
       const { error } = await supabase
-        .from('pm_files')
+        .from('aido_files')
         .delete()
         .eq('id', fileId);
 
@@ -1335,9 +1335,9 @@ export function DataProvider({ children }) {
       console.log('[Demo Reset] Starting DB wipe and seed...');
 
       // 1. Wipe existing data (Inbox, Tasks, Projects)
-      await supabase.from('pm_inbox').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      await supabase.from('pm_tasks').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      await supabase.from('pm_projects').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('aido_inbox').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('aido_tasks').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('aido_projects').delete().neq('id', '00000000-0000-0000-0000-000000000000');
 
       console.log('[Demo Reset] Wiped data. Seeding new Spanish data...');
 
@@ -1349,7 +1349,7 @@ export function DataProvider({ children }) {
       ];
 
       // Insert and get IDs
-      const { data: projectsData, error: projError } = await supabase.from('pm_projects').insert(newProjects).select();
+      const { data: projectsData, error: projError } = await supabase.from('aido_projects').insert(newProjects).select();
       if (projError) throw projError;
 
       const pMap = {};
@@ -1385,7 +1385,7 @@ export function DataProvider({ children }) {
           created_by_ai: false
         }
       ];
-      await supabase.from('pm_tasks').insert(newTasks);
+      await supabase.from('aido_tasks').insert(newTasks);
 
       // 4. Create Inbox
       const newInbox = [
@@ -1394,7 +1394,7 @@ export function DataProvider({ children }) {
         { content: 'Idea para el blog: 5 formas de usar nuestra herramienta para ahorrar tiempo. Redactar borrador para el viernes y pedirle a Carlos que haga los gráficos.', processed: false, user_id: currentUser.id, language: 'es' },
         { content: 'Confirmar asistencia al evento de networking del próximo martes y preparar tarjetas de visita.', processed: false, user_id: currentUser.id, language: 'es' }
       ];
-      await supabase.from('pm_inbox').insert(newInbox);
+      await supabase.from('aido_inbox').insert(newInbox);
 
       console.log('[Demo Reset] Seeding complete. Reloading...');
       await loadAllData();

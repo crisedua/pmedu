@@ -223,7 +223,7 @@ export default function Dashboard() {
                                         // 1. Raw Network Test (Bypass Supabase Client)
                                         console.log('Starting raw fetch test...');
                                         const start = Date.now();
-                                        const response = await fetch(`${url}/rest/v1/pm_users?select=count`, {
+                                        const response = await fetch(`${url}/rest/v1/aido_users?select=count`, {
                                             method: 'HEAD',
                                             headers: {
                                                 'apikey': key,
@@ -233,7 +233,7 @@ export default function Dashboard() {
                                         const duration = Date.now() - start;
 
                                         if (response.ok) {
-                                            alert(`✅ PM_USERS ACCESSIBLE (${duration}ms)\n\nThis confirms you can read the users table.\n\nIf the app still hangs, try clearing the session.`);
+                                            alert(`✅ AIDO_USERS ACCESSIBLE (${duration}ms)\n\nThis confirms you can read the users table.\n\nIf the app still hangs, try clearing the session.`);
 
                                             // Optional: Clear session if stuck
                                             if (confirm("Clear local session cache to fix potential auth issues?")) {
@@ -242,7 +242,7 @@ export default function Dashboard() {
                                             }
                                         } else {
                                             const txt = await response.text();
-                                            alert(`❌ PM_USERS BLOCKED: ${response.status}\n${txt}\n\nThis means RLS policies are blocking the users table!`);
+                                            alert(`❌ AIDO_USERS BLOCKED: ${response.status}\n${txt}\n\nThis means RLS policies are blocking the users table!`);
                                         }
 
                                     } catch (e) {
