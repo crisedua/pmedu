@@ -138,7 +138,6 @@ function DemoDashboardContent() {
         if (demoStep === 5) {
             setDemoStep(6);
             speak("¡Magia! Se ha movido a 'Hacer Ahora'. Ahora prueba el Asistente IA.");
-            setTimeout(() => setDemoStep(7), 4000);
         }
     };
 
@@ -239,7 +238,8 @@ function DemoDashboardContent() {
     const handleAiSidebarToggle = () => {
         if (demoStep === 6) {
             setDemoStep(7);
-            speak("Aquí está tu asistente. Puede responder preguntas sobre tus proyectos.");
+            playBeep(800, 0.1);
+            speak("Aquí tienes a tu segundo cerebro. Pregúntale lo que quieras sobre tus proyectos.");
         } else {
             // Toggle normal behavior if not in that step?
             // For demo, we just toggle step 7 off if clicked again?
