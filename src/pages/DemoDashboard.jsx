@@ -266,7 +266,9 @@ function DemoDashboardContent() {
 
         speak(feedback);
 
-        if (demoStep === 5) {
+        // Trigger AI Assistant demo if user hasn't seen it yet
+        // Changed from (demoStep === 5) to (demoStep < 6) to work even if user skipped demo steps
+        if (demoStep < 6) {
             setDemoStep(6); // This triggers the useEffect which auto-opens AI Assistant
             speak("¡Magia! " + feedback + " Ahora te muestro el Asistente IA.");
         }
