@@ -499,11 +499,6 @@ function DemoDashboardContent() {
             )}
 
             {/* Overlays for Steps */}
-            {demoStep === 6 && (
-                <div style={{ position: 'fixed', top: '90px', right: '20px', zIndex: 60, pointerEvents: 'none', background: 'rgba(0,0,0,0.8)', color: 'white', padding: '12px 24px', borderRadius: '30px', animation: 'bounce 2s infinite' }}>
-                    👆 Abre el Asistente IA
-                </div>
-            )}
 
             {/* AI Sidebar Mock */}
             <div style={{
@@ -563,7 +558,7 @@ function DemoDashboardContent() {
                                 Tienes {immediateActions.length} acciones inmediatas y {recentCaptures.length} ideas sin procesar.
                             </p>
                         </div>
-                        <div style={{ display: 'flex', gap: '12px' }}>
+                        <div style={{ display: 'flex', gap: '12px', position: 'relative' }}>
                             <span style={{
                                 background: '#eef2ff',
                                 color: '#6366f1',
@@ -595,6 +590,28 @@ function DemoDashboardContent() {
                                 <Sparkles size={16} />
                                 Asistente IA
                             </button>
+                            {demoStep === 6 && (
+                                <div style={{
+                                    position: 'absolute',
+                                    top: '50px',
+                                    right: '0',
+                                    background: '#1f2937',
+                                    color: 'white',
+                                    padding: '8px 16px',
+                                    borderRadius: '20px',
+                                    fontSize: '13px',
+                                    fontWeight: 600,
+                                    whiteSpace: 'nowrap',
+                                    zIndex: 100,
+                                    animation: 'bounce 2s infinite',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                                }}>
+                                    👆 Abre el Asistente IA
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
