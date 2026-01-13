@@ -45,6 +45,18 @@ function DemoDashboardContent() {
     const [showAiAssistant, setShowAiAssistant] = useState(false);
     const [aiDemoPhase, setAiDemoPhase] = useState(0); // 0=initial, 1=user typing, 2=AI typing, 3=AI responded, 4=quick actions
 
+    // WALKTHROUGH STATE
+    // 0: Welcome
+    // 1: Click Mic
+    // 2: Recording (Click X)
+    // 3: Click Menu (Inbox)
+    // 4: Click Smart Process
+    // 5: Moved to Do Now (Transition)
+    // 6: Click AI Assistant (Auto-triggered now)
+    // 7: AI Chat
+    // 8: Completion
+    const [demoStep, setDemoStep] = useState(0);
+
     // Pre-launch signup form state
     const [signupName, setSignupName] = useState('');
     const [signupEmail, setSignupEmail] = useState('');
@@ -294,16 +306,7 @@ function DemoDashboardContent() {
         "Agendar reunión con el equipo de finanzas para analizar los números del Q1.",
     ];
 
-    // WALKTHROUGH STATE
-    // 0: Welcome
-    // 1: Click Mic
-    // 2: Recording (Click X)
-    // 3: Click Menu (Inbox)
-    // 4: Click Smart Process
-    // 5: Moved to Do Now (Transition)
-    // 6: Click AI Assistant
-    // 7: AI Chat
-    const [demoStep, setDemoStep] = useState(0);
+
 
     const toggleRecording = () => {
         if (isRecording) {
