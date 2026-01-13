@@ -24,13 +24,15 @@ export default async function handler(req, res) {
         const failureUrl = `${origin}/demo?status=failure`;
         const pendingUrl = `${origin}/demo?status=pending`;
 
+        const { title, price } = req.body || {};
+
         const body = {
             items: [
                 {
                     id: 'lifetime-access',
-                    title: 'Acceso de por vida Aido',
+                    title: title || 'Acceso de por vida Aido',
                     quantity: 1,
-                    unit_price: 15,
+                    unit_price: Number(price) || 9.99,
                     currency_id: 'USD',
                 }
             ],
