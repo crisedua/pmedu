@@ -453,11 +453,17 @@ function DemoDashboardContent() {
                     }]);
 
                     // Race usage against timeout so we don't hang payment logic forever
-                    const { error } = await Promise.race([insertPromise, timeoutPromise]);
+                    const result = await Promise.race([insertPromise, timeoutPromise]);
 
-                    if (error) console.warn('Lead save issue:', error);
+                    if (result?.error) {
+                        console.warn('Lead save issue:', result.error);
+                        alert(`⚠️ DEBUG: Lead save failed!\n\nError: ${result.error.message || JSON.stringify(result.error)}\n\n(Payment will still proceed)`);
+                    } else {
+                        console.log('✅ Lead saved successfully to aido_leads');
+                    }
                 } catch (err) {
                     console.warn('Lead save crashed or timed out (non-fatal):', err);
+                    alert(`⚠️ DEBUG: Lead save exception!\n\nError: ${err.message}\n\n(Payment will still proceed)`);
                 }
             }
 
