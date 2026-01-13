@@ -188,7 +188,6 @@ export default function ActionCard({ item, type, onAction, onEdit, onDelete, onM
                                 if (onEdit) onEdit(item);
                             }}
                             title="Edit"
-                            style={{ opacity: 0.5 }}
                         >
                             <Edit3 size={14} />
                         </button>
@@ -196,10 +195,15 @@ export default function ActionCard({ item, type, onAction, onEdit, onDelete, onM
                             className="btn btn-ghost btn-icon btn-sm action-btn-visible-hover"
                             onClick={(e) => {
                                 e.stopPropagation();
-                                if (onDelete) onDelete(item);
+                                console.log('Delete button clicked', item);
+                                if (onDelete) {
+                                    onDelete(item);
+                                } else {
+                                    console.error('onDelete prop is missing in ActionCard');
+                                }
                             }}
                             title="Delete"
-                            style={{ opacity: 0.5, color: 'var(--color-error)' }}
+                            style={{ color: 'var(--color-error)' }}
                         >
                             <Trash2 size={14} />
                         </button>

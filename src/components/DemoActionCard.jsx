@@ -190,7 +190,6 @@ export default function DemoActionCard({
                                 border: 'none',
                                 cursor: 'pointer',
                                 padding: '4px',
-                                opacity: 0.5,
                                 color: '#71717a'
                             }}
                         >
@@ -200,6 +199,7 @@ export default function DemoActionCard({
                             className="demo-action-btn"
                             onClick={(e) => {
                                 e.stopPropagation();
+                                console.log('Demo Delete clicked', item);
                                 if (onDelete) onDelete(item);
                             }}
                             title="Delete"
@@ -208,7 +208,6 @@ export default function DemoActionCard({
                                 border: 'none',
                                 cursor: 'pointer',
                                 padding: '4px',
-                                opacity: 0.5,
                                 color: '#ef4444'
                             }}
                         >
