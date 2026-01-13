@@ -1325,7 +1325,87 @@ export function DataProvider({ children }) {
 
   // Get voice-created tasks
   const getVoiceCreatedTasks = () => {
-    return tasks.filter(t => t.source === 'voice');
+  };
+
+  // Demo Reset / Seeding Function
+  const resetDemoData = async () => {
+    if (!currentUser) return;
+    try {
+      setLoading(true);
+      console.log('[Demo Reset] Starting DB wipe and seed...');
+
+      // 1. Wipe existing data (Inbox, Tasks, Projects)
+      await supabase.from('pm_inbox').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('pm_tasks').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('pm_projects').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+
+      console.log('[Demo Reset] Wiped data. Seeding new Spanish data...');
+
+      // 2. Create Projects
+      const newProjects = [
+        { name: 'Lanzamiento Web 2.0', status: 'Active', owner_id: currentUser.id },
+        { name: 'Campaña Marketing Q1', status: 'Planning', owner_id: currentUser.id },
+        { name: 'Expansión Latam', status: 'Active', owner_id: currentUser.id }
+      ];
+
+      // Insert and get IDs
+      const { data: projectsData, error: projError } = await supabase.from('pm_projects').insert(newProjects).select();
+      if (projError) throw projError;
+
+      const pMap = {};
+      projectsData.forEach(p => pMap[p.name] = p.id);
+
+      // 3. Create Tasks
+      const newTasks = [
+        {
+          name: 'Revisar Presupuesto Q1',
+          description: 'Analizar discrepancias en gastos de marketing',
+          status: 'To Do',
+          project_id: pMap['Campaña Marketing Q1'],
+          assigned_to: currentUser.id,
+          due_date: new Date(Date.now() + 86400000).toISOString(),
+          created_by_ai: false
+        },
+        {
+          name: 'Entrevistar candidato Senior Dev',
+          description: 'Revisar portafolio antes de la llamada',
+          status: 'To Do',
+          project_id: pMap['Lanzamiento Web 2.0'],
+          assigned_to: currentUser.id,
+          due_date: new Date(Date.now() + 172800000).toISOString(),
+          created_by_ai: false
+        },
+        {
+          name: 'Enviar reporte mensual a inversores',
+          description: 'Incluir métricas de crecimiento y retención',
+          status: 'To Do',
+          project_id: pMap['Expansión Latam'],
+          assigned_to: currentUser.id,
+          due_date: new Date(Date.now() + 345600000).toISOString(),
+          created_by_ai: false
+        }
+      ];
+      await supabase.from('pm_tasks').insert(newTasks);
+
+      // 4. Create Inbox
+      const newInbox = [
+        { content: 'Recordar pedir feedback a Laura sobre la presentación de ventas de ayer, necesito incorporarlo antes del lunes.', processed: false, user_id: currentUser.id, language: 'es' },
+        { content: 'Llamar a Proveedores Inc. para renegociar el contrato anual, decirles que tenemos una oferta mejor de la competencia y ver si pueden igualarla.', processed: false, user_id: currentUser.id, language: 'es' },
+        { content: 'Idea para el blog: 5 formas de usar nuestra herramienta para ahorrar tiempo. Redactar borrador para el viernes y pedirle a Carlos que haga los gráficos.', processed: false, user_id: currentUser.id, language: 'es' },
+        { content: 'Confirmar asistencia al evento de networking del próximo martes y preparar tarjetas de visita.', processed: false, user_id: currentUser.id, language: 'es' }
+      ];
+      await supabase.from('pm_inbox').insert(newInbox);
+
+      console.log('[Demo Reset] Seeding complete. Reloading...');
+      await loadAllData();
+      setLoading(false);
+      window.location.reload();
+
+    } catch (err) {
+      console.error('[Demo Reset] Failed:', err);
+      setLoading(false);
+      alert('Error resetting demo data: ' + err.message);
+    }
   };
 
   const value = {
@@ -1398,13 +1478,15 @@ export function DataProvider({ children }) {
     getTasksDueThisWeek,
     getUserByName,
     getPendingTasksForPerson,
+    getPendingTasksForPerson,
     getVoiceCreatedTasks,
+    resetDemoData, // Export the reset function
   };
 
   return (
-    <DataContext.Provider value={value} >
+    <DataContext.Provider value={value}>
       {children}
-    </DataContext.Provider >
+    </DataContext.Provider>
   );
 }
 

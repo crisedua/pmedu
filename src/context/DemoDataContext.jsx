@@ -3,49 +3,49 @@ import { createContext, useContext, useState } from 'react';
 // Mock data for demo mode
 const MOCK_USERS = [
     { id: 'user-1', name: 'Demo User', email: 'demo@example.com', avatar: '👤', role: 'admin' },
-    { id: 'user-2', name: 'Sarah Chen', email: 'sarah@example.com', avatar: '👩', role: 'member' },
-    { id: 'user-3', name: 'Juan Rodriguez', email: 'juan@example.com', avatar: '👨', role: 'member' },
-    { id: 'user-4', name: 'Gonzalo Martinez', email: 'gonzalo@example.com', avatar: '🧑', role: 'member' },
+    { id: 'user-2', name: 'Ana Garcia', email: 'ana@example.com', avatar: '👩', role: 'member' },
+    { id: 'user-3', name: 'Carlos Ruiz', email: 'carlos@example.com', avatar: '👨', role: 'member' },
+    { id: 'user-4', name: 'Sofia Lopez', email: 'sofia@example.com', avatar: '🧑', role: 'member' },
 ];
 
 const MOCK_PROJECTS = [
-    { id: 'proj-1', name: 'Marketing Campaign Q1', status: 'Active', color: '#6366f1' },
-    { id: 'proj-2', name: 'Website Redesign', status: 'Planning', color: '#10b981' },
-    { id: 'proj-3', name: 'Product Launch', status: 'Active', color: '#f59e0b' },
+    { id: 'proj-1', name: 'Lanzamiento Web 2.0', status: 'Active', color: '#6366f1' },
+    { id: 'proj-2', name: 'Campaña Marketing Q1', status: 'Planning', color: '#10b981' },
+    { id: 'proj-3', name: 'Expansión Latam', status: 'Active', color: '#f59e0b' },
 ];
 
 const INITIAL_TASKS = [
     {
         id: 'task-1',
-        name: 'Solicitar informe de ACME',
-        description: 'Request quarterly report from ACME client',
+        name: 'Revisar Presupuesto Q1',
+        description: 'Analizar discrepancias en gastos de marketing',
         status: 'To Do',
-        assigned_to: 'user-4',
-        project_id: 'proj-1',
-        due_date: '2026-01-12',
-        created_at: '2026-01-10T10:00:00Z',
-        action_type: 'delegate'
+        assigned_to: 'user-1',
+        project_id: 'proj-2',
+        due_date: new Date(Date.now() + 86400000).toISOString(), // Tomorrow
+        created_at: new Date(Date.now() - 172800000).toISOString(),
+        action_type: 'analyze'
     },
     {
         id: 'task-2',
-        name: 'Coordinar reunión con Juan',
-        description: 'Schedule meeting to discuss project timeline',
+        name: 'Entrevistar candidato Senior Dev',
+        description: 'Revisar portafolio antes de la llamada',
         status: 'To Do',
-        assigned_to: 'user-3',
-        project_id: 'proj-2',
-        due_date: '2026-01-17',
-        created_at: '2026-01-09T14:00:00Z',
-        action_type: 'delegate'
+        assigned_to: 'user-1',
+        project_id: 'proj-1',
+        due_date: new Date(Date.now() + 172800000).toISOString(), // +2 days
+        created_at: new Date(Date.now() - 86400000).toISOString(),
+        action_type: 'meeting'
     },
     {
         id: 'task-3',
-        name: 'Consultar resumen del proyecto X',
-        description: 'Get project X summary from Cote',
+        name: 'Enviar reporte mensual a inversores',
+        description: 'Incluir métricas de crecimiento y retención',
         status: 'To Do',
         assigned_to: 'user-2',
         project_id: 'proj-3',
-        due_date: '2026-01-12',
-        created_at: '2026-01-08T09:00:00Z',
+        due_date: new Date(Date.now() + 345600000).toISOString(), // +4 days
+        created_at: new Date(Date.now() - 259200000).toISOString(),
         action_type: 'delegate'
     },
 ];
@@ -53,30 +53,30 @@ const INITIAL_TASKS = [
 const INITIAL_INBOX = [
     {
         id: 'inbox-1',
-        content: 'Te pedí a Gonzalo que me envíe un informe de ACME, llamar a Juan para coordinar reunión el miércoles, decirle a Cote si terminó el resumen del proyecto X.',
+        content: 'Recordar pedir feedback a Laura sobre la presentación de ventas de ayer, necesito incorporarlo antes del lunes.',
         processed: false,
-        created_at: '2026-01-12T08:30:00Z',
+        created_at: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
         source: 'voice'
     },
     {
         id: 'inbox-2',
-        content: 'Test 10, 1, 2, 3, today I need to do this, that, that, and then this.',
+        content: 'Llamar a Proveedores Inc. para renegociar el contrato anual, decirles que tenemos una oferta mejor de la competencia y ver si pueden igualarla.',
         processed: false,
-        created_at: '2026-01-12T09:15:00Z',
+        created_at: new Date(Date.now() - 7200000).toISOString(), // 2 hours ago
         source: 'voice'
     },
     {
         id: 'inbox-3',
-        content: "Yes? I'm here on Rex Mayhew's behalf. Oh yeah, you were at his house the day of the birthday party. Yes. And we need to talk. Um, so, where's Rex? Get your things, make your excuses, I'll tell you everything in the car.",
+        content: 'Idea para el blog: 5 formas de usar nuestra herramienta para ahorrar tiempo. Redactar borrador para el viernes y pedirle a Carlos que haga los gráficos.',
         processed: false,
-        created_at: '2026-01-11T16:45:00Z',
+        created_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
         source: 'voice'
     },
     {
         id: 'inbox-4',
-        content: "Maybe somebody will answer for her. Ray and Hannah are at her office now. I'll circle back in a bit, okay? Got it.",
+        content: 'Confirmar asistencia al evento de networking del próximo martes y preparar tarjetas de visita.',
         processed: false,
-        created_at: '2026-01-11T11:20:00Z',
+        created_at: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
         source: 'voice'
     },
 ];

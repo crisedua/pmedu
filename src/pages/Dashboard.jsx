@@ -28,7 +28,8 @@ export default function Dashboard() {
         updateInboxItem,
         dataLoaded,
         loading,
-        connectionError
+        connectionError,
+        resetDemoData
     } = useData();
     const [isProcessing, setIsProcessing] = useState(false); // Local loading for AI
     const navigate = useNavigate();
@@ -298,7 +299,18 @@ export default function Dashboard() {
             {/* Header */}
             <div className="stream-header mb-8">
                 <div>
-                    <h1 className="page-title">Command Center</h1>
+                    <h1
+                        className="page-title"
+                        onDoubleClick={(e) => {
+                            if (e.altKey && window.confirm('RESET DATA FOR SPANISH DEMO? This will wipe the DB.')) {
+                                resetDemoData();
+                            }
+                        }}
+                        style={{ cursor: 'pointer' }}
+                        title="Alt + Double Click to Reset Demo Data"
+                    >
+                        Command Center
+                    </h1>
                     <p className="page-subtitle">
                         {dataLoaded
                             ? `You have ${immediateActions.length} immediate actions and ${recentCaptures.length} unprocessed ideas.`
