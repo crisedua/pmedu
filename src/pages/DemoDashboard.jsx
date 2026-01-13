@@ -79,7 +79,14 @@ function DemoDashboardContent() {
             action_type: 'todo'
         });
         setIsProcessing(false);
-        speak("He analizado tu nota y creado una tarea prioritaria.");
+
+        if (demoStep === 4) {
+            setDemoStep(5);
+            speak("¡Magia! Se ha movido a 'Do Now'. Ahora prueba el Asistente IA.");
+            setTimeout(() => setDemoStep(6), 4000);
+        } else {
+            speak("He analizado tu nota y creado una tarea prioritaria.");
+        }
     };
 
     const handleInboxProcess = (item, target) => {
@@ -111,32 +118,37 @@ function DemoDashboardContent() {
         "Llamar a María para confirmar la cena de equipo del jueves.",
     ];
 
+    // WALKTHROUGH STATE
+    // 0: Welcome
+    // 1: Click Mic
+    // 2: Recording (Click X)
+    // 3: Click Menu (Inbox)
+    // 4: Click Smart Process
+    // 5: Moved to Do Now (Transition)
+    // 6: Click AI Assistant
+    // 7: AI Chat
+    const [demoStep, setDemoStep] = useState(0);
+
     const toggleRecording = () => {
         if (isRecording) {
             setIsRecording(false);
             if (recordingText) {
-                // Determine step for walkthrough
-                if (demoStep === 2) {
-                    setDemoStep(3); // Advance to processing explanation
-                }
-
                 setIsProcessing(true);
                 setTimeout(() => {
-                    const newItem = addInboxItem(recordingText);
+                    addInboxItem(recordingText);
                     setRecordingText('');
                     setIsProcessing(false);
-                    speak("Nota guardada en Inbox.");
+
+                    if (demoStep === 2) {
+                        setDemoStep(3);
+                        speak("Nota guardada. Ahora haz clic en los tres puntos de la tarjeta.");
+                    }
                 }, 1500);
             }
         } else {
             setIsRecording(true);
             setRecordingText('');
-
-            // Advance walkthrough if on the mic step
-            if (demoStep === 1) {
-                // Stay on step 1 or move to fake "listening" state? 
-                // Let's keep step 1 active until stop
-            }
+            if (demoStep === 1) setDemoStep(2);
 
             let textIndex = 0;
             const targetText = simulatedTexts[Math.floor(Math.random() * simulatedTexts.length)];
@@ -147,10 +159,6 @@ function DemoDashboardContent() {
                     const nextWord = words[textIndex];
                     if (!nextWord) {
                         clearInterval(interval);
-                        // Auto-stop for demo flow sweetness
-                        if (demoStep === 1) {
-                            setDemoStep(2); // Highlighting "Click Action to Process"
-                        }
                         return prev;
                     }
                     textIndex++;
@@ -160,13 +168,24 @@ function DemoDashboardContent() {
         }
     };
 
-    // WALKTHROUGH STATE
-    const [demoStep, setDemoStep] = useState(0);
-    // 0: Welcome Modal
-    // 1: Click Mic (Highlight Mic)
-    // 2: Processing / Inbox (Highlight Inbox item)
-    // 3: Action columns (Highlight columns)
-    // 4: Done
+    const handleCardMenuToggle = (isOpen, item) => {
+        // Only track the FIRST inbox item for the demo
+        if (demoStep === 3 && isOpen && inbox.indexOf(item) === 0) {
+            setDemoStep(4);
+            speak("Selecciona 'Smart Process' para que la IA organice esto.");
+        }
+    };
+
+    const handleAiSidebarToggle = () => {
+        if (demoStep === 6) {
+            setDemoStep(7);
+            speak("Aquí está tu asistente. Puede responder preguntas sobre tus proyectos.");
+        } else {
+            // Toggle normal behavior if not in that step?
+            // For demo, we just toggle step 7 off if clicked again?
+            if (demoStep === 7) setDemoStep(6);
+        }
+    };
 
     return (
         <div className="dashboard-container relative">
@@ -390,6 +409,52 @@ function DemoDashboardContent() {
                 </div>
             )}
 
+            {/* Overlays for Steps */}
+            {demoStep === 3 && (
+                <div style={{ position: 'fixed', bottom: '10%', left: '50%', transform: 'translateX(-50%)', zIndex: 60, pointerEvents: 'none', background: 'rgba(0,0,0,0.8)', color: 'white', padding: '12px 24px', borderRadius: '30px', animation: 'bounce 2s infinite' }}>
+                    👆 Haz clic en los tres puntos
+                </div>
+            )}
+            {demoStep === 6 && (
+                <div style={{ position: 'fixed', top: '90px', right: '20px', zIndex: 60, pointerEvents: 'none', background: 'rgba(0,0,0,0.8)', color: 'white', padding: '12px 24px', borderRadius: '30px', animation: 'bounce 2s infinite' }}>
+                    👆 Abre el Asistente IA
+                </div>
+            )}
+
+            {/* AI Sidebar Mock */}
+            <div style={{
+                position: 'fixed',
+                top: 0,
+                right: demoStep === 7 ? 0 : '-400px',
+                width: '350px',
+                height: '100vh',
+                background: 'white',
+                boxShadow: '-5px 0 25px rgba(0,0,0,0.1)',
+                transition: 'right 0.3s ease',
+                zIndex: 200, // Top level
+                display: 'flex',
+                flexDirection: 'column'
+            }}>
+                <div style={{ padding: '20px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ margin: 0, fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}><Sparkles size={18} color="#4f46e5" /> AI Assistant</h3>
+                    <button onClick={() => setDemoStep(6)}><X size={20} /></button>
+                </div>
+                <div style={{ flex: 1, padding: '20px', background: '#f9fafb' }}>
+                    <div style={{ background: 'white', padding: '12px', borderRadius: '12px', marginBottom: '12px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                        <p style={{ margin: 0, fontSize: '14px', color: '#374151' }}>Hola, soy Aido. ¿En qué te ayudo hoy?</p>
+                    </div>
+                    <div style={{ background: '#eef2ff', padding: '12px', borderRadius: '12px', marginBottom: '12px', marginLeft: 'auto', maxWidth: '80%' }}>
+                        <p style={{ margin: 0, fontSize: '14px', color: '#374151' }}>¿Qué tares tengo pendientes?</p>
+                    </div>
+                    <div style={{ background: 'white', padding: '12px', borderRadius: '12px', marginBottom: '12px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                        <p style={{ margin: 0, fontSize: '14px', color: '#374151' }}>Tienes {immediateActions.length} tareas prioritarias, incluyendo "Lanzamiento Web 2.0".</p>
+                    </div>
+                </div>
+                <div style={{ padding: '16px', borderTop: '1px solid #e5e7eb' }}>
+                    <input type="text" placeholder="Escribe un mensaje..." style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db' }} disabled />
+                </div>
+            </div>
+
             {/* Connection Banner */}
             {(isProcessing) && (
                 <div className="connection-banner bg-blue-50 border-blue-100 mb-6">
@@ -425,19 +490,24 @@ function DemoDashboardContent() {
                             }}>
                                 🎮 Demo Mode
                             </span>
-                            <button style={{
-                                background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                                color: 'white',
-                                border: 'none',
-                                padding: '8px 16px',
-                                borderRadius: '8px',
-                                fontSize: '14px',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px'
-                            }}>
+                            <button
+                                onClick={handleAiSidebarToggle}
+                                style={{
+                                    background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '8px 16px',
+                                    borderRadius: '8px',
+                                    fontSize: '14px',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    position: 'relative',
+                                    zIndex: demoStep === 6 ? 65 : 1, // Highlight button
+                                    boxShadow: demoStep === 6 ? '0 0 0 4px rgba(99, 102, 241, 0.5)' : 'none'
+                                }}>
                                 <Sparkles size={16} />
                                 AI Assistant
                             </button>

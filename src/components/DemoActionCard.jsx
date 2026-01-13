@@ -22,8 +22,10 @@ export default function DemoActionCard({
     onDelete,
     onMarkProcessed,
     onClick,
+    onMenuToggle,
     users = [],
-    getUser = () => null
+    getUser = () => null,
+    tutorialStep = null // 'open_menu' | 'click_smart_process' | null
 }) {
     const [menuOpen, setMenuOpen] = useState(false);
     const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
@@ -66,7 +68,9 @@ export default function DemoActionCard({
 
     const handleMenuToggle = (e) => {
         e.stopPropagation();
-        setMenuOpen(!menuOpen);
+        const newState = !menuOpen;
+        setMenuOpen(newState);
+        if (onMenuToggle) onMenuToggle(newState);
     };
 
     const handleMainAction = (e) => {
@@ -78,6 +82,14 @@ export default function DemoActionCard({
         e.stopPropagation();
         setMenuOpen(false);
         if (callback) callback(...args);
+    };
+
+    // Highlight styles
+    const highlightStyle = {
+        position: 'relative',
+        zIndex: 60,
+        boxShadow: '0 0 0 4px rgba(99, 102, 241, 0.5), 0 0 0 2px white',
+        animation: 'pulse 2s infinite'
     };
 
     return (
@@ -95,7 +107,8 @@ export default function DemoActionCard({
                 alignItems: 'flex-start',
                 cursor: onClick ? 'pointer' : 'default',
                 transition: 'all 0.2s ease',
-                position: 'relative'
+                position: tutorialStep ? 'relative' : 'initial',
+                zIndex: tutorialStep ? 55 : 'auto', // Pop card slightly
             }}
         >
             {/* Left Icon */}
@@ -227,7 +240,8 @@ export default function DemoActionCard({
                         borderRadius: '4px',
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'center'
+                        justifyContent: 'center',
+                        ...(tutorialStep === 'open_menu' ? highlightStyle : {})
                     }}
                 >
                     <MoreVertical size={16} />
@@ -270,7 +284,13 @@ export default function DemoActionCard({
                             <MenuItem icon={<ArrowRight size={14} />} onClick={menuAction(onAction, item)}>
                                 Process (Manual)
                             </MenuItem>
-                            <MenuItem icon={<Sparkles size={14} />} highlight onClick={menuAction(onEdit, item, 'auto')}>
+                            <MenuItem
+                                icon={<Sparkles size={14} />}
+                                highlight
+                                onClick={menuAction(onEdit, item, 'auto')}
+                                style={tutorialStep === 'click_smart_process' ? { background: '#eef2ff', fontWeight: 'bold' } : {}}
+                            >
+                                {tutorialStep === 'click_smart_process' && <span style={{ position: 'absolute', right: '100%', marginRight: '10px', background: '#4f46e5', color: 'white', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', whiteSpace: 'nowrap' }}>👈 Clic aquí</span>}
                                 Smart Process
                             </MenuItem>
                             <MenuDivider />
