@@ -465,7 +465,7 @@ function DemoDashboardContent() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     title: 'Acceso de por vida Aido',
-                    price: 15,
+                    price: 9.99,
                     email: signupEmail
                 })
             });
@@ -1867,27 +1867,30 @@ function DemoDashboardContent() {
                             ¡Completaste el Tour!
                         </h2>
 
-                        <p style={{ fontSize: '18px', color: '#6b7280', lineHeight: '1.6', marginBottom: '32px' }}>
+                        <p style={{ fontSize: '16px', color: '#6b7280', lineHeight: '1.6', marginBottom: '24px' }}>
                             Ahora sabes cómo <strong style={{ color: '#111827' }}>Aido puede transformar tu productividad</strong>.
+                            <br />
+                            Aido aún está en desarrollo — puedes unirte como early adopter.
                         </p>
 
                         <div style={{
                             background: '#f9fafb',
                             borderRadius: '16px',
                             padding: '24px',
-                            marginBottom: '24px',
+                            marginBottom: '20px',
                             textAlign: 'left',
                             border: '1px solid #e5e7eb'
                         }}>
                             <p style={{ fontSize: '16px', color: '#111827', marginBottom: '16px', fontWeight: 700, marginTop: 0 }}>
-                                Acceso de por vida incluye:
+                                ¿Qué obtienes al unirte ahora?
                             </p>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                 {[
-                                    'Todas las funciones actuales de Aido',
-                                    'Todas las funciones futuras, sin costo adicional',
-                                    'Procesamiento con IA incluido',
-                                    'Sin suscripciones — pagas una sola vez'
+                                    'Acceso de por vida cuando Aido se lance oficialmente',
+                                    'Acceso anticipado a versiones beta',
+                                    'Todas las funciones actuales y futuras incluidas',
+                                    'Precio fundador para primeros usuarios',
+                                    'Tu feedback ayudará a construir el producto'
                                 ].map((text, i) => (
                                     <div key={i} style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                                         <CheckCircle2 size={18} color="#10b981" fill="#ecfdf5" />
@@ -1897,18 +1900,40 @@ function DemoDashboardContent() {
                             </div>
                         </div>
 
+                        {/* Transparency Warning */}
+                        <div style={{
+                            background: '#fffeb8',
+                            border: '1px solid #fde047',
+                            borderRadius: '12px',
+                            padding: '12px',
+                            marginBottom: '24px',
+                            textAlign: 'left',
+                            fontSize: '13px',
+                            color: '#854d0e',
+                            display: 'flex',
+                            gap: '10px',
+                            alignItems: 'start'
+                        }}>
+                            <span style={{ fontSize: '16px' }}>⚠️</span>
+                            <div>
+                                <strong>Importante:</strong> Aido aún no está listo.
+                                <br />
+                                Este pago es para reservar tu acceso de por vida antes del lanzamiento.
+                            </div>
+                        </div>
+
 
                         {!signupSubmitted ? (
                             <>
                                 <div style={{ marginBottom: '24px', textAlign: 'center' }}>
                                     <div style={{ display: 'inline-block', background: '#fff7ed', color: '#ea580c', fontSize: '12px', fontWeight: 700, padding: '4px 12px', borderRadius: '20px', marginBottom: '8px' }}>
-                                        🔥 OFERTA DE PRE-LANZAMIENTO
+                                        🚀 PRECIO FUNDADOR DE PRE-LANZAMIENTO
                                     </div>
                                     <div style={{ fontSize: '22px', fontWeight: 800, color: '#111827' }}>
-                                        Acceso de por vida por solo <span style={{ color: '#10b981' }}>$15 USD</span>
+                                        Acceso de por vida por <span style={{ color: '#10b981' }}>$9.99 USD</span>
                                     </div>
                                     <p style={{ fontSize: '13px', color: '#6b7280', margin: '4px 0 0 0' }}>
-                                        (pago único) · Después del lanzamiento será solo por suscripción
+                                        (pago único) · Después del lanzamiento, Aido será solo por suscripción.
                                     </p>
                                 </div>
 
@@ -1971,16 +1996,16 @@ function DemoDashboardContent() {
                                             e.target.style.boxShadow = '0 12px 24px rgba(16,185,129,0.4)';
                                         }}
                                     >
-                                        🚀 Desbloquear Acceso de por Vida — $15
+                                        💚 Reservar Acceso de por Vida — $9.99
                                     </button>
                                 </form>
 
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
                                     <div style={{ fontSize: '13px', color: '#6b7280' }}>Pago único</div>
                                     <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#d1d5db' }} />
-                                    <div style={{ fontSize: '13px', color: '#6b7280' }}>Sin suscripciones</div>
+                                    <div style={{ fontSize: '13px', color: '#6b7280' }}>Acceso cuando lancemos</div>
                                     <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#d1d5db' }} />
-                                    <div style={{ fontSize: '13px', color: '#6b7280' }}>Acceso para siempre</div>
+                                    <div style={{ fontSize: '13px', color: '#6b7280' }}>Sin suscripciones</div>
                                 </div>
                             </>
                         ) : (
