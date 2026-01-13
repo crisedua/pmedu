@@ -31,6 +31,17 @@ function DemoDashboardContent() {
     const [editingItem, setEditingItem] = useState(null);
     const [isProcessing, setIsProcessing] = useState(false);
 
+    // TTS Helper
+    const speak = (text) => {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const speech = new SpeechSynthesisUtterance(text);
+            speech.lang = 'es-ES';
+            speech.rate = 1.1;
+            window.speechSynthesis.speak(speech);
+        }
+    };
+
     // Filter tasks
     const immediateActions = tasks.filter(t =>
         (t.assigned_to === currentUser.id || !t.assigned_to) && t.status !== 'Done'
@@ -68,6 +79,7 @@ function DemoDashboardContent() {
             action_type: 'todo'
         });
         setIsProcessing(false);
+        speak("He analizado tu nota y creado una tarea prioritaria.");
     };
 
     const handleInboxProcess = (item, target) => {
@@ -113,6 +125,7 @@ function DemoDashboardContent() {
                     const newItem = addInboxItem(recordingText);
                     setRecordingText('');
                     setIsProcessing(false);
+                    speak("Nota guardada en Inbox.");
                 }, 1500);
             }
         } else {
