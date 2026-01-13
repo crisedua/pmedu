@@ -1157,13 +1157,20 @@ export function DataProvider({ children }) {
   };
 
   const deleteInboxItem = async (itemId) => {
+    console.log('[DataContext] deleteInboxItem called for:', itemId);
     try {
-      const { error } = await supabase
+      const { error, count } = await supabase
         .from('pm_inbox')
-        .delete()
+        .delete({ count: 'exact' })
         .eq('id', itemId);
 
+      console.log('[DataContext] Supabase delete output:', { error, count });
+
       if (error) throw error;
+
+      if (count === 0) {
+        console.warn('[DataContext] Delete succeeded but 0 rows affected. Check RLS or ID.');
+      }
 
       setInbox(prev => prev.filter(i => i.id !== itemId));
     } catch (err) {
