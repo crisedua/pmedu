@@ -362,7 +362,10 @@ function DemoDashboardContent() {
         // Only track the FIRST inbox item for the demo
         if (demoStep === 4 && isOpen && inbox.indexOf(item) === 0) {
             setDemoStep(5);
-            speak("Selecciona 'Procesamiento Inteligente' para que la IA organice esto.");
+            // Wait 2 seconds to let user see the menu before instructing
+            setTimeout(() => {
+                speak("Selecciona 'Procesamiento Inteligente' para que la IA organice esto.");
+            }, 2000);
         }
     };
 
